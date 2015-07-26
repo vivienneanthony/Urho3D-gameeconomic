@@ -1,0 +1,7 @@
+CREATE TABLE MarketSystems (
+    MarketIdx int,
+    MarketName varchar(255),
+    MarketSystem int,
+    MarketFee int,
+    MarketBidding bool
+)

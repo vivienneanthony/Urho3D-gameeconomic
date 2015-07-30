@@ -42,6 +42,9 @@
 
 #include <Urho3D/Engine/Application.h>
 
+
+///#include "GameEconomicServer/GameEconomicServer.h"
+
 namespace Urho3D
 {
 
@@ -55,6 +58,8 @@ class Sprite;
 using namespace Urho3D;
 
 const float TOUCH_SENSITIVITY = 2.0f;
+
+class GameEconomicServer;
 
 /// GameEconomicApp class, as framework for all GameEconomicApps.
 ///    - Initialization of the Urho3D engine (in Application class)
@@ -76,19 +81,22 @@ public:
     GameEconomicApp(Context* context);
 
     /// Setup before engine initialization. Modifies the engine parameters.
-    virtual void Setup();
+    inline virtual void Setup();
     /// Setup after engine initialization. Creates the logo, console & debug HUD.
-    virtual void Start();
+    inline virtual void Start();
     /// Cleanup after the main loop. Called by Application.
-    virtual void Stop();
+    inline virtual void Stop();
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific GameEconomicApp app, if any.
-    virtual String GetScreenJoystickPatchString() const { return String::EMPTY; }
+    virtual String GetScreenJoystickPatchString() const
+    {
+        return String::EMPTY;
+    }
     /// Initialize touch input on mobile platform.
-    void InitTouchInput();
+    inline void InitTouchInput();
     /// Control logo visibility.
-    void SetLogoVisible(bool enable);
+    inline void SetLogoVisible(bool enable);
 
     /// Logo sprite.
     SharedPtr<Sprite> logoSprite_;
@@ -105,17 +113,17 @@ protected:
 
 private:
     /// Create logo.
-    void CreateLogo();
+    inline void CreateLogo();
     /// Set custom window Title & Icon
-    void SetWindowTitleAndIcon();
+    inline void SetWindowTitleAndIcon();
     /// Create console and debug HUD.
-    void CreateConsoleAndDebugHud();
+    inline void CreateConsoleAndDebugHud();
     /// Handle key down event to process key controls common to all GameEconomicApps.
-    void HandleKeyDown(StringHash eventType, VariantMap& eventData);
+    inline void HandleKeyDown(StringHash eventType, VariantMap& eventData);
     /// Handle scene update event to control camera's pitch and yaw for all GameEconomicApps.
-    void HandleSceneUpdate(StringHash eventType, VariantMap& eventData);
+    inline void HandleSceneUpdate(StringHash eventType, VariantMap& eventData);
     /// Handle touch begin event to initialize touch input on desktop platform.
-    void HandleTouchBegin(StringHash eventType, VariantMap& eventData);
+    inline void HandleTouchBegin(StringHash eventType, VariantMap& eventData);
 
     /// Screen joystick index for navigational controls (mobile platforms only).
     unsigned screenJoystickIndex_;

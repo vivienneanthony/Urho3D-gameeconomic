@@ -43,10 +43,7 @@ EVENT(E_CONNECTFAILED, ConnectFailed)
 }
 
 /// New client connection established.
-EVENT(E_CLIENTCONNECTED, ClientConnected)
-{
-    PARAM(P_CONNECTION, Connection);        // Connection pointer
-}
+EVENT(E_CLIENTCONNECTED, ClientConnected){PARAM(P_CONNECTION, Connection); }
 
 /// Client connection disconnected.
 EVENT(E_CLIENTDISCONNECTED, ClientDisconnected)

@@ -314,3 +314,89 @@ int connectorDB::executePreparedStatement(string preparedstatement)
     }
     return success;
 }
+
+
+/// Code to setup excute a query
+Vector<String> connectorDB::executePreparedStatementResult(string preparedstatement)
+{
+    /// Set success flag
+    bool success = false;
+
+    /// Create empty
+    Vector<String> Results;
+
+    /// Verify valid configuration
+    if(!VerifyValidConfiguration())
+    {
+        return Results;
+    }
+
+    /// Attempt and execute query
+    try
+    {
+        /// Connect to database
+        driver = get_driver_instance();
+
+        con = driver->connect(MySqlConnection.hostname,MySqlConnection.username,MySqlConnection.password);
+
+        /// Set schema
+        con->setSchema(schema);
+
+        /// Turn off the autocommit
+        con -> setAutoCommit(0);
+
+        size_t pos = 0;
+
+        /// create a statement
+        pstmt = con->prepareStatement(preparedstatement);
+        res = pstmt->executeQuery();
+
+        res_meta = res -> getMetaData();
+
+        /// get size
+        unsigned int numCols = res_meta -> getColumnCount();
+
+        /// get results and loop through copying
+        while(res->next())
+        {
+            for(unsigned int i=0; i<numCols; i++)
+            {
+                /// get type
+                if(res_meta->getColumnType(i)==DataType::VARCHAR||res_meta->getColumnType(i)==DataType::LONGVARCHAR)
+                {
+                    Results.Push(String(res->getString(i).c_str()));
+                }
+                else if(res_meta->getColumnType(i)==DataType::INTEGER)
+                {
+                    Results.Push(String(res->getInt(i)));
+                }
+                else
+                {
+                    Results.Push(String(""));
+                }
+            }
+        }
+
+        /// delete statement and results
+//        delete res_meta;
+        delete pstmt;
+        delete res;
+        delete con;
+    }
+    catch (sql::SQLException &e)
+    {
+        cout << "# ERR: SQLException in " << __FILE__;
+        cout << "(" << __FUNCTION__ << ") on line "     << __LINE__ << endl;
+        cout << "# ERR: " << e.what();
+        cout << " (MySQL error code: " << e.getErrorCode();
+        cout << ", SQLState: " << e.getSQLState() <<     " )" << endl;
+
+        /// Query failed
+        success=false;
+
+    }
+    return Results;
+}
+
+
+

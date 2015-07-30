@@ -31,14 +31,18 @@
 #include <Urho3D/UI/Text.h>
 #include <Urho3D/UI/UI.h>
 #include <Urho3D/Core/Context.h>
-#include "../../../Urho3D/Scene/LogicComponent.h"
-#include "../../../Urho3D/IO/File.h"
-#include "../../../Urho3D/IO/FileSystem.h"
-#include "../../../Urho3D/Resource/XMLFile.h"
-#include "../../../Urho3D/Resource/XMLElement.h"
+#include <Urho3D/Network/Network.h>
+#include <Urho3D/Scene/LogicComponent.h>
+#include <Urho3D/IO/File.h>
+#include <Urho3D/IO/FileSystem.h>
+#include <Urho3D/Resource/XMLFile.h>
+#include <Urho3D/Resource/XMLElement.h>
+#include <Urho3D/IO/MemoryBuffer.h>
+#include <Urho3D/Network/Network.h>
+#include <Urho3D/Network/NetworkEvents.h>
 
 #include <iostream>
-#include  <signal.h>
+#include <signal.h>
 #include <sstream>
 #include <fstream>
 #include <vector>
@@ -49,6 +53,7 @@
 #include "../GameEconomicComponents/connectorDB.h"
 
 #include "signalHandler.hpp"
+#include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
 
@@ -71,13 +76,16 @@ void GameEconomicServer::Start()
     /// get system
     FileSystem * fileSystem = GetSubsystem<FileSystem>();
     connectorDB * connectionDB= GetSubsystem<connectorDB>();
+    Log * logs=GetSubsystem<Log>();
+
 
     /// Execute base class startup
     GameEconomicApp::Start();
 
+    /// Create a signalHandler
     SignalHandler signalHandler;
 
-    // Register signal handler to handle kill signal
+    /// Register signal handler to handle kill signal
     signalHandler.setupSignalHandlers();
 
     /// Open the operating system console window (for stdin / stdout) if not open yet
@@ -86,32 +94,32 @@ void GameEconomicServer::Start()
     /// Create a interface point
     ServerConsoleInterface * PrimaryConsoleInterface;
 
-
     /// odbc stuff here
     databaseconnection MyDB;
+    networkconfiguration MyNetwork;
 
-
+    /// Display text
     cout << "Info: Loading database configuration ." << endl;
 
+    /// Load database configuration file
     bool  success = LoadDatabaseConfig(MyDB);
 
-    /// if configuration loaded
+    /// Ff configuration loaded configuration database
     if(success)
     {
-
         cout << "Info: Loading database configuration successful." << endl;
 
         /// configure database
         connectionDB->setHost(MyDB.hostname,MyDB.username,MyDB.password);
         connectionDB->setDB(MyDB.schema);
 
-        /// connect to host
+        /// Attempt to connect to database to validate
         if(connectionDB->connectHost())
         {
             cout << "Info: Database connection succesful. "  << endl;
 
+            /// Actual database initialization
             DatabaseInitialization();
-
         }
         else
         {
@@ -124,29 +132,62 @@ void GameEconomicServer::Start()
     }
 
 
+    /// Display text
+    cout << "Info: Loading network configuration ." << endl;
+
+    /// Load database configuration file
+    success = LoadNetworkConfig(MyNetwork);
+
+    /// Ff configuration loaded configuration database
+    if(success)
+    {
+        cout << "Info: Loading network configuration successful." << endl;
+    }
+    else
+    {
+        cout << "Info: Loading network configuration failed. Using 127.0.0.1 and port 3306 as default." << endl;
+    }
+
+
     /// show splash
     Splash();
 
     /// Create Interface Context
     PrimaryConsoleInterface = new ServerConsoleInterface(context_);
 
+    /// Copy network
+    PrimaryConsoleInterface->SetHostNetworkServer(MyNetwork);
+
     /// Finally subscribe to the update event. Note that by subscribing events at this point we have already missed some events
     /// like the ScreenMode event sent by the Graphics subsystem when opening the application window. To catch those as well we
     /// could subscribe in the constructor instead.
     SubscribeToEvents();
 
+    /// change log level
+    ///logs->SetLevel(LOG_ERROR );
+
+    /// Networking
+    NetworkInitialization(3306);
+
+    CoreInitialization();
+
     /// Start the interface
     PrimaryConsoleInterface -> Start();
+
+    return;
 }
 
-/// Splash
+/// Display simple splash screen
 void GameEconomicServer::Splash(void)
 {
+    /// Output program information
     cout << "Headless Server Model " << endl;
     cout << "Programmer Vivienne Anthony\r\n " << endl;
+
+    return;
 }
 
-/// Subscribe to events
+/// Subscribe to all events
 void GameEconomicServer::SubscribeToEvents()
 {
     // Subscribe HandleUpdate() function for processing update events
@@ -155,16 +196,20 @@ void GameEconomicServer::SubscribeToEvents()
     /// execute console event
     SubscribeToEvent(SERVER_CONSOLEEVENT, HANDLER(GameEconomicServer,OnServerConsoleInterfaceEvent));
 
+    return;
 }
 
+/// Handle Updates
 void GameEconomicServer::HandleUpdate(StringHash eventType, Urho3D::VariantMap& eventData)
 {
     // Do nothing for now, could be extended to eg. animate the display
+    return;
 }
 
+/// OnServerConsoleInterfaceEvent Listener Handler
 void GameEconomicServer::OnServerConsoleInterfaceEvent(StringHash eventType, Urho3D::VariantMap& eventData)
 {
-// Resources
+    /// Get Urho API level resources
     UI* ui_ = GetSubsystem<UI>();
     Engine * engine_ = GetSubsystem<Engine>();
 
@@ -172,19 +217,25 @@ void GameEconomicServer::OnServerConsoleInterfaceEvent(StringHash eventType, Urh
     String Command=eventData[server_consolecommand::P_CMD].GetString();
     String Arguments=eventData[server_consolecommand::P_ARG].GetString();
 
-    /// Modify and trim
-    Command = Command.Trimmed().ToLower();
-    Arguments = Arguments.Trimmed();
+    Command=Command.ToLower().Trimmed();
+    Arguments=Arguments.Trimmed();
+
+    Vector<String> SplitPromptInput;
+    SplitPromptInput = ParseCommand(Arguments.Trimmed());
 
     /// test command
     if(Command==String("quit"))
     {
         Stop();
         return;
+    }else
+    {
+
+        ExecuteCommand(Command,SplitPromptInput);
     }
 
-    /// Output
-    cout << "Test entered" << Command.CString() << " " << Arguments.CString() << endl;
+
+    return;
 }
 
 void GameEconomicServer::Stop(void)
@@ -202,140 +253,33 @@ void GameEconomicServer::Stop(void)
 }
 
 
-bool GameEconomicServer::LoadDatabaseConfig(databaseconnection &loadingdbconnector)
+void GameEconomicServer::NetworkInitialization(unsigned int Port)
 {
-    /// Grab resources
-    FileSystem * fileSystem = GetSubsystem<FileSystem>();
+    /// Cout start networking
+    cout << "Info : Starting networking on localhost(127.0.0.1)" << endl;
 
-    bool success=0;
+    /// Choose poart
+    Network* network = GetSubsystem<Network>();
 
-    /// Create String
-    String configFileName;
+    /// startserver
+    network->StartServer(Port);
 
-    /// Set directory
-    configFileName.Append(fileSystem->GetProgramDir().CString());
-    configFileName.Append("Configuration/");
-    configFileName.Append("Database.xml");
-
-    /// If file does not exist exit function
-    if (!fileSystem->FileExists(configFileName))
-    {
-        return false;
-    }
-
-    /// Flag file for loading and load
-    File loadFile(context_, configFileName, FILE_READ);
-
-    XMLFile * configurationXML = new XMLFile(context_);
-
-    configurationXML -> Load(loadFile);
-
-    XMLElement configElem = configurationXML->GetRoot();
-
-    /// If no configuration is set or no root
-    if (configElem.IsNull())
-    {
-        return  false;
-    }
-
-    XMLElement DatabaseElem = configElem.GetChild("Database");
-
-    /// If no database element return false;
-    if (!DatabaseElem.IsNull())
-    {
-        if (DatabaseElem.HasAttribute("databasehostname")) loadingdbconnector.hostname = DatabaseElem.GetAttribute("databasehostname").CString();
-        if (DatabaseElem.HasAttribute("databaseusername")) loadingdbconnector.username= DatabaseElem.GetAttribute("databaseusername").CString();
-        if (DatabaseElem.HasAttribute("databasepassword")) loadingdbconnector.password = DatabaseElem.GetAttribute("databasepassword").CString();
-        if (DatabaseElem.HasAttribute("databaseschema")) loadingdbconnector.schema = DatabaseElem.GetAttribute("databaseschema").CString();
-
-        success=1;
-    }
-
-    return success;
-}
-
-/// Load the Mysql file
-string GameEconomicServer::LoadMysqlFile(String MySqlFile)
-{
-    /// get system
-    FileSystem * fileSystem = GetSubsystem<FileSystem>();
-
-    /// create path
-    String ConfigFilename= fileSystem->GetProgramDir()+String("SQL/")+MySqlFile+String(".mysql");
-
-
-    /// if config does not exist
-    if (!fileSystem->FileExists(ConfigFilename))
-    {
-        return false;
-    }
-
-    string returnString = TextFileToString(ConfigFilename.CString());
-
-
-    return returnString;
-
-}
-
-void GameEconomicServer::DatabaseInitialization(void)
-{
-    /// Initialization of the DB
-    connectorDB * connectionDB= GetSubsystem<connectorDB>();
-
-    /// check if Markets Exist
-    vector<string> databasetables;
-
-    databasetables.push_back("Markets");
-    databasetables.push_back("MarketsTransactions");
-    databasetables.push_back("Trader");
-    databasetables.push_back("CargoBay");
-    databasetables.push_back("CargoBayCatalog");
-
-    /// loop through all database tables
-    for(unsigned int i=0; i<databasetables.size(); i++)
-    {
-        /// check if the primary database is created for markets
-        if(connectionDB->checkTable(databasetables.at(i)))
-        {
-            cout << "Info: Database "<< databasetables.at(i)<< " table found." << endl;
-        }
-        else
-        {
-            cout << "Info: Database "<< databasetables.at(i) << " table not found." << endl;
-
-
-            cout << "Info: Database "<< databasetables.at(i) << " table loading mysql file." << endl;
-
-            /// attempting to load sql and run
-            string marketstable = LoadMysqlFile(databasetables.at(i).c_str());
-
-            if(!marketstable.empty())
-            {
-                cout << "Info: Database "<< databasetables.at(i) << " table executing build table." << endl;
-
-                connectionDB->executePreparedStatement(marketstable);
-            }
-            else
-            {
-                cout << "Info: Database "<< databasetables.at(i) << " table problem loading mysql file." << endl;
-
-            }
-        }
-
-    }
+    /// SubscribetoEvents
+    SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameEconomicServer, HandleNetworkMessage));
+    SubscribeToEvent(E_CLIENTIDENTITY, HANDLER(GameEconomicServer, NewConnectionIdentity));
+    SubscribeToEvent(E_CLIENTCONNECTED, HANDLER(GameEconomicServer, NewConnection));
 
     return;
 }
 
-string GameEconomicServer::TextFileToString( string filename )
+void GameEconomicServer::CoreInitialization(void)
 {
-    ostringstream dosString( ios::out | ios::binary ) ; // *** binary
-    ifstream inFile( filename.c_str() ) ;
+    /// create scene
+    Scene * scene_ = new Scene(context_);
 
-    string line;
-    while( getline(inFile, line) ) dosString << line;
+    cout << "[Info]Starting scene." << endl;
 
-    return dosString.str() ;
+    return;
 }
 
 

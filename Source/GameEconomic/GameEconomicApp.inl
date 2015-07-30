@@ -1,3 +1,6 @@
+#ifndef GAMEECONOMICSEREVER_INLINE_H
+#define GAMEECONOMICSEREVER_INLINE_H
+
 //
 // Copyright (c) 2008-2015 the Urho3D project.
 //
@@ -40,7 +43,10 @@
 #include <Urho3D/UI/UI.h>
 #include <Urho3D/Resource/XMLFile.h>
 
-GameEconomicApp::GameEconomicApp(Context* context) :
+
+///#include "GameEconomicServer/GameEconomicServer.h"
+
+inline GameEconomicApp::GameEconomicApp(Context* context) :
     Application(context),
     yaw_(0.0f),
     pitch_(0.0f),
@@ -169,3 +175,5 @@ void GameEconomicApp::HandleTouchBegin(StringHash eventType, VariantMap& eventDa
 {
     /// not needed
 }
+
+#endif

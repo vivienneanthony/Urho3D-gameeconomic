@@ -1,5 +1,5 @@
-#ifndef GAMEECONOMICSERVER_H
-#define GAMEECONOMICSERVER_H
+#ifndef GameEconomicServerClient_H
+#define GameEconomicServerClient_H
 
 
 // Copyright (c) 2008-2015 the Urho3D project.
@@ -31,36 +31,32 @@
 #include <Urho3D/IO/Log.h>
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
-#include <Urho3D/Network/Connection.h>
-
-
 #include <Urho3D/IO/VectorBuffer.h>
+#include <kNet/MessageConnection.h>
 
+#include "../GameEconomicComponents/ServerConsoleInterface.h"
 
 #include "../GameEconomicApp.h"
 
-#include "../GameEconomicComponents/connectorDB.h"
-#include "../GameEconomicComponents/ServerConsoleInterface.h"
 
-#include "../Accounts.h"
-#include "../GameEconomicComponents/Player.h"
+
 
 using namespace std;
+using namespace Urho3D;
 
-class knet;
 
 /// This first example, maintaining tradition, prints a "Hello World" message.
 /// Furthermore it shows:
 ///     - Using the Sample / Application classes, which initialize the Urho3D engine and run the main loop
 ///     - Adding a Text element to the graphical user interface
 ///     - Subscribing to and handling of update events
-class GameEconomicServer : public GameEconomicApp
+class GameEconomicServerClient : public GameEconomicApp
 {
-    OBJECT(GameEconomicServer);
+    OBJECT(GameEconomicServerClient);
 
 public:
     /// Construct.
-    GameEconomicServer(Context* context);
+    GameEconomicServerClient(Context* context);
 
     /// Setup after engine initialization and before running the main loop.
     virtual void Start();
@@ -83,17 +79,14 @@ private:
     void SubscribeToEvents();
     /// Handle the logic update event.
     void HandleUpdate(StringHash eventType, Urho3D::VariantMap& eventData);
-    void OnServerConsoleInterfaceEvent(StringHash eventType, Urho3D::VariantMap& eventData);
+    ///void OnServerConsoleInterfaceEvent(StringHash eventType, Urho3D::VariantMap& eventData);
     void Stop(void);
 
     /// configuration related
     bool LoadNetworkConfig(networkconfiguration &loadingnetwork);
-    bool LoadDatabaseConfig(databaseconnection &loadingdbconnector);
-    void DatabaseInitialization(void);
 
     string LoadMysqlFile(String MySqlFile);
     string TextFileToString(string filename);
-    void CoreInitialization(void);
 
     /// Networking
     void NetworkInitialization(unsigned int Port);
@@ -103,47 +96,16 @@ private:
     void ExecuteCommand(String FirstCommand, Vector<String> Arguments);
     Vector<String> ParseCommand(String EnteredString);
 
-    /// Handle Commands
-    void HandleNetworkCommands(Vector <String> &Arguments);
-    void HandleAccountCommands(Vector <String> &Arguments);
+    void ConsoleInterface(networkconfiguration &networksetup);
+    bool Connect(networkconfiguration &tempnetwork);
+    void OnDisconnection(StringHash eventType, Urho3D::VariantMap& eventData);
+    void SendMessage(String Message);
+    void OnConnection(StringHash eventType, Urho3D::VariantMap& eventData);
+    void OnConnectionFailed(StringHash eventType, Urho3D::VariantMap& eventData);
+    void GetLine(String & returnstring);
 
-    /// Database functions
-    bool insertDBAccount(AccountInformation &TempAccount);
-    bool deleteDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
-    bool editDBAccount(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
-    bool verifyDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
-    Vector<String> selectDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
 
-    bool ListAllDBAccounts(void);
-
-    /// testing
-    void insertDBPlayer(Player &TempPlayer);
-    void deleteDBPlayer(Player &TempPlayer);
-    void editDBPlayer(Player &TempPlayer);
-    void verifyDBPlayer(Player &TempPlayer);
-    void insertDBTrader(void);
-    void deleteDBTrader(void);
-    void editDBTrader(void);
-    void verifyDBTrader(void);
-    void insertDBCargo(void);
-    void deleteDBCargo(void);
-    void editDBCargo(void);
-    void verifyDBCargo(void);
-    void insertDBCargoBay(void);
-    void deleteDBCargoBay(void);
-    void editDBCargoBay(void);
-    void verifyDBCargoBay(void);
-    void insertDBMarket(void);
-    void deleteDBMarket(void);
-    void editDBMarket(void);
-    void verifyDBMarket(void);
-    void insertDBMarketTransaction(void);
-    void deleteDBMarketTransaction(void);
-    void editDBMarketTransaction(void);
-    void verifyDBMarketTransaction(void);
-
-    void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);
-    void NewConnection(StringHash eventType, Urho3D::VariantMap& eventData);
+    bool serverconnection;
 };
 
 #endif

@@ -42,6 +42,8 @@ file (GLOB SERVER_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/*.
 
 # Add samples
 add_subdirectory (GameEconomicServer)
+add_subdirectory (GameEconomicServerClient)
+
 
 
 

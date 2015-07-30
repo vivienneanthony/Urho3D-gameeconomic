@@ -49,6 +49,7 @@ public:
     int executeQuery(string query);
     int checkTable(string checktable);
     int executePreparedStatement(string preparedstatement);
+    Vector<String> executePreparedStatementResult(string preparedstatement);
 
 protected:
 
@@ -62,6 +63,9 @@ private:
     sql::PreparedStatement *pstmt;
     sql::ResultSet *res;
     sql::Statement *stmt;
+    sql::ResultSetMetaData *res_meta;
+    ///res_meta = rs -> getMetaData();
+    ///int numcols = res_meta -> getColumnCount();
 
     /// db setup
     databaseconnection MySqlConnection;

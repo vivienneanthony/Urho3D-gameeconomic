@@ -28,8 +28,6 @@
 #include <Urho3D/UI/Font.h>
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Core/ProcessUtils.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/UI.h>
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
@@ -49,12 +47,13 @@
 #include <vector>
 
 #include "GameEconomicServerClient.h"
+#include "GameEconomicServerClientConsole.h"
 
 #include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
 
-// Expands to this example's entry-point
+/// Expands to this example's entry-point
 DEFINE_APPLICATION_MAIN(GameEconomicServerClient)
 
 using namespace std;
@@ -64,23 +63,23 @@ GameEconomicServerClient::GameEconomicServerClient(Context* context) :
     GameEconomicApp(context)
 {
 
+    GameEconomicServerClientConsole::RegisterObject(context);
+
     return;
 }
 
-
-
 void GameEconomicServerClient::Start()
 {
-    /// get system
+    /// Get subsystem
     FileSystem * fileSystem = GetSubsystem<FileSystem>();
 
     Log * logs=GetSubsystem<Log>();
 
     bool success=false;
+    bool lineEntered=false;
 
     /// Execute base class startup
     GameEconomicApp::Start();
-
 
     /// Open the operating system console window (for stdin / stdout) if not open yet
     OpenConsoleWindow();
@@ -101,21 +100,22 @@ void GameEconomicServerClient::Start()
     }
     else
     {
-        cout << "Info: Loading network configuration failed. Using 127.0.0.1 and port 3306 as default." << endl;
+        cout << "Info: Loading network configuration failed. Using 127.0.0.1 and port 3632 as default." << endl;
     }
 
-
-    /// show splash
+    /// Show splash screen
     Splash();
 
-
-
-    /// Finally subscribe to the update event. Note that by subscribing events at this point we have already missed some events
-    /// like the ScreenMode event sent by the Graphics subsystem when opening the application window. To catch those as well we
-    /// could subscribe in the constructor instead.
+    /// Subscribe to events
     SubscribeToEvents();
 
-    ConsoleInterface(MyNetwork);
+    GameEconomicServerClientConsole * newConsole = new GameEconomicServerClientConsole(context_);
+
+    /// Configure network settings
+    newConsole->ConfigureNetwork(MyNetwork);
+
+    /// Start the console
+    newConsole->Start();
 
     /// change log level
     logs->SetLevel(LOG_ERROR );
@@ -136,7 +136,7 @@ void GameEconomicServerClient::Splash(void)
 /// Subscribe to all events
 void GameEconomicServerClient::SubscribeToEvents()
 {
-    // Subscribe HandleUpdate() function for processing update events
+    /// Subscribe HandleUpdate() function for processing update events
     SubscribeToEvent(E_UPDATE, HANDLER(GameEconomicServerClient, HandleUpdate));
 
     /// Network related
@@ -151,10 +151,9 @@ void GameEconomicServerClient::SubscribeToEvents()
 /// Handle Updates
 void GameEconomicServerClient::HandleUpdate(StringHash eventType, Urho3D::VariantMap& eventData)
 {
-    // Do nothing for now, could be extended to eg. animate the display
+    /// Do nothing for now, could be extended to eg. animate the display
     return;
 }
-
 
 void GameEconomicServerClient::Stop(void)
 {
@@ -169,116 +168,3 @@ void GameEconomicServerClient::Stop(void)
 
     return;
 }
-
-
-
-
-/// Actual thread function
-void GameEconomicServerClient::ConsoleInterface(networkconfiguration &networksetup)
-{
-    Network* network = GetSubsystem<Network>();
-    bool success=false;
-
-    /// turn on inteface
-    bool isActiveFlag=true;
-
-    /// Urho related variables
-    String PromptInput;
-    Vector<String> SplitPromptInput;
-
-
-    Connection* serverConnection;
-
-    /// Configure network is none is specified
-
-    if(networksetup.hostserver.Empty())
-    {
-        networksetup.hostserver = String("127.0.0.1");
-    }
-
-    if(networksetup.hostport==0)
-    {
-        networksetup.hostport = 3306;
-    }
-
-    if(networksetup.hostidentity.Empty())
-    {
-        networksetup.hostidentity = String("localhost");
-    }
-
-    /// loop
-    do
-    {
-        serverConnection =  network->GetServerConnection();;
-
-        // Clear prompt input
-        PromptInput.Clear();
-        SplitPromptInput.Clear();
-
-        /// Display prompt to the user
-        if(serverConnection&&serverconnection)
-        {
-            cout << endl << "(serveconnect) Enter Command >> ";
-        }
-        else
-        {
-            cout << endl << "(offline) Enter Command >> ";
-        }
-
-        /// Get input from the user
-        GetLine(PromptInput);
-
-        /// Promput empty
-        if(PromptInput.Empty())
-        {
-            cout << "Error. Invalid  command." << endl;
-            continue;
-        }
-
-        /// Trim input
-        String CleanedPromptInput = PromptInput.Trimmed();
-
-        if(CleanedPromptInput==String("connect"))
-        {
-            Connect(networksetup);
-        }
-        else if(CleanedPromptInput==String("quit"))
-        {
-            Stop();
-        }
-        else
-        {
-            /// if server connection and serverConnection
-            if(serverconnection&&serverconnection)
-            {
-                    cout << "send message" << endl;
-
-                /// Clean
-                SendMessage(CleanedPromptInput);
-            }
-        }
-    }
-
-    while(isActiveFlag);
-
-    return;
-}
-
-
-void GameEconomicServerClient::GetLine(String & returnstring)
-{
-    /// Define a String
-    string getpromptcommand;
-
-    /// write line
-    bool success = getline (std::cin,getpromptcommand);
-
-    /// Clear String
-    returnstring.Clear();
-
-    /// Append input to a string
-    returnstring.Append(getpromptcommand.c_str());
-
-    return;
-}
-

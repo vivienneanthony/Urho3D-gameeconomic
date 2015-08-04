@@ -216,6 +216,8 @@ void GameEconomicServer::DatabaseInitialization(void)
     /// check if Markets Exist
     vector<string> databasetables;
 
+    /// All the tables used
+    databasetables.push_back("Administrators");
     databasetables.push_back("Markets");
     databasetables.push_back("MarketTransactions");
     databasetables.push_back("Traders");

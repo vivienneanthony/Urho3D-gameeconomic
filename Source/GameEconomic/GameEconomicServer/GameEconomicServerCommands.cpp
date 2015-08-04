@@ -41,6 +41,7 @@
 #include <Urho3D/IO/MemoryBuffer.h>
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
+#include <Urho3D/Network/Connection.h>
 
 #include <iostream>
 #include <signal.h>
@@ -58,6 +59,7 @@
 
 #include <Urho3D/DebugNew.h>
 #include "../Accounts.h"
+#include "../GameEconomicServer/Networking.h"
 
 
 using namespace std;
@@ -76,7 +78,7 @@ Vector<String> GameEconomicServer::ParseCommand(String EnteredString)
     return SplitEntered;
 }
 
-void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Arguments)
+void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender)
 {
     /// removed old code;
     String Command=FirstCommand.ToLower().Trimmed();
@@ -90,22 +92,37 @@ void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Argu
     }
     else if(Command==String("name"))
     {
-        cout << "My name is Caspian identification 1701-A prototype core Existence." << endl;
+
+        String NameResponse("My name is Caspian identification 1701-A prototype core Existence.");
+        // Send the chat message as in-order and reliable
+
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,NameResponse,sender);
+
+        ///cout << "My name is Caspian identification 1701-A prototype core Existence." << endl;
+
     }
     else if(Command==String("network"))
     {
-        HandleNetworkCommands(Arguments);
+        HandleNetworkCommands(Arguments, sender);
     }
     else if(Command==String("accounts"))
     {
-        HandleAccountCommands(Arguments);
+        HandleAccountCommands(Arguments, sender);
+    }
+    else if(Command==String("administrators"))
+    {
+        HandleAdministratorCommands(Arguments, sender);
+    }
+    else if(Command==String("players"))
+    {
+        HandlePlayerCommands(Arguments, sender);
     }
 
     return;
 }
 
 /// Handle All Acounts
-void GameEconomicServer::HandleNetworkCommands(Vector <String> &Arguments)
+void GameEconomicServer::HandleNetworkCommands(Vector <String> &Arguments, Urho3D::Connection * sender)
 {
     /// Get console connection
     if(Arguments.At(0) == String("getserverconnection"))
@@ -122,7 +139,7 @@ void GameEconomicServer::HandleNetworkCommands(Vector <String> &Arguments)
 }
 
 /// Handle All Acounts
-void GameEconomicServer::HandleAccountCommands(Vector <String> &Arguments)
+void GameEconomicServer::HandleAccountCommands(Vector <String> &Arguments, Urho3D::Connection * sender)
 {
 
     if(Arguments.At(0) == String("addaccount"))
@@ -131,7 +148,16 @@ void GameEconomicServer::HandleAccountCommands(Vector <String> &Arguments)
         /// if accounts less then needed write message
         if(Arguments.Size()<7)
         {
-            cout << "You need to full up all arguments";
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+
+            return;
+        }
+
+        if(EmailValidCheck(Arguments.At(5))==false)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Email valid",sender);
+
+            return;
         }
 
         /// create a tempaccount
@@ -145,15 +171,278 @@ void GameEconomicServer::HandleAccountCommands(Vector <String> &Arguments)
         TempAccount.Email = Arguments.At(5);
         TempAccount.Password = Arguments.At(6);
 
-        insertDBAccount(TempAccount);
+        /// Return message if success
+        if(insertDBAccount(TempAccount))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Account created.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Account creation error.",sender);
+        }
+
     }
 
-    if(Arguments.At(0) == String("listselectaccounts"))
+    /// List accounts command
+    if(Arguments.At(0) == String("listaccounts"))
     {
-        ListAllDBAccounts();
+        String Results=ListAllDBAccounts(sender);
+
+        /// Send results
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
+
+    /// Update administrator
+    if(Arguments.At(0)== String("updateaccount"))
+    {
+
+        /// if accounts less then needed write message
+        if(Arguments.Size()<7)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+
+            return;
+        }
+
+        /// create a tempaccount
+        AccountInformation TempAccount;
+
+        TempAccount.Username = Arguments.At(1);
+        TempAccount.Firstname = Arguments.At(2);
+        TempAccount.Middlename = Arguments.At(3);
+        TempAccount.Lastname = Arguments.At(4);
+        TempAccount.Email = Arguments.At(5);
+        TempAccount.Password = Arguments.At(6);
+        TempAccount.UniqueID = Arguments.At(7);
+
+        /// Return message if success
+        if(UpdateSingleDBAccount(TempAccount))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Account updated.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Account update failed.",sender);
+        }
+
     }
 
     return;
 
 }
 
+/// Handle All Acounts
+void GameEconomicServer::HandleAdministratorCommands(Vector <String> &Arguments, Urho3D::Connection * sender)
+{
+    /// Add administrator command
+    if(Arguments.At(0) == String("addadministrator"))
+    {
+
+        /// if accounts less then needed write message
+        if(Arguments.Size()<4)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+
+            return;
+        }
+
+        /// create a tempaccount
+        AdministratorInformation TempAdministrator;
+
+        /// copy database
+        TempAdministrator.Username = Arguments.At(1);
+        TempAdministrator.Password = Arguments.At(2);
+        TempAdministrator.UniqueID = Arguments.At(3);
+        TempAdministrator.AdminAccounts=1;
+
+        /// Return message if success
+        if(insertDBAdministrator(TempAdministrator))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator created.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator creation error.",sender);
+        }
+    }
+
+    /// List administrators command
+    if(Arguments.At(0) == String("listadministrators"))
+    {
+        String Results=ListAllDBAdministrators();
+
+        /// Send results
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+
+    }
+
+    /// Update administrator command
+    if(Arguments.At(0)== String("updateadministrator"))
+    {
+        /// if accounts less then needed write message
+        if(Arguments.Size()<4)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+
+            return;
+        }
+
+        /// create a tempaccount
+        AdministratorInformation TempAdministrator;
+
+        TempAdministrator.Username = Arguments.At(1);
+        TempAdministrator.Password = Arguments.At(2);
+        TempAdministrator.UniqueID = Arguments.At(3);
+        TempAdministrator.AdminAccounts=1;
+
+        /// Return message if success
+        if(UpdateSingleDBAdministrator(TempAdministrator))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator updated.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator update failed.",sender);
+        }
+
+    }
+
+    /// Delete administrator command
+    if(Arguments.At(0)== String("deleteadministrator"))
+    {
+
+        /// create a tempaccount
+        AdministratorInformation TempAdministrator;
+
+        TempAdministrator.UniqueID = Arguments.At(1);
+
+        /// Return message if success
+        if(DeleteSingleDBAdministrator(TempAdministrator))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator deleted.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Administrator delete failed.",sender);
+        }
+    }
+
+    return;
+}
+
+
+/// Handle All Acounts
+void GameEconomicServer::HandlePlayerCommands(Vector <String> &Arguments, Urho3D::Connection * sender)
+{
+    /// List players command
+    if(Arguments.At(0) == String("listplayers"))
+    {
+        String Results=ListAllDBPlayers(sender);
+
+        /// Send results
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
+
+    /// Add player command
+    if(Arguments.At(0) == String("addplayer"))
+    {
+
+        /// if Players less then needed write message
+        if(Arguments.Size()<5)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+            return;
+        }
+
+        /// create a tempPlayer
+        PlayerObject TempPlayer;
+
+        /// copy database
+        TempPlayer.Firstname = Arguments.At(1);
+        TempPlayer.Middlename = Arguments.At(2);
+        TempPlayer.Lastname = Arguments.At(3);
+        TempPlayer.UniqueID = Arguments.At(4);
+
+        /// add defaults
+        /// Copy specific Players
+        TempPlayer.Health=0;
+        TempPlayer.Level = 0;
+        TempPlayer.Experience = 0;
+        TempPlayer.Reputation = 0;
+        TempPlayer.Reputation1 = 0;
+        TempPlayer.Reputation2 = 0;
+        TempPlayer.Reputation3 = 0;
+        TempPlayer.Reputation4 = 0;
+        TempPlayer.Reputation5 = 0;
+        TempPlayer.AlienRace = 0;
+        TempPlayer.AlienAllianceAligned = 0;
+        TempPlayer.Gender = 0;
+        TempPlayer.PersonalityTrait = 0;
+
+        if(insertDBPlayer(TempPlayer))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player created.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player creation error.",sender);
+        }
+
+    }
+
+    /// Update player command
+    if(Arguments.At(0)== String("updateplayer"))
+    {
+        /// if Players less then needed write message
+        if(Arguments.Size()<5)
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Error: Arguments incomplete",sender);
+
+            return;
+        }
+
+        /// create a tempPlayer
+        PlayerObject TempPlayer;
+
+        TempPlayer.Firstname = Arguments.At(1);
+        TempPlayer.Middlename = Arguments.At(2);
+        TempPlayer.Lastname = Arguments.At(3);
+        TempPlayer.UniqueID = Arguments.At(4);
+
+
+
+        /// Return message if success
+        if(UpdateSingleDBPlayer(TempPlayer))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player updated.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player update failed.",sender);
+        }
+
+    }
+    /// Delete player command
+    if(Arguments.At(0)== String("deleteplayer"))
+    {
+
+        /// create a tempPlayer
+        PlayerObject TempPlayer;
+
+        TempPlayer.UniqueID = Arguments.At(1);
+
+        /// Return message if success
+        if(DeleteSingleDBPlayer(TempPlayer))
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player deleted.",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,"Player delete failed.",sender);
+        }
+
+    }
+
+    return;
+
+}

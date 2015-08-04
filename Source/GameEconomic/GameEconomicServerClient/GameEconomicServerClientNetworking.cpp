@@ -48,6 +48,7 @@
 #include <vector>
 
 #include "GameEconomicServerClient.h"
+#include "../GameEconomicServer/Networking.h"
 
 
 #include <pthread.h>
@@ -57,8 +58,6 @@
 
 using namespace std;
 using namespace Urho3D;
-
-class GameEconomicServerClient;
 
 
 void GameEconomicServerClient::HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData)
@@ -73,37 +72,16 @@ void GameEconomicServerClient::HandleNetworkMessage(StringHash eventType, Urho3D
     String PromptInput;
     Vector<String> SplitPromptInput;
 
-    if (msgID == 999)
+    if(msgID == NetMessageAdminClientSendAcknowledge)
     {
         const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
         // Use a MemoryBuffer to read the message data so that there is no unnecessary copying
         MemoryBuffer msg(data);
 
         String text = msg.ReadString();
-
-        Urho3D::Connection* sender = static_cast<Urho3D::Connection*>(eventData[P_CONNECTION].GetPtr());
-
+        cout << "\r\n" << text.CString() <<endl;
     }
 }
-
-
-
-/// handle connection
-bool GameEconomicServerClient::Connect(networkconfiguration &tempnetwork)
-{
-    /// connect to server
-    Network* network = GetSubsystem<Network>();
-
-    /// copy bool
-    bool success=true;
-
-    cout << "Connecting Server Console Interface to Host ("<< tempnetwork.hostserver.CString() << " on port " << tempnetwork.hostport << ")." << endl;
-
-    serverconnection = network->Connect(tempnetwork.hostserver, tempnetwork.hostport, 0);
-
-    return success;
-}
-
 
 void GameEconomicServerClient::OnDisconnection(StringHash eventType, Urho3D::VariantMap& eventData)
 {
@@ -114,7 +92,7 @@ void GameEconomicServerClient::OnDisconnection(StringHash eventType, Urho3D::Var
 
     bool success=false;
 
-    // If we were connected to server, disconnect
+    /// If we were connected to server, disconnect
     if (serverConnection)
     {
         serverConnection->Disconnect();
@@ -133,42 +111,16 @@ void GameEconomicServerClient::OnConnection(StringHash eventType, Urho3D::Varian
 
     bool success=false;
 
-    // If we were connected to server, disconnect
+    /// If we were connected to server, disconnect
     if (serverConnection)
     {
+
         serverconnection = true;
     }
 
     return;
 }
 
-
-
-void GameEconomicServerClient::SendMessage(String Message)
-{
-
-    if (Message.Empty())
-    {
-        return; // Do not send an empty message
-    }
-
-    Network* network = GetSubsystem<Network>();
-    Connection* serverConnection = network->GetServerConnection();
-
-    if (serverConnection&&serverconnection)
-    {
-        cout << "Sends Messagage attempt" << endl;
-
-        // A VectorBuffer object is convenient for constructing a message to send
-        VectorBuffer msg;
-        msg.WriteString(Message);
-        // Send the chat message as in-order and reliable
-        serverConnection->SendMessage(999, true, true, msg);
-
-    }
-
-    return;
-}
 
 bool GameEconomicServerClient::LoadNetworkConfig(networkconfiguration &loadingnetwork)
 {
@@ -232,4 +184,5 @@ void GameEconomicServerClient::OnConnectionFailed(StringHash eventType, VariantM
 
     return;
 }
+
 

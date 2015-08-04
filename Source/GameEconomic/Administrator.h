@@ -1,5 +1,5 @@
-#ifndef ACCOUNT_H_INCLUDED
-#define ACCOUNT_H_INCLUDED
+#ifndef ADMINISTRATORS_H_INCLUDED
+#define ADMINISTRATORS_H_INCLUDED
 
 #include <Urho3D/Urho3D.h>
 
@@ -12,19 +12,18 @@ using namespace std;
 using namespace Urho3D;
 
 // define useraccount
-struct AccountInformation
+struct AdministratorInformation
 {
     long int Idx;
     String Username;
     String Email;
-    String Firstname;
-    String Middlename;
-    String Lastname;
     String Password;
     String UniqueID;
-    time_t LastLogin;
+    int AdminAccounts;
 };
 
-#endif // ACCOUNT_H_INCLUDED
+#endif // ADMINSITRATORS_H_INCLUDED
+
+
 
 

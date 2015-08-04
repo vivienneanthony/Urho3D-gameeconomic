@@ -41,20 +41,23 @@
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
 #include <Urho3D/Network/Connection.h>
+#include <Urho3D/Container/Vector.h>
 
 #include <iostream>
 #include <signal.h>
 #include <sstream>
 #include <fstream>
-#include <vector>
+#include <ctime>
 
 #include "GameEconomicServer.h"
 
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
+#include "../GameEconomicServer/Networking.h"
 
 #include "signalHandler.hpp"
 #include <pthread.h>
+#include <iterator>
 
 #include <Urho3D/DebugNew.h>
 
@@ -63,6 +66,7 @@ using namespace std;
 using namespace Urho3D;
 
 class GameEconomicServer;
+
 
 void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData)
 {
@@ -100,10 +104,8 @@ void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::Vari
             SplitPromptInput.Erase(0);
         }
 
-        cout << "message received" << endl;
-
         /// ExecuteCommand
-        ExecuteCommand(FirstCommand, SplitPromptInput);
+        ExecuteCommand(FirstCommand, SplitPromptInput, sender);
     }
 }
 
@@ -112,7 +114,6 @@ void GameEconomicServer::NewConnectionIdentity(StringHash eventType, Urho3D::Var
     /// get connection
     Urho3D::Connection * newConnection = (Urho3D::Connection *) eventData[ClientConnected::P_CONNECTION].GetPtr();
 
-    cout << "GetIdentity" <<endl;
 
     return;
 }
@@ -121,11 +122,70 @@ void GameEconomicServer::NewConnectionIdentity(StringHash eventType, Urho3D::Var
 void GameEconomicServer::NewConnection(StringHash eventType, Urho3D::VariantMap& eventData)
 {
 
-    /// get connection
+    /// Get Connection
     Urho3D::Connection * newConnection = (Urho3D::Connection *) eventData[ClientConnected::P_CONNECTION].GetPtr();
 
-    cout << "New connection established {Clent}" << newConnection->ToString().CString() <<endl;
+    /// Output to screen
+    cout << "Network: New connection established Client(" << newConnection->ToString().CString() <<")"<<endl;
 
 
     return;
+}
+
+
+/// network on update
+void GameEconomicServer::NetworkingOnUpdate(float timeStep)
+{
+    static float testnetworkupdate=0;
+
+    testnetworkupdate+=timeStep;
+
+    if(testnetworkupdate>10)
+    {
+
+        /// Get current network
+        Network* network = GetSubsystem<Network>();
+        Urho3D::Connection* serverConnection = network->GetServerConnection();
+
+        /// Get current system time
+        Urho3D::Time SystemTime(context_);
+        unsigned int currentTime = SystemTime.GetSystemTime();
+
+        /// Get eventmap and time
+        Urho3D::VariantMap NetworkClientIdentity;
+
+        /// get all connections
+        allConnections = network->GetClientConnections();
+
+        /// Loop through each iterator
+        for (unsigned int idx=0; idx<allConnections.Size(); idx++)
+        {
+            /// Get the identity
+            NetworkClientIdentity=allConnections.At(idx)->GetIdentity();
+
+            /// try to get the information
+            unsigned int clienttype=NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTYPE].GetInt();
+            unsigned long int clientarrival=NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTARRIVAL].GetInt();
+
+            cout << "Network: Poll (" << allConnections.At(idx)->ToString().CString() << " Type " << clienttype << " Arrival " << clientarrival << ")" << endl;
+        }
+        testnetworkupdate=0;
+    }
+    return;
+}
+
+
+void GameEconomicServer::SendNetworkMessage(NetworkMessageTypes NetworkMessageType, bool flag1, bool flag2, String MessageText, Urho3D::Connection * SenderTo)
+{
+
+     // A VectorBuffer object is convenient for constructing a message to send
+        VectorBuffer msg;
+        msg.WriteString(MessageText);
+        // Send the chat message as in-order and reliable
+
+        SenderTo->SendMessage(NetworkMessageType,flag1,flag2, msg);
+
+        cout << "\r\nNetwork: SentNetworkMessage (\"" << MessageText.CString() <<"\") to (" << SenderTo->ToString().CString() <<")" << endl;
+
+        return;
 }

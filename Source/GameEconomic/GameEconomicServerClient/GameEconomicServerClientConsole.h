@@ -1,5 +1,5 @@
-#ifndef GameEconomicServerClient_H
-#define GameEconomicServerClient_H
+#ifndef GameEconomicServerClientConsole_H
+#define GameEconomicServerClientConsole_H
 
 
 // Copyright (c) 2008-2015 the Urho3D project.
@@ -32,13 +32,11 @@
 #include <Urho3D/Network/Network.h>
 #include <Urho3D/Network/NetworkEvents.h>
 #include <Urho3D/IO/VectorBuffer.h>
+#include <Urho3D/Core/Thread.h>
+#include <kNet/MessageConnection.h>
 #include <kNet/MessageConnection.h>
 
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
-
-#include "../GameEconomicApp.h"
-
-
 
 
 using namespace std;
@@ -50,56 +48,34 @@ using namespace Urho3D;
 ///     - Using the Sample / Application classes, which initialize the Urho3D engine and run the main loop
 ///     - Adding a Text element to the graphical user interface
 ///     - Subscribing to and handling of update events
-class GameEconomicServerClient : public GameEconomicApp
+class GameEconomicServerClientConsole : public LogicComponent, public Thread
 {
-    OBJECT(GameEconomicServerClient);
+    OBJECT(GameEconomicServerClientConsole);
 
 public:
     /// Construct.
-    GameEconomicServerClient(Context* context);
+    GameEconomicServerClientConsole(Context* context);
+    virtual ~GameEconomicServerClientConsole();
 
-    /// Setup after engine initialization and before running the main loop.
-    virtual void Start();
+    /// Process the connection in the worker thread until closed.
+    virtual void ThreadFunction();
 
+    /// Register
+    static void RegisterObject(Context * context);
+    void Start(void);
+
+    void ConfigureNetwork(networkconfiguration &tempnetwork);
 protected:
-    /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const
-    {
-        return
-            "<patch>"
-            "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Hat0']]\">"
-            "        <attribute name=\"Is Visible\" value=\"false\" />"
-            "    </add>"
-            "</patch>";
-    }
 
 private:
-    void Splash(void);
-    /// Subscribe to application-wide logic update events.
-    void SubscribeToEvents();
-    /// Handle the logic update event.https://www.youtube.com/watch?v=hv1CKhNoBCM
-    void HandleUpdate(StringHash eventType, Urho3D::VariantMap& eventData);
-    ///void OnServerConsoleInterfaceEvent(StringHash eventType, Urho3D::VariantMap& eventData);
-    void Stop(void);
-
-    /// configuration related
-    bool LoadNetworkConfig(networkconfiguration &loadingnetwork);
-
-    string LoadMysqlFile(String MySqlFile);
-    string TextFileToString(string filename);
-
-    /// Networking
-    void NetworkInitialization(unsigned int Port);
-    void HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData);
-
-    /// Command line
-    void OnDisconnection(StringHash eventType, Urho3D::VariantMap& eventData);
-    void OnConnection(StringHash eventType, Urho3D::VariantMap& eventData);
-    void OnConnectionFailed(StringHash eventType, Urho3D::VariantMap& eventData);
+    void Connect(networkconfiguration &tempnetwork);;
+    void SendMessage(String Message);
 
     bool serverconnection;
+    void ShowPrompt(void);
 
-
+    /// copy configuration
+    networkconfiguration NetworkConfiguration;
 
 };
 

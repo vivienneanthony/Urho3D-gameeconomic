@@ -145,7 +145,7 @@ void GameEconomicServer::Start()
     }
     else
     {
-        cout << "Info: Loading network configuration failed. Using 127.0.0.1 and port 3306 as default." << endl;
+        cout << "Info: Loading network configuration failed. Using 127.0.0.1 and port 3632 as default." << endl;
     }
 
 
@@ -167,7 +167,7 @@ void GameEconomicServer::Start()
     ///logs->SetLevel(LOG_ERROR );
 
     /// Networking
-    NetworkInitialization(3306);
+    NetworkInitialization(3632);
 
     CoreInitialization();
 
@@ -202,7 +202,15 @@ void GameEconomicServer::SubscribeToEvents()
 /// Handle Updates
 void GameEconomicServer::HandleUpdate(StringHash eventType, Urho3D::VariantMap& eventData)
 {
+
+    using namespace Update;
+
+    // Take the frame time step, which is stored as a float
+    float timeStep = eventData[P_TIMESTEP].GetFloat();
+
     // Do nothing for now, could be extended to eg. animate the display
+    NetworkingOnUpdate(timeStep);
+
     return;
 }
 
@@ -228,10 +236,10 @@ void GameEconomicServer::OnServerConsoleInterfaceEvent(StringHash eventType, Urh
     {
         Stop();
         return;
-    }else
+    }
+    else
     {
-
-        ExecuteCommand(Command,SplitPromptInput);
+        ///ExecuteCommand(Command,SplitPromptInput,NULL);
     }
 
 
@@ -282,4 +290,52 @@ void GameEconomicServer::CoreInitialization(void)
     return;
 }
 
+bool GameEconomicServer::EmailValidCheck(String EmailAddress)
+{
+    /// check for valid email if blank return false
+    if(EmailAddress.Empty())
+    {
+        return false;
+    }
+
+    /// copy string with lower case
+    String WorkingEmail = EmailAddress.ToLower();
+
+    /// check for valid character
+    if(WorkingEmail.At(0)<'a'||WorkingEmail.At(0)>'z')
+    {
+        return false;
+    }
+
+    /// force lower case
+    int AtOffset = -1;
+    int DotOffset = -1;
+
+    unsigned int EmailLength = WorkingEmail.Length();
+
+    /// loop through each character
+    for(unsigned int i=0; i<EmailLength; i++)
+    {
+        if(WorkingEmail.At(i) == '@')
+        {
+            AtOffset = (int) i;
+        }
+        else if(WorkingEmail.At(i) == '.')
+        {
+            DotOffset = (int) i;
+        }
+    }
+
+    /// Check offsets
+    if(AtOffset == -1 || DotOffset == -1) // If cannot find a Dot or a @
+    {
+        return false;
+    }
+    if(AtOffset > DotOffset) // If the @ is after the Dot
+    {
+        return false;
+    }
+
+    return !(DotOffset >= ((int)EmailLength-1)); //Chech there is some other letters after the Dot
+}
 

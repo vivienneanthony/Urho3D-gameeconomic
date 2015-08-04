@@ -43,9 +43,17 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 
 #include "../Accounts.h"
+#include "../Administrator.h"
 #include "../GameEconomicComponents/Player.h"
+#include "../GameEconomicServer/Networking.h"
 
 using namespace std;
+
+enum  DBTable
+{
+    DBAccount,
+    DBAdministrator
+};
 
 class knet;
 
@@ -100,12 +108,14 @@ private:
     void HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData);
 
     /// Command line
-    void ExecuteCommand(String FirstCommand, Vector<String> Arguments);
+    void ExecuteCommand(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender);
     Vector<String> ParseCommand(String EnteredString);
 
     /// Handle Commands
-    void HandleNetworkCommands(Vector <String> &Arguments);
-    void HandleAccountCommands(Vector <String> &Arguments);
+    void HandleNetworkCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
+    void HandleAccountCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
+    void HandleAdministratorCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
+    void HandlePlayerCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
 
     /// Database functions
     bool insertDBAccount(AccountInformation &TempAccount);
@@ -114,36 +124,45 @@ private:
     bool verifyDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
 
-    bool ListAllDBAccounts(void);
+    String ListAllDBAccounts(Urho3D::Connection * sender);
+    bool UpdateSingleDBAccount(AccountInformation &TempAccount);
+    bool DeleteSingleDBAccount(AccountInformation &TempAccount);
 
-    /// testing
-    void insertDBPlayer(Player &TempPlayer);
-    void deleteDBPlayer(Player &TempPlayer);
-    void editDBPlayer(Player &TempPlayer);
-    void verifyDBPlayer(Player &TempPlayer);
-    void insertDBTrader(void);
-    void deleteDBTrader(void);
-    void editDBTrader(void);
-    void verifyDBTrader(void);
-    void insertDBCargo(void);
-    void deleteDBCargo(void);
-    void editDBCargo(void);
-    void verifyDBCargo(void);
-    void insertDBCargoBay(void);
-    void deleteDBCargoBay(void);
-    void editDBCargoBay(void);
-    void verifyDBCargoBay(void);
-    void insertDBMarket(void);
-    void deleteDBMarket(void);
-    void editDBMarket(void);
-    void verifyDBMarket(void);
-    void insertDBMarketTransaction(void);
-    void deleteDBMarketTransaction(void);
-    void editDBMarketTransaction(void);
-    void verifyDBMarketTransaction(void);
+    /// Database functions related to administrator
+    bool insertDBAdministrator(AdministratorInformation &TempAdministrator);
+    bool deleteDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter);
 
+    String ListAllDBAdministrators(void);
+    bool UpdateSingleDBAdministrator(AdministratorInformation &TempAdministrator);
+    bool DeleteSingleDBAdministrator(AdministratorInformation &TempAdministrator);
+
+    bool insertDBPlayer(PlayerObject &TempPlayer);
+    bool deleteDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter);
+
+    String ListAllDBPlayers(Urho3D::Connection * sender);
+    bool UpdateSingleDBPlayer(PlayerObject &TempPlayer);
+    bool DeleteSingleDBPlayer(PlayerObject &TempPlayer);
+
+    /// Networking
     void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);
     void NewConnection(StringHash eventType, Urho3D::VariantMap& eventData);
+
+    /// Push connection
+    void NetworkingOnUpdate(float timeStep);
+
+    void SendNetworkMessage(NetworkMessageTypes NetworkMessageType, bool flag1, bool flag2, String MessageText, Urho3D::Connection * SenderTo);
+
+    bool EmailValidCheck(String EmailAddress);
+    bool VerifyIdentityDB(DBTable mode, String username, String password);
+
+    Vector<SharedPtr<Urho3D::Connection> > allConnections;
+
 };
 
 #endif

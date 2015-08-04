@@ -1,5 +1,5 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef Administrators_H
+#define Administrators_H
 
 #include <Urho3D/Urho3D.h>
 
@@ -12,35 +12,32 @@
 #include "../../../Urho3D/Container/Str.h"
 #include "../../../Urho3D/Scene/LogicComponent.h"
 
-/// define Player information
+/// define Administrators information
 
 #include <iostream>
+
+#include "../Administrators.h"
 
 using namespace std;
 using namespace Urho3D;
 
 
-#include "../Player.h"
-
-/// Player class
-class Player : public LogicComponent
+/// Administrators class
+class Administrators : public LogicComponent
 {
 public:
     /// public functions
-    Player(Context *context);
-    virtual ~Player();
+    Administrators(Context *context);
+    virtual ~Administrators();
 
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
     void Start(void);
 
-    /// simple Adding and deleting Credits
-    bool AddCredits(unsigned long int AddingCredits);
-    bool SubtractCredits(unsigned long int SubtractingCredits);
 protected:
 private:
     unsigned long int Credits;
     String UniqueID;
 };
 
-#endif // PLAYER_H
+#endif // Administrators_H

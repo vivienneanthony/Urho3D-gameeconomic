@@ -170,7 +170,7 @@ int connectorDB::executeQuery(string query)
         con->setSchema(schema);
 
         /// Turn off the autocommit
-        con -> setAutoCommit(0);
+        con -> setAutoCommit(1);
 
         // create a statement
         stmt = con->createStatement();
@@ -286,7 +286,7 @@ int connectorDB::executePreparedStatement(string preparedstatement)
         con->setSchema(schema);
 
         /// Turn off the autocommit
-        con -> setAutoCommit(0);
+        con -> setAutoCommit(1);
 
         size_t pos = 0;
 
@@ -299,6 +299,9 @@ int connectorDB::executePreparedStatement(string preparedstatement)
         delete pstmt;
         delete res;
         delete con;
+
+        success=true;
+
     }
     catch (sql::SQLException &e)
     {
@@ -312,6 +315,7 @@ int connectorDB::executePreparedStatement(string preparedstatement)
         success=false;
 
     }
+
     return success;
 }
 
@@ -343,7 +347,7 @@ Vector<String> connectorDB::executePreparedStatementResult(string preparedstatem
         con->setSchema(schema);
 
         /// Turn off the autocommit
-        con -> setAutoCommit(0);
+        con -> setAutoCommit(1);
 
         size_t pos = 0;
 
@@ -355,20 +359,25 @@ Vector<String> connectorDB::executePreparedStatementResult(string preparedstatem
 
         /// get size
         unsigned int numCols = res_meta -> getColumnCount();
+        unsigned int numRows = res->rowsCount();
+
+        /// get collumn and row count
+        Results.Push(String(numCols));
+        Results.Push(String(numRows));
 
         /// get results and loop through copying
         while(res->next())
         {
-            for(unsigned int i=0; i<numCols; i++)
+            for(unsigned int i=0; i<numCols; ++i)
             {
                 /// get type
-                if(res_meta->getColumnType(i)==DataType::VARCHAR||res_meta->getColumnType(i)==DataType::LONGVARCHAR)
+                if(res_meta->getColumnType(i+1)==DataType::VARCHAR)
                 {
-                    Results.Push(String(res->getString(i).c_str()));
+                    Results.Push(String(res->getString(i+1).c_str()));
                 }
-                else if(res_meta->getColumnType(i)==DataType::INTEGER)
+                else if(res_meta->getColumnType(i+1)==DataType::INTEGER)
                 {
-                    Results.Push(String(res->getInt(i)));
+                    Results.Push(String(res->getInt(i+1)));
                 }
                 else
                 {
@@ -378,7 +387,6 @@ Vector<String> connectorDB::executePreparedStatementResult(string preparedstatem
         }
 
         /// delete statement and results
-//        delete res_meta;
         delete pstmt;
         delete res;
         delete con;

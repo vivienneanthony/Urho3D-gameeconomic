@@ -45,9 +45,13 @@
 #include "../Accounts.h"
 #include "../Administrator.h"
 #include "../GameEconomicComponents/Player.h"
+#include "../GameEconomicComponents/Market.h"
+#include "../GameEconomicComponents/Trader.h"
+#include "Map.h"
 #include "../GameEconomicServer/Networking.h"
 
 using namespace std;
+using namespace Urho3D;
 
 enum  DBTable
 {
@@ -84,6 +88,8 @@ protected:
             "    </add>"
             "</patch>";
     }
+
+    SharedPtr<Scene> scene_;
 
 private:
     void Splash(void);
@@ -162,6 +168,50 @@ private:
     bool VerifyIdentityDB(DBTable mode, String username, String password);
 
     Vector<SharedPtr<Urho3D::Connection> > allConnections;
+
+    /// Traders
+    Vector<String> ListAllDBTraders(void);
+    Vector<String> selectDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool insertDBTrader(TraderInformation &TempTrader);
+    bool deleteDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBTrader(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
+
+    /// Markets
+    Vector<String> ListAllDBMarkets(void);
+    Vector<String> selectDBMarkets(Vector<String> TableName,Vector<String> TableNameParameter);
+
+    bool insertDBMarket(MarketInformation &TempMarket);
+    bool deleteDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBMarket(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool insertDBMarketTransaction(TransactionInformation &TempTransaction);
+    bool deleteDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
+
+    bool insertDBCargoBays(CargoBaysInformation &TempCargoBays);
+    bool deleteDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool insertDBCargoBayCatalog(CargoBayCatalogInformation &TempCargoBayCatalog);
+    bool deleteDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
+
+    bool insertDBMap(MapInformation &TempMap);
+    bool deleteDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
+    bool editDBMap(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
+    bool verifyDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> selectDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> ListAllDBMaps(void);
+
+
+    void SceneLoad(void);
 
 };
 

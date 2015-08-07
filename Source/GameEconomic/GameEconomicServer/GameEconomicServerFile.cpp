@@ -225,6 +225,7 @@ void GameEconomicServer::DatabaseInitialization(void)
     databasetables.push_back("CargoBayCatalog");
     databasetables.push_back("Players");
     databasetables.push_back("Accounts");
+    databasetables.push_back("Maps");
 
     /// loop through all database tables
     for(unsigned int i=0; i<databasetables.size(); i++)

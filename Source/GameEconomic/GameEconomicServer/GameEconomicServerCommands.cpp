@@ -117,6 +117,20 @@ void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Argu
     {
         HandlePlayerCommands(Arguments, sender);
     }
+    /*else if(Command==String("traders"))
+    {
+    String Results=ListAllDBTraders(sender);
+
+        /// Send results
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
+    else if(Command==String("markets"))
+    {
+        String Results=ListAllDBMarkets(sender);
+
+        /// Send results
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }*/
 
     return;
 }

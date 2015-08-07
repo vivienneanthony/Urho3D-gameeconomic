@@ -22,6 +22,20 @@
 using namespace std;
 using namespace Urho3D;
 
+struct CargoBayCatalogInformation
+{
+    ResourceGame  TradeGood;
+    String Bay;
+    String UniqueID;
+};
+
+
+struct CargoBaysInformation
+{
+    unsigned int Class;
+    String Owner;
+    String UniqueID;
+};
 
 /// Cargo bay
 class CargoBay : public LogicComponent
@@ -41,6 +55,7 @@ public:
     bool AddCargo(Vector<ResourceGame> &InputResourceList);
     bool RemoveCargo(Vector<ResourceGame> &InputResourceList);
     bool EjectCargo(void);
+    Vector<ResourceGame> ConfigureLoadCargo(String UniqueID);
 
 protected:
 
@@ -52,6 +67,8 @@ private:
 
     /// create a array for Resources
     Vector<ResourceGame> Inventory;
+
+    String CargoUserUniqueID;
 };
 
 #endif // CargoBay_H

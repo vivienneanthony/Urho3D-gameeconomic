@@ -51,6 +51,9 @@
 
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
+#include "../GameEconomicComponents/Market.h"
+#include "../GameEconomicComponents/Trader.h"
+
 
 #include "signalHandler.hpp"
 #include <pthread.h>
@@ -68,6 +71,9 @@ GameEconomicServer::GameEconomicServer(Context* context) :
 {
 
     connectorDB::RegisterNewSubsystem(context);
+    Market::RegisterNewSubsystem(context);
+    Trader::RegisterObject(context);
+
     return;
 }
 
@@ -170,6 +176,8 @@ void GameEconomicServer::Start()
     NetworkInitialization(3632);
 
     CoreInitialization();
+
+    SceneLoad();
 
     /// Start the interface
     PrimaryConsoleInterface -> Start();
@@ -283,9 +291,11 @@ void GameEconomicServer::NetworkInitialization(unsigned int Port)
 void GameEconomicServer::CoreInitialization(void)
 {
     /// create scene
-    Scene * scene_ = new Scene(context_);
+    scene_ = new Scene(context_);
 
     cout << "[Info]Starting scene." << endl;
+
+    Node * test= scene_->CreateChild("test");
 
     return;
 }
@@ -338,4 +348,7 @@ bool GameEconomicServer::EmailValidCheck(String EmailAddress)
 
     return !(DotOffset >= ((int)EmailLength-1)); //Chech there is some other letters after the Dot
 }
+
+
+
 

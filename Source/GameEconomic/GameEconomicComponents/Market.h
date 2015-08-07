@@ -21,17 +21,32 @@
 
 #include "Resource.h"
 
-struct Trade
+
+
+using namespace std;
+using namespace Urho3D;
+
+struct MarketInformation
+{
+    String MarketName;
+    unsigned int MarketSystem;
+    unsigned int MarketFee;
+    bool Bidding;
+    String UniqueID;
+};
+
+
+struct TransactionInformation
 {
     ResourceGame TradeGood;
     unsigned int AskingPrice;
     unsigned long TimeLimit;
     unsigned int LastBid;
-    string LastBidder;
+    String LastBidder;
     unsigned Bids;
-    string Seller;
-    string TransactionID;
-    string MarketID; /// filled by application
+    String Seller;
+    String UniqueID;
+    String Market; /// filled by application
 };
 
 struct TradeInternal
@@ -45,15 +60,20 @@ struct TradeInternal
 
 struct MarketSystem
 {
-    string MarketName;
+    String MarketName;
     unsigned int MarketSystem;
     unsigned int MarketFee;
     bool Bidding;
-    string UniqueID;
+    String UniqueID;
 };
 
-using namespace std;
-using namespace Urho3D;
+
+enum MarketTypes
+{
+    MarketOpen,
+    MarketClosed,
+    MarketBlack
+};
 
 class URHO3D_API Market: public LogicComponent
 {
@@ -65,20 +85,19 @@ public:
 
     /// Registration
     static void RegisterNewSubsystem(Context* context);
+    void ConfigurePushNewMarket(MarketSystem &DBMarket);
     void Start(void);
 
     /// functions need to change for muitple markets
-    bool SetMarketType(unsigned int MarketType);
-    bool SellToMarket(Vector<TradeInternal> &Selling, unsigned int TransactionFee, string BuyerUniqueID);
+    bool SetMarketType(String UniqueID);
+    bool SellToMarket(Vector<TradeInternal> &Selling, unsigned int TransactionFee, String BuyerUniqueID);
 
-    bool GetMarket(void);
+    MarketSystem GetMarket(String UniqueID);
 
 protected:
 private:
-    Vector<Trade> * MarketExchange;
-    unsigned int MarketSystem;
-    unsigned int MarketFee;
-    bool Bidding;
+    Vector<MarketSystem> MarketsSystem;
+
 };
 
 #endif // MARKET_H

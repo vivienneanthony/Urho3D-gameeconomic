@@ -15,18 +15,15 @@
 
 #include "Resource.h"
 #include "Market.h"
+#include "Trader.h"
 
 using namespace std;
 using namespace Urho3D;
 
 Market::Market(Context *context):
-    LogicComponent(context),
-    MarketExchange(NULL),
-    MarketSystem(0),
-    MarketFee(0),
-    Bidding(0)
-{
+    LogicComponent(context)
     //ctor
+{
 }
 
 Market::~Market()
@@ -48,26 +45,27 @@ void Market::RegisterNewSubsystem(Context* context)
   */
 void Market::Start(void)
 {
-    /// initializeMarket
-    MarketExchange = new Vector<Trade>;
-
-    /// clear Market on initiate
-    MarketExchange -> Clear();
-
-    MarketFee=0;
-    Bidding=false;
+    /// Clear
+    MarketsSystem.Clear();
 
     return;
+}
+
+void Market::ConfigurePushNewMarket(MarketSystem &DBMarket)
+{
+    /// Apppend to market system
+    MarketsSystem.Push(DBMarket);
+
+    return;
+
 }
 
 /** @brief setMarkettype
   *
   * @todo: document this function
   */
-bool Market::SetMarketType(unsigned int MarketType)
+bool Market::SetMarketType(String UniqueID)
 {
-    /// set Market type
-    MarketSystem = MarketType;
 
     return true;
 }
@@ -76,40 +74,56 @@ bool Market::SetMarketType(unsigned int MarketType)
   *
   * @todo: document this function
   */
-bool Market::GetMarket(void)
+MarketSystem Market::GetMarket(String UniqueID)
 {
-    return true;
+    /// loop through all the markets
+    MarketSystem ResultMarket;
+
+    for(unsigned int i=0; i<MarketsSystem.Size(); i++)
+    {
+        if(MarketsSystem.At(i).UniqueID==UniqueID)
+        {
+            /// return market system
+            return MarketsSystem.At(i);
+        }
+
+    }
+    return ResultMarket;
 }
+
 
 /** @brief selltoMarket
   *
   * @todo: document this function
   */
-bool Market::SellToMarket(Vector<TradeInternal> &Selling, unsigned int TransactionFee, string BuyerUniqueID)
+bool Market::SellToMarket(Vector<TradeInternal> &Selling, unsigned int TransactionFee, String BuyerUniqueID)
 {
     bool Bidding=false;
 
+    /// Get amrket
+    MarketSystem MarketSellTo = GetMarket(BuyerUniqueID);
+
     /// if it is a close Market then leave
-    if(MarketSystem==CLOSEDMARKET)
+    if(MarketSellTo.MarketSystem==CLOSEDMARKET)
     {
         return false;
     }
 
     /// If there is a Market fee
-    if(TransactionFee<MarketFee)
+    if(TransactionFee<MarketSellTo.MarketFee)
     {
         return false;
     }
 
     /// Create trade
-    Trade NewTrade;
+    TransactionInformation NewTrade;
 
     /// Loop through each trade
     for(unsigned int i=0; i<Selling.Size(); i++)
     {
         /// copy info
         NewTrade.TradeGood = Selling.At(i).TradeGood;
-        NewTrade.Seller  = BuyerUniqueID;
+        //   NewTrade.Seller  = BuyerUniqueID;
         NewTrade.AskingPrice = Selling.At(i).AskingPrice;
         NewTrade.TimeLimit=Selling.At(i).TimeLimit;
 
@@ -122,7 +136,7 @@ bool Market::SellToMarket(Vector<TradeInternal> &Selling, unsigned int Transacti
         }
 
         /// add to Market
-        MarketExchange->Push(NewTrade);
+        // MarketExchange->Push(NewTrade);
     }/// copy data
 
     return true;

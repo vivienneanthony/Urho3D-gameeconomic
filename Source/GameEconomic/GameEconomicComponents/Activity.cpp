@@ -15,6 +15,13 @@
 using namespace std;
 using namespace Urho3D;
 
+
+struct ActivityInformation
+{
+    // Idx
+
+};
+
 Activity::Activity(Context * context)
     :LogicComponent(context)
 {

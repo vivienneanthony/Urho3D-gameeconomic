@@ -47,6 +47,19 @@ void CargoBay::Start(void )
         return;
 }
 
+/// connect to database and load cargo
+Vector<ResourceGame> CargoBay::ConfigureLoadCargo(String UniqueID)
+{
+    /// Save the Unique ID so it's permament
+    CargoUserUniqueID = UniqueID;
+
+    /// Resources
+    Vector<ResourceGame> CargoCatalog;
+
+    return CargoCatalog;
+}
+
+
 /// Input Resource list
 bool CargoBay::GetCatalog(Vector<ResourceGame> &InputResourceList)
 {

@@ -27,6 +27,16 @@ using namespace Urho3D;
 
 #define TRADER_ENTITY           0
 
+struct TraderInformation
+{
+    unsigned int TraderType;
+    unsigned long int Credits;
+    String CargoBay;
+    String Name;
+    String UniqueID;
+
+};
+
 using namespace std;
 
 class Trader :  public Entity
@@ -39,6 +49,8 @@ public:
 
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
+    void SetParameters(TraderInformation &DBTrader);
+
     void Start(void);
 
     /// Other functions
@@ -48,6 +60,7 @@ public:
     unsigned int MakeTradePlayerToTraderSell(Vector<ResourceGame> &Trading);
     unsigned int MakeTradePlayerToTraderBuy(Vector<ResourceGame> &buying,unsigned int TransactionFee);
     bool IsTrading();
+
 
 protected:
 private:

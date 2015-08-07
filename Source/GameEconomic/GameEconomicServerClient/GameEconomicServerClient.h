@@ -73,6 +73,9 @@ protected:
             "</patch>";
     }
 
+   /// Scene Shared Pointer
+    SharedPtr<Scene> scene_;
+
 private:
     void Splash(void);
     /// Subscribe to application-wide logic update events.

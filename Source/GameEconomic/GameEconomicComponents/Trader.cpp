@@ -42,11 +42,22 @@ Trader::~Trader()
 
 void Trader::Start(void)
 {
+
+    return;
+}
+
+/// Set Parameters for loading resource
+void Trader::SetParameters(TraderInformation &DBTrader)
+{
+
+    /// copy values
+    String Name = DBTrader.Name;
+    UniqueID = DBTrader.UniqueID;
+    Credits = DBTrader.Credits;
+    TraderType = DBTrader.TraderType;
+
     /// initalizae
     MyTraderCargoBay = new CargoBay(context_);
-
-    /// set the name
-    UniqueID.Append("Dorula1245");
 
     return;
 }

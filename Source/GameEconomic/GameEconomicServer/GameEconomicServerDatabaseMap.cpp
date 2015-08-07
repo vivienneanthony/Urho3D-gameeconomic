@@ -95,10 +95,10 @@ bool GameEconomicServer::insertDBMap(MapInformation &TempMap)
 
 
     ///StateStart
-    String PreparedStatement = String("INSERT INTO Maps ('Name`,`MapData`,`MapUniqueID`)VALUES (");
+    String PreparedStatement = String("INSERT INTO Maps ('Name`,`MapData`,`MapUniqueID`) VALUES (");
 
     /// Copy information to statement
-    PreparedStatement.Append(",'"+TemporaryDBMap.Name+"'");
+    PreparedStatement.Append("'"+TemporaryDBMap.Name+"'");
     PreparedStatement.Append(",'"+TemporaryDBMap.MapData+"'");
     PreparedStatement.Append(",'"+TemporaryDBMap.UniqueID+"");
 
@@ -288,8 +288,7 @@ bool GameEconomicServer::verifyDBMap(Vector<String> TableName,Vector<String> Tab
         {
             PreparedStatement.Append(" AND ");
         }
-        /// unique values
-        /// unique values
+
         /// unique values
         if(TableName.At(i).ToLower()=="mapname")
         {

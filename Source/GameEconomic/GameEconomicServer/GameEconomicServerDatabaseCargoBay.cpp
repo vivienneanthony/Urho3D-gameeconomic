@@ -92,7 +92,7 @@ bool GameEconomicServer::insertDBCargoBays(CargoBaysInformation &TempCargoBays)
     cout << "it got here" << endl;
 
     ///StateStart
-    String PreparedStatement = String("INSERT INTO CargoBays (`CargoBayIdx`, `CargoBayClass`, `CargoBayOwner`, `CargoBayUniqueID`) VALUES ( ");
+    String PreparedStatement = String("INSERT INTO CargoBays (`CargoBayClass`, `CargoBayOwner`, `CargoBayUniqueID`) VALUES ( ");
 
     /// Copy information to statement
     PreparedStatement.Append(""+String(TemporaryDBCargoBays.Class)+"");
@@ -279,7 +279,7 @@ bool GameEconomicServer::verifyDBCargoBays(Vector<String> TableName,Vector<Strin
     }
 
     /// Prepare statement
-    String PreparedStatement("SELECT CargoBaysIdx FROM 'CargoBays' WHERE ");
+    String PreparedStatement("SELECT CargoBaysIdx FROM CargoBays WHERE ");
 
     /// loop through each one
     for(unsigned int i=0; i<TableName.Size(); i++)
@@ -523,8 +523,6 @@ bool GameEconomicServer::editDBCargoBayCatalog(Vector<String> TableName,Vector<S
         multipletablenames=true;
     }
 
-
-
     /// Prepare statement
     String PreparedStatement("UPDATE CargoBayCatalog SET ");
 
@@ -570,10 +568,8 @@ bool GameEconomicServer::editDBCargoBayCatalog(Vector<String> TableName,Vector<S
 bool GameEconomicServer::verifyDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter)
 {
 
-
     /// get db
     connectorDB * connectionDB = GetSubsystem<connectorDB>();
-
 
     /// Set up a single statement
     bool multipletablenames=false;

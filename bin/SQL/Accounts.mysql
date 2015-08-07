@@ -1,0 +1,12 @@
+CREATE TABLE `Accounts` (
+  `AccountIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `AccountUsername` varchar(45) DEFAULT NULL,
+  `AccountFirstname` varchar(45) DEFAULT NULL,
+  `AccountMiddlename` varchar(45) DEFAULT NULL,
+  `AccountLastname` varchar(45) DEFAULT NULL,
+  `AccountEmail` varchar(45) DEFAULT NULL,
+  `AccountPassword` varchar(45) DEFAULT NULL,
+  `AccountLastLogin` varchar(45) DEFAULT NULL,
+  `AccountUniqueID` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`AccountIdx`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

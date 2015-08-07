@@ -1,0 +1,6 @@
+CREATE TABLE `CargoBays` (
+  `CargoBayIdx` int(11) DEFAULT NULL,
+  `CargoBayClass` int(11) DEFAULT NULL,
+  `CargoBayOwner` varchar(45) DEFAULT NULL,
+  `CargoBayUniqueID` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

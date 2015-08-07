@@ -64,7 +64,7 @@
 
 using namespace std;
 using namespace Urho3D;
-
+t
 /// verify
 bool GameEconomicServer::VerifyIdentityDB(DBTable mode, String Username, String Password)
 {

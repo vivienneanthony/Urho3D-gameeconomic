@@ -1,0 +1,9 @@
+CREATE TABLE `Traders` (
+  `TraderIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `TraderType` int(11) DEFAULT NULL,
+  `TraderName` varchar(45) DEFAULT NULL,
+  `TraderCargoBay` int(11) DEFAULT NULL,
+  `TraderCredits` int(11) DEFAULT NULL,
+  `TraderUniqueID` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`TraderIdx`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

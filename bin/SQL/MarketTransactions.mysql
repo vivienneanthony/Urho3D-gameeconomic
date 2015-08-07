@@ -1,0 +1,14 @@
+CREATE TABLE `MarketTransactions` (
+  `TransactionIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `TransactionResourceType` int(11) DEFAULT NULL,
+  `TransactionResourceQuanity` int(11) DEFAULT NULL,
+  `TransactionAskingPrice` int(11) DEFAULT NULL,
+  `TransactionEndTime` datetime DEFAULT NULL,
+  `TransactionLastBid` int(11) DEFAULT NULL,
+  `TransactionLastBidder` varchar(255) DEFAULT NULL,
+  `TransactionBids` int(11) DEFAULT NULL,
+  `TransactionSeller` varchar(255) DEFAULT NULL,
+  `TransactionUniqueID` varchar(255) DEFAULT NULL,
+  `TransactionMarket` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`TransactionIdx`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

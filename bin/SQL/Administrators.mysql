@@ -1,0 +1,8 @@
+CREATE TABLE `Administrators` (
+  `AdministratorIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `AdministratorUsername` varchar(45) DEFAULT NULL,
+  `AdministratorPassword` varchar(45) DEFAULT NULL,
+  `AdministratorUniqueID` varchar(45) DEFAULT NULL,
+  `AdministratorAdminAccounts` int(11) DEFAULT NULL,
+  PRIMARY KEY (`AdministratorIdx`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

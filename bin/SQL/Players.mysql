@@ -1,0 +1,20 @@
+CREATE TABLE `Players` (
+  `PlayerIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `PlayerFirstname` varchar(45) DEFAULT NULL,
+  `PlayerMiddlename` varchar(45) DEFAULT NULL,
+  `PlayerLastname` varchar(45) DEFAULT NULL,
+  `PlayerLevel` int(11) DEFAULT NULL,
+  `PlayerExperience` int(11) DEFAULT NULL,
+  `PlayerReputation` int(11) DEFAULT NULL,
+  `PlayerReputation1` int(11) DEFAULT NULL,
+  `PlayerReputation2` int(11) DEFAULT NULL,
+  `PlayerReputation3` int(11) DEFAULT NULL,
+  `PlayerReputation4` int(11) DEFAULT NULL,
+  `PlayerReputation5` int(11) DEFAULT NULL,
+  `PlayerAlienRace` int(11) DEFAULT NULL,
+  `PlayerAlienAllianceAligned` int(11) DEFAULT NULL,
+  `PlayerGender` int(11) DEFAULT NULL,
+  `PlayerPersonalityTrait` int(11) DEFAULT NULL,
+  `PlayerUniqueID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`PlayerIdx`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

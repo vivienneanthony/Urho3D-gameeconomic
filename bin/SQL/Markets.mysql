@@ -1,0 +1,9 @@
+CREATE TABLE `Markets` (
+  `MarketIdx` int(11) NOT NULL AUTO_INCREMENT,
+  `MarketName` varchar(255) DEFAULT NULL,
+  `MarketSystem` int(11) DEFAULT NULL,
+  `MarketFee` int(11) DEFAULT NULL,
+  `MarketBidding` tinyint(1) DEFAULT NULL,
+  `MarketUniqueID` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`MarketIdx`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1

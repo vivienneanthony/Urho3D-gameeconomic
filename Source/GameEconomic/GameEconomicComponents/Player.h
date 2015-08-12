@@ -41,6 +41,8 @@ protected:
 private:
     unsigned long int Credits;
     String UniqueID;
+
+    PlayerObject  * ThisPlayer;
 };
 
 #endif // PLAYER_H

@@ -48,7 +48,7 @@
 #include <vector>
 
 #include "GameEconomicServerClientConsole.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 #include <Urho3D/DebugNew.h>
 

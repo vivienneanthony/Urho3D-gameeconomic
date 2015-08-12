@@ -52,9 +52,9 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Player.h"
-#include "../Accounts.h"
+#include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 #include "signalHandler.hpp"
 #include <pthread.h>

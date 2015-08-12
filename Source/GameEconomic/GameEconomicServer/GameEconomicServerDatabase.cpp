@@ -52,9 +52,9 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Player.h"
-#include "../Accounts.h"
+#include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 #include "signalHandler.hpp"
 #include <pthread.h>
@@ -64,7 +64,7 @@
 
 using namespace std;
 using namespace Urho3D;
-t
+
 /// verify
 bool GameEconomicServer::VerifyIdentityDB(DBTable mode, String Username, String Password)
 {
@@ -130,4 +130,123 @@ bool GameEconomicServer::VerifyIdentityDB(DBTable mode, String Username, String 
     }
 
     return true;
+}
+
+
+/// Get Player Information
+PlayerObject *  GameEconomicServer::GetSingleDBPlayer(String PlayerUniqueID)
+{
+    /// Create empty tables and fields and get results
+    Vector<String> TableNames;
+    Vector<String> TableFields;
+
+    /// Return player information
+    PlayerObject * ReturnPlayer = NULL;
+
+    /// create a bew player
+    ReturnPlayer = new PlayerObject();
+
+    /// Copy fields
+    TableNames.Push("playeruniqueid");
+
+    /// Copy parameters
+    TableFields.Push(PlayerUniqueID);
+
+    /// Select Player
+    Vector<String> Results = selectDBPlayer(TableNames,TableFields);
+
+    /// If no records found
+    if(Results.At(1)==String("0"))
+    {
+        /// return null if player is not found
+
+        delete ReturnPlayer;
+
+        return NULL;
+    }
+
+    /// Copy Information
+    ReturnPlayer->Firstname=Results.At(3);
+    ReturnPlayer->Middlename=Results.At(4);
+    ReturnPlayer->Lastname=Results.At(5);
+    ReturnPlayer->Level=atoi(Results.At(6).CString());
+    ReturnPlayer->Experience=atoi(Results.At(7).CString());
+    ReturnPlayer->Reputation=atoi(Results.At(8).CString());
+    ReturnPlayer->Reputation1=atoi(Results.At(9).CString());
+    ReturnPlayer->Reputation2=atoi(Results.At(10).CString());
+    ReturnPlayer->Reputation3=atoi(Results.At(11).CString());
+    ReturnPlayer->Reputation4=atoi(Results.At(12).CString());
+    ReturnPlayer->Reputation5=atoi(Results.At(13).CString());
+    ReturnPlayer->AlienRace=atoi(Results.At(14).CString());
+    ReturnPlayer->AlienAllianceAligned=atoi(Results.At(15).CString());
+    ReturnPlayer->Gender=atoi(Results.At(16).CString());
+    ReturnPlayer->PersonalityTrait=atoi(Results.At(17).CString());
+    ReturnPlayer->GalaxySeed=Results.At(18).CString();
+    ReturnPlayer->Credits=atoi(Results.At(19).CString());
+
+    /// Clear Traits
+    ReturnPlayer->TotalGroundPassiveTraits=0;
+    ReturnPlayer->GroundPassiveTrait.Clear();
+    ReturnPlayer->TotalSpacePassiveTraits=0;
+    ReturnPlayer->SpacePassiveTrait.Clear();
+
+    return ReturnPlayer;
+}
+
+
+/// Get Player Information
+Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqueID)
+{
+    /// Create empty tables and fields and get results
+    Vector<String> TableNames;
+    Vector<String> TableFields;
+
+    /// Return player information
+    Vector <PlayerList> * ReturnPlayers = NULL;
+
+    /// create a bew player
+    ReturnPlayers = new Vector<PlayerList>();
+
+    /// Copy fields
+    TableNames.Push("playerowneruniqueid");
+
+    /// Copy parameters
+    TableFields.Push(AccountUniqueID);
+
+    /// Select Player
+    Vector<String> Results = selectDBPlayer(TableNames,TableFields);
+
+    /// If no records found
+    if(Results.At(1)==String("0"))
+    {
+        /// return null if player is not found
+
+        delete ReturnPlayers;
+
+        return NULL;
+    }
+
+    /// Convert rows to 1
+    unsigned int NumberRows = atoi(Results.At(1).CString());
+    unsigned int NumberCols = atoi(Results.At(0).CString());
+
+    /// loop through
+    for(unsigned int i=0;i<NumberRows;i++)
+    {
+        /// find index
+        unsigned int index=(i*NumberCols)+3;
+
+        PlayerList TempPlayer;
+
+        /// copy information
+        TempPlayer.Firstname = Results.At(index);
+        TempPlayer.Middlename = Results.At(index+1);
+        TempPlayer.Lastname= Results.At(index+2);
+        TempPlayer.UniqueID= Results.At(index+15);
+
+        /// copy data to temp player
+        ReturnPlayers->Push(TempPlayer);
+    }
+
+    return ReturnPlayers;
 }

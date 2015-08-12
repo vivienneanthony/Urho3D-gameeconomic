@@ -52,9 +52,9 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Player.h"
-#include "../Accounts.h"
+#include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 #include "signalHandler.hpp"
 #include <pthread.h>
@@ -90,6 +90,8 @@ bool GameEconomicServer::insertDBTrader(TraderInformation &TempTrader)
     TemporaryDBTrader.UniqueID = TempTrader.UniqueID.Trimmed();
     TemporaryDBTrader.Credits=TempTrader.Credits;
     TemporaryDBTrader.TraderType=TempTrader.TraderType;
+    TemporaryDBTrader.AlienRace = TempTrader.AlienRace;
+    TemporaryDBTrader.AlienAllianceAligned = TempTrader.AlienAllianceAligned;
 
     if(TemporaryDBTrader.Name.Empty()
             ||TemporaryDBTrader.CargoBay.Empty()
@@ -101,11 +103,13 @@ bool GameEconomicServer::insertDBTrader(TraderInformation &TempTrader)
 
 
     ///StateStart
-    String PreparedStatement = String("INSERT INTO Traders (`TraderType`, Name`,`TraderCargoBay`, `TraderCredits`,`TraderUniqueID`)VALUES (");
+    String PreparedStatement = String("INSERT INTO Traders (`TraderType`, Name`,`TraderAlienRace`,`TraderAlienAllianceAligned`,`TraderCargoBay`, `TraderCredits`,`TraderUniqueID`)VALUES (");
 
     /// Copy information to statement
     PreparedStatement.Append(""+String(TemporaryDBTrader.TraderType)+"");
     PreparedStatement.Append(",'"+TemporaryDBTrader.Name+"'");
+    PreparedStatement.Append(","+String(TemporaryDBTrader.AlienRace)+"");
+    PreparedStatement.Append(","+String((unsigned int)TemporaryDBTrader.AlienAllianceAligned)+"");
     PreparedStatement.Append(",'"+TemporaryDBTrader.CargoBay+"'");
     PreparedStatement.Append(","+String(TemporaryDBTrader.Credits)+"");
     PreparedStatement.Append(",'"+TemporaryDBTrader.UniqueID+"");

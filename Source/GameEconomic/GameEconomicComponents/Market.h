@@ -33,6 +33,8 @@ struct MarketInformation
     unsigned int MarketFee;
     bool Bidding;
     String UniqueID;
+    unsigned int AlienRace;
+    bool AlienAllianceAligned;
 };
 
 
@@ -65,6 +67,8 @@ struct MarketSystem
     unsigned int MarketFee;
     bool Bidding;
     String UniqueID;
+    unsigned int AlienRace;
+    bool AlienAllianceAligned;
 };
 
 

@@ -25,6 +25,7 @@ using namespace Urho3D;
 #include "CargoBay.h"
 #include "Resource.h"
 
+
 #define TRADER_ENTITY           0
 
 struct TraderInformation
@@ -34,6 +35,8 @@ struct TraderInformation
     String CargoBay;
     String Name;
     String UniqueID;
+    unsigned int AlienRace;
+    bool AlienAllianceAligned;
 
 };
 
@@ -69,6 +72,8 @@ private:
     String Name;
     CargoBay * MyTraderCargoBay;
     String UniqueID;
+
+    TraderInformation * ThisTrader;
 };
 
 #endif // TRADER_H

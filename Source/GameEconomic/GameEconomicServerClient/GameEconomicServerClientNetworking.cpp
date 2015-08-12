@@ -48,7 +48,7 @@
 #include <vector>
 
 #include "GameEconomicServerClient.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 
 #include <pthread.h>

@@ -52,9 +52,9 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Player.h"
-#include "../Accounts.h"
+#include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 #include "signalHandler.hpp"
 #include <pthread.h>
@@ -85,6 +85,8 @@ bool GameEconomicServer::insertDBMarket(MarketInformation &TempMarket)
     TemporaryDBMarket.MarketSystem=TempMarket.MarketSystem;
     TemporaryDBMarket.Bidding=TempMarket.Bidding;
     TemporaryDBMarket.UniqueID=TempMarket.UniqueID;
+    TemporaryDBMarket.AlienRace = TempMarket.AlienRace;
+    TemporaryDBMarket.AlienAllianceAligned = TempMarket.AlienAllianceAligned;
 
 
     if(TemporaryDBMarket.MarketName.Empty()
@@ -96,13 +98,15 @@ bool GameEconomicServer::insertDBMarket(MarketInformation &TempMarket)
 
 
     ///StateStart
-    String PreparedStatement = String("INSERT INTO Markets (`MarketName`,`MarketSystem`, `MarketFee`, `MarketBidding`, `MarketUniqueID`) VALUES (");
+    String PreparedStatement = String("INSERT INTO Markets (`MarketName`,`MarketSystem`, `MarketFee`,`MarketAlienRace`,`MarketAlienAllianceAligned`, `MarketBidding`, `MarketUniqueID`) VALUES (");
 
 
     /// Copy information to statement
     PreparedStatement.Append("'"+TemporaryDBMarket.MarketName+"'");
     PreparedStatement.Append(","+String(TemporaryDBMarket.MarketSystem)+"");
     PreparedStatement.Append(","+String(TemporaryDBMarket.MarketFee)+"");
+    PreparedStatement.Append(","+String(TemporaryDBMarket.AlienRace)+"");
+    PreparedStatement.Append(","+String((unsigned int)TemporaryDBMarket.AlienAllianceAligned)+"");
     PreparedStatement.Append(","+String(TemporaryDBMarket.Bidding)+"");;
     PreparedStatement.Append(",'"+TemporaryDBMarket.UniqueID+"");
 

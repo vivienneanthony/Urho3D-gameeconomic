@@ -67,7 +67,8 @@ using namespace std;
 using namespace Urho3D;
 
 GameEconomicServer::GameEconomicServer(Context* context) :
-    GameEconomicApp(context)
+    GameEconomicApp(context),
+    applicationPtr(NULL)
 {
 
     connectorDB::RegisterNewSubsystem(context);

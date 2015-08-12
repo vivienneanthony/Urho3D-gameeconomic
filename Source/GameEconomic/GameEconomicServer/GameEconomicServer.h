@@ -37,7 +37,7 @@
 #include <Urho3D/IO/VectorBuffer.h>
 
 
-#include "../GameEconomicApp.h"
+#include "../GameEconomicAppHeadless.h"
 
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
@@ -48,7 +48,7 @@
 #include "../GameEconomicComponents/Market.h"
 #include "../GameEconomicComponents/Trader.h"
 #include "Map.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../Networking.h"
 
 using namespace std;
 using namespace Urho3D;
@@ -77,13 +77,17 @@ public:
     /// Setup after engine initialization and before running the main loop.
     virtual void Start();
 
+     /// Shared
+    SharedPtr<GameEconomicServer> applicationPtr;
+
+
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
     virtual String GetScreenJoystickPatchString() const
     {
         return
             "<patch>"
-            "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Hat0']]\">"
+            "    <add sel=\"/element/element[./attribute[@namhttps://www.reddit.com/r/sto/e='Name' and @value='Hat0']]\">"
             "        <attribute name=\"Is Visible\" value=\"false\" />"
             "    </add>"
             "</patch>";
@@ -123,7 +127,7 @@ private:
     void HandleAdministratorCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
     void HandlePlayerCommands(Vector <String> &Arguments, Urho3D::Connection * sender);
 
-    /// Database functions
+    /// Database functions - Account
     bool insertDBAccount(AccountInformation &TempAccount);
     bool deleteDBAccount(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBAccount(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
@@ -134,7 +138,7 @@ private:
     bool UpdateSingleDBAccount(AccountInformation &TempAccount);
     bool DeleteSingleDBAccount(AccountInformation &TempAccount);
 
-    /// Database functions related to administrator
+    /// Database functions - Administrator
     bool insertDBAdministrator(AdministratorInformation &TempAdministrator);
     bool deleteDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBAdministrator(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
@@ -145,6 +149,7 @@ private:
     bool UpdateSingleDBAdministrator(AdministratorInformation &TempAdministrator);
     bool DeleteSingleDBAdministrator(AdministratorInformation &TempAdministrator);
 
+    /// Database functions - Player
     bool insertDBPlayer(PlayerObject &TempPlayer);
     bool deleteDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBPlayer(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
@@ -155,63 +160,71 @@ private:
     bool UpdateSingleDBPlayer(PlayerObject &TempPlayer);
     bool DeleteSingleDBPlayer(PlayerObject &TempPlayer);
 
-    /// Networking
-    void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);
-    void NewConnection(StringHash eventType, Urho3D::VariantMap& eventData);
-
-    /// Push connection
-    void NetworkingOnUpdate(float timeStep);
-
-    void SendNetworkMessage(NetworkMessageTypes NetworkMessageType, bool flag1, bool flag2, String MessageText, Urho3D::Connection * SenderTo);
-
-    bool EmailValidCheck(String EmailAddress);
-    bool VerifyIdentityDB(DBTable mode, String username, String password);
-
-    Vector<SharedPtr<Urho3D::Connection> > allConnections;
-
-    /// Traders
-    Vector<String> ListAllDBTraders(void);
+    /// Database functions - Traders
     Vector<String> selectDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
     bool insertDBTrader(TraderInformation &TempTrader);
     bool deleteDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBTrader(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBTrader(Vector<String> TableName,Vector<String> TableNameParameter);
+    Vector<String> ListAllDBTraders(void);
 
-    /// Markets
-    Vector<String> ListAllDBMarkets(void);
-    Vector<String> selectDBMarkets(Vector<String> TableName,Vector<String> TableNameParameter);
-
+    /// Database functions - Markets
     bool insertDBMarket(MarketInformation &TempMarket);
     bool deleteDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBMarket(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBMarket(Vector<String> TableName,Vector<String> TableNameParameter);
     bool insertDBMarketTransaction(TransactionInformation &TempTransaction);
+
     bool deleteDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBMarketTransaction(Vector<String> TableName,Vector<String> TableNameParameter);
 
+    Vector<String> ListAllDBMarkets(void);
+
+    /// Database functions - Cargo
     bool insertDBCargoBays(CargoBaysInformation &TempCargoBays);
     bool deleteDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBCargoBays(Vector<String> TableName,Vector<String> TableNameParameter);
+
     bool insertDBCargoBayCatalog(CargoBayCatalogInformation &TempCargoBayCatalog);
     bool deleteDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBCargoBayCatalog(Vector<String> TableName,Vector<String> TableNameParameter);
 
+    /// Database functions - Maps
     bool insertDBMap(MapInformation &TempMap);
     bool deleteDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
     bool editDBMap(Vector<String> TableName,Vector<String> TableNameParameter, String UniqueID);
     bool verifyDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
     Vector<String> selectDBMap(Vector<String> TableName,Vector<String> TableNameParameter);
+
     Vector<String> ListAllDBMaps(void);
 
+    /// Database General
+    bool VerifyIdentityDB(DBTable mode, String username, String password);
 
+    /// Networking
+    void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);
+    void NewConnection(StringHash eventType, Urho3D::VariantMap& eventData);
+    void NetworkingOnUpdate(float timeStep);
+    void SendNetworkMessage(NetworkMessageTypes NetworkMessageType, bool flag1, bool flag2, String MessageText, Urho3D::Connection * SenderTo);
+
+    bool EmailValidCheck(String EmailAddress);
+
+    /// Private - Functions
     void SceneLoad(void);
+
+    /// Variables
+    Vector<SharedPtr<Urho3D::Connection> > allConnections;
+
+    PlayerObject *  GetSingleDBPlayer(String PlayerUniqueID);
+    Vector<PlayerList> * GetPlayersDBAccount(String AccountUniqueID);
+
 
 };
 

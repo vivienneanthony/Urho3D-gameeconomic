@@ -26,7 +26,7 @@
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Core/Thread.h>
 #include <Urho3D/UI/Font.h>
-#include <Urho3D/Input/Input.h>Ɔ
+#include <Urho3D/Input/Input.h>
 #include <Urho3D/Core/ProcessUtils.h>
 #include <Urho3D/UI/Text.h>
 #include <Urho3D/UI/UI.h>
@@ -52,10 +52,9 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Player.h"
-#include "../Accounts.h"
+#include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
-#include "../GameEconomicServer/Networking.h"
-
+#include "../Networking.h"
 #include "signalHandler.hpp"
 #include <pthread.h>
 

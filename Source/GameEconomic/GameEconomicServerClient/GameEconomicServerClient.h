@@ -36,7 +36,7 @@
 
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 
-#include "../GameEconomicApp.h"
+#include "../GameEconomicAppHeadless.h"
 
 
 
@@ -60,6 +60,10 @@ public:
 
     /// Setup after engine initialization and before running the main loop.
     virtual void Start();
+
+     /// Shared
+    SharedPtr<GameEconomicServerClient> applicationPtr;
+
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.

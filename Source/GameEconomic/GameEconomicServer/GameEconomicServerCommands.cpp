@@ -58,8 +58,8 @@
 #include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
-#include "../Accounts.h"
-#include "../GameEconomicServer/Networking.h"
+#include "../GameEconomicComponents/Accounts.h"
+#include "../Networking.h"
 
 
 using namespace std;
@@ -240,6 +240,15 @@ void GameEconomicServer::HandleAccountCommands(Vector <String> &Arguments, Urho3
         }
 
     }
+
+    if(Arguments.At(0)== String("getplayers"))
+    {
+        /// create a tempPlayer
+
+        GetPlayersDBAccount(Arguments.At(1));
+    }
+
+
 
     return;
 
@@ -456,6 +465,20 @@ void GameEconomicServer::HandlePlayerCommands(Vector <String> &Arguments, Urho3D
         }
 
     }
+
+    /// Delete player command
+    if(Arguments.At(0)== String("getplayer"))
+    {
+
+        /// create a tempPlayer
+        PlayerObject * TempPlayer = NULL;
+
+        TempPlayer = new PlayerObject();
+
+        TempPlayer = GetSingleDBPlayer(Arguments.At(1));
+    }
+
+
 
     return;
 

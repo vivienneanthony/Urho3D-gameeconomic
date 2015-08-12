@@ -60,7 +60,8 @@ using namespace std;
 using namespace Urho3D;
 
 GameEconomicServerClient::GameEconomicServerClient(Context* context) :
-    GameEconomicApp(context)
+    GameEconomicApp(context),
+    applicationPtr(NULL)
 {
 
     GameEconomicServerClientConsole::RegisterObject(context);

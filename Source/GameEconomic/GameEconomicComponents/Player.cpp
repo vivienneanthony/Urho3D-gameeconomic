@@ -22,11 +22,17 @@ using namespace Urho3D;
   */
 Player::Player(Context *context):
     LogicComponent(context)
+    ,ThisPlayer(NULL)
 {
+    /// Allocate a new player
+    ThisPlayer = new PlayerObject();
 }
 
 Player::~Player()
 {
+    /// Remove player from memory
+    delete ThisPlayer;
+
     //dtor
 }
 

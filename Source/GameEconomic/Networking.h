@@ -2,6 +2,7 @@
 #define NETWORKING_H
 
 
+
 enum NetworkMessageTypes
 {
     NetMessageNone,
@@ -18,6 +19,29 @@ enum NetworkClientTypes
     Authenticated=100,
     AdminInterface=200
 };
+
+enum NetworkMode
+{
+    NetDisconnected=0,
+    NetConnected
+
+};
+
+enum NetworkStatus
+{
+    NetworkOffline=0,
+    NetworkOnline
+};
+
+
+struct NetworkConfiguration
+{
+    /// basic configuration
+    String hostserver;
+    unsigned int hostport;
+    NetworkClientTypes hostidentity;
+};
+
 
 EVENT(NETWORKCLIENTIDENTITY, NetworkClientIdentity)
 {

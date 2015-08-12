@@ -33,6 +33,14 @@ Trader::Trader(Context * context):
     Credits(0),
     TraderType(0)
 {
+
+
+    /// initalizae
+    MyTraderCargoBay = new CargoBay(context_);
+
+
+    /// Create a new trader
+    ThisTrader = new TraderInformation();
 }
 
 Trader::~Trader()
@@ -56,8 +64,14 @@ void Trader::SetParameters(TraderInformation &DBTrader)
     Credits = DBTrader.Credits;
     TraderType = DBTrader.TraderType;
 
-    /// initalizae
-    MyTraderCargoBay = new CargoBay(context_);
+    /// copy values
+    ThisTrader->Name = DBTrader.Name;
+    ThisTrader->UniqueID = DBTrader.UniqueID;
+    ThisTrader->Credits = DBTrader.Credits;
+    ThisTrader->TraderType = DBTrader.TraderType;
+    ThisTrader->AlienRace = DBTrader.AlienRace;
+    ThisTrader->AlienAllianceAligned = DBTrader.AlienAllianceAligned;
+
 
     return;
 }

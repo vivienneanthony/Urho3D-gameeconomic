@@ -44,7 +44,8 @@
 #include <Urho3D/Resource/XMLFile.h>
 
 
-///#include "GameEconomicServer/GameEconomicServer.h"
+using namespace std;
+using namespace Urho3D;
 
 inline GameEconomicApp::GameEconomicApp(Context* context) :
     Application(context),
@@ -64,6 +65,8 @@ void GameEconomicApp::Setup()
     engineParameters_["LogName"]     = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs") + GetTypeName() + ".log";
     engineParameters_["FullScreen"]  = false;
     engineParameters_["Headless"]    = true;
+
+
 }
 
 void GameEconomicApp::Start()

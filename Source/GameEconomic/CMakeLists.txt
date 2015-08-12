@@ -19,31 +19,57 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 # Set project name
 project (Urho3D-GameEconomic)
 
 # Find Urho3D library
 find_package (Urho3D REQUIRED)
+
+# Only add MySQL to the server
 find_package (MySql REQUIRED)
 
 include_directories (${URHO3D_INCLUDE_DIRS})
 
+# Add common files based on type of client
+if (URHO3D_GAMEECONOMICSERVER OR GAMEECONOMICSERVERCLIENT)
+	# Include common to all samples
+	set (COMMON_SAMPLE_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicAppHeadless.h" "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicAppHeadless.inl")
+endif()
 
-# Include common to all samples
-set (COMMON_SAMPLE_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicApp.h" "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicApp.inl")
+if (URHO3D_GAMEECONOMICGAMECLIENT)
+	# Include common to all samples
+	set (COMMON_SAMPLE_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicAppHead.h" "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicAppHead.inl")
+endif()
 
 # Define dependency libs
 set (INCLUDE_DIRS_ONLY ${CMAKE_CURRENT_SOURCE_DIR})
 
-# All files
+# All Required Server Files
 file (GLOB SERVER_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/*.cpp")
 file (GLOB SERVER_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/*.h")
 
-# Add samples
-add_subdirectory (GameEconomicServer)
-add_subdirectory (GameEconomicServerClient)
 
+list(REMOVE_ITEM SERVER_CPP_FILES  "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/GameStateHandlerComponent.cpp")
+list(REMOVE_ITEM SERVER_H_FILES  "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/GameStateHandlerComponent.h")
+
+# All Required Game Client files
+# All Required Server Files
+file (GLOB ADDITIONAL_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/*.cpp")
+file (GLOB ADDITIONAL_H_FILES "${CMAKE_CURRENT_SOURCE_DIR}/GameEconomicComponents/*.h")
+
+
+# Add Code
+if (URHO3D_GAMEECONOMICSERVER)
+	add_subdirectory (GameEconomicServer)
+endif ()
+
+if (URHO3D_GAMEECONOMICSERVERCLIENT)
+	add_subdirectory (GameEconomicServerClient)
+endif ()
+
+if (URHO3D_GAMEECONOMICGAMECLIENT)
+	add_subdirectory (GameEconomicGameClient)
+endif ()
 
 
 

@@ -192,14 +192,19 @@ string GameEconomicServer::LoadMysqlFile(String MySqlFile)
     /// create path
     String ConfigFilename= fileSystem->GetProgramDir()+String("SQL/")+MySqlFile+String(".mysql");
 
+    /// Declare a string
+    string returnString;
+
+    /// Clear the trader
+    returnString.clear();
 
     /// if config does not exist
     if (!fileSystem->FileExists(ConfigFilename))
     {
-        return false;
+        return returnString;
     }
 
-    string returnString = TextFileToString(ConfigFilename.CString());
+    returnString = TextFileToString(ConfigFilename.CString());
 
 
     return returnString;

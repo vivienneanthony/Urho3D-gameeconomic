@@ -43,7 +43,6 @@
 #include <Urho3D/Engine/Application.h>
 
 
-///#include "GameEconomicServer/GameEconomicServer.h"
 
 namespace Urho3D
 {
@@ -133,6 +132,6 @@ private:
     bool paused_;
 };
 
-#include "GameEconomicApp.inl"
+#include "GameEconomicAppHeadless.inl"
 
 #endif

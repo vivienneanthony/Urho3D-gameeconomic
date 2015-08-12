@@ -1,6 +1,9 @@
 #ifndef PLAYER_H_INCLUDED
 #define PLAYER_H_INCLUDED
 
+
+#include "Traits.h"
+
 /// Player Object structure
 struct PlayerAlliance
 {
@@ -39,6 +42,18 @@ struct PlayerLevels
     unsigned int Reputation5;
 };
 
+struct PlayerList
+{
+    /// name information
+    String Firstname;
+    String Middlename;
+    String Lastname;
+
+    /// saved but unused
+    String UniqueID;
+
+};
+
 struct PlayerObject
 {
     /// healthy temporary
@@ -66,6 +81,19 @@ struct PlayerObject
     bool AlienAllianceAligned;
     unsigned int Gender;
     unsigned int PersonalityTrait;
+
+    /// Development
+    unsigned TotalGroundPassiveTraits;
+    Vector <Trait> GroundPassiveTrait;
+
+    unsigned TotalSpacePassiveTraits;
+    Vector <Trait> SpacePassiveTrait;
+
+    /// Credits
+    int Credits;
+
+    /// Galaxy seed
+    String GalaxySeed;
 
     /// saved but unused
     String UniqueID;

@@ -80,7 +80,7 @@ bool GameEconomicServer::VerifyIdentityDB(DBTable mode, String Username, String 
         /// if a valid email was given
         if(EmailValidCheck(Username)==true)
         {
-            TableNames.Push("accountemail");
+            TableNames.At(0) = String("accountemail");
         }
     }
     else if(mode==DBAdministrator)
@@ -100,8 +100,7 @@ bool GameEconomicServer::VerifyIdentityDB(DBTable mode, String Username, String 
     {
         Results = selectDBAccount(TableNames,TableFields);
     }
-
-    if(mode==DBAdministrator)
+    else if(mode==DBAdministrator)
     {
         Results = selectDBAdministrator(TableNames,TableFields);
     }
@@ -193,7 +192,6 @@ PlayerObject *  GameEconomicServer::GetSingleDBPlayer(String PlayerUniqueID)
     return ReturnPlayer;
 }
 
-
 /// Get Player Information
 Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqueID)
 {
@@ -231,7 +229,7 @@ Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqu
     unsigned int NumberCols = atoi(Results.At(0).CString());
 
     /// loop through
-    for(unsigned int i=0;i<NumberRows;i++)
+    for(unsigned int i=0; i<NumberRows; i++)
     {
         /// find index
         unsigned int index=(i*NumberCols)+3;
@@ -242,6 +240,11 @@ Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqu
         TempPlayer.Firstname = Results.At(index);
         TempPlayer.Middlename = Results.At(index+1);
         TempPlayer.Lastname= Results.At(index+2);
+        TempPlayer.Level = atoi(Results.At(index+3).CString());
+        TempPlayer.AlienRace = atoi(Results.At(index+11).CString());
+        TempPlayer.AlienRaceAllianceAligned = atoi(Results.At(index+12).CString());
+        TempPlayer.Gender = atoi(Results.At(index+13).CString());
+        TempPlayer.PersonalityTrait = atoi(Results.At(index+14).CString());
         TempPlayer.UniqueID= Results.At(index+15);
 
         /// copy data to temp player
@@ -250,3 +253,110 @@ Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqu
 
     return ReturnPlayers;
 }
+
+/// verify
+String GameEconomicServer::ConnectionGetDBAccount(String Username, String Password)
+{
+    /// Get tables
+    Vector<String> TableNames;
+    Vector<String> TableFields;
+    String ReturnString;
+    Vector<String> Results;
+
+    /// Create name to serch
+    TableNames.Push("accountusername");
+
+    TableFields.Push(Username);
+
+    /// if a valid email was given
+    if(EmailValidCheck(Username)==true)
+    {
+         TableNames.At(0) = String("accountemail");
+    }
+
+    /// Add password
+    TableNames.Push("accountpassword");
+
+    TableFields.Push(Password);
+
+    Results = selectDBAccount(TableNames,TableFields);
+
+    /// Append String
+    for(unsigned int i=0;i<Results.Size();i++)
+    {
+            /// GetResults
+            ReturnString.Append("|");
+            ReturnString.Append(Results.At(i));
+    }
+
+    return ReturnString;
+}
+
+/// Get Player Information
+String GameEconomicServer::ConnectionGetPlayersDBAccount(String AccountUniqueID)
+{
+    /// Create empty tables and fields and get results
+    String ReturnString;
+
+    /// Return player information
+    Vector <PlayerList>  * ReturnPlayers;
+
+    ReturnPlayers=GetPlayersDBAccount(AccountUniqueID);
+
+    /// Copy Cols and Row Counts
+    ReturnString.Append("|");
+
+    if(ReturnPlayers->Size()>0)
+    {
+            ReturnString.Append("9");
+    }
+    else
+    {
+            ReturnString.Append("0");
+    }
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(ReturnPlayers->Size()));
+
+    /// If blank return nothing
+    if(ReturnPlayers->Size()==0)
+    {
+
+      return ReturnString;
+    }
+
+    /// Transform to string
+    for(unsigned int i=0;i<ReturnPlayers->Size();i++)
+    {
+            /// GetResults and copy it
+            ReturnString.Append("|");
+            ReturnString.Append(ReturnPlayers->At(i).Firstname);
+
+            ReturnString.Append("|");
+            ReturnString.Append(ReturnPlayers->At(i).Middlename);
+
+            ReturnString.Append("|");
+            ReturnString.Append(ReturnPlayers->At(i).Lastname);
+
+            ReturnString.Append("|");
+            ReturnString.Append(ReturnPlayers->At(i).UniqueID);
+
+            ReturnString.Append("|");
+            ReturnString.Append(String(ReturnPlayers->At(i).Gender));
+
+            ReturnString.Append("|");
+            ReturnString.Append(String(ReturnPlayers->At(i).AlienRace));
+
+            ReturnString.Append("|");
+            ReturnString.Append(String(ReturnPlayers->At(i).AlienRaceAllianceAligned));
+
+            ReturnString.Append("|");
+            ReturnString.Append(String(ReturnPlayers->At(i).PersonalityTrait));
+
+            ReturnString.Append("|");
+            ReturnString.Append(String(ReturnPlayers->At(i).Level));
+    }
+
+    return ReturnString;
+}
+

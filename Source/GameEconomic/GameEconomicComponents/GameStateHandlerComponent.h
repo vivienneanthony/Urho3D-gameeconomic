@@ -25,7 +25,6 @@
 
 #include "../GameEconomicGameClient/GameEconomicGameClient.h"
 
-
 using namespace std;
 using namespace Urho3D;
 
@@ -40,6 +39,8 @@ public:
     GameStateHandlerComponent(Context * context);
     /// Destruct.
     virtual  ~GameStateHandlerComponent();
+
+
     /// Register object factory and attributes.
     static void RegisterNewSubsystem(Context* context);
     static void RegisterGameStates(Context* context);
@@ -47,12 +48,12 @@ public:
     void Start(void);
 
     /// App related
-
     void SetApplication(SharedPtr <GameEconomicGameClient> temp);
-
     void createState(String newState,Urho3D::VariantMap& eventData);
     void onStateChange( Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
+    SharedPtr<GameEconomicGameClient> GetApplication(void);
 
+    /// Just a way to get the current state
     String GetCurrentState(void);
 
     /// Function to access other states
@@ -68,22 +69,18 @@ public:
     int GetDebugHudMode(void);
     int SetDebugHudMode(int flag);
 
-
-    SharedPtr<GameEconomicGameClient> GetApplication(void);
-
 private:
- /// Not used at the moment
-    /// holder
+    /// Made the gameState a shared to keep in memory
     SharedPtr <GameEconomicGameClientStateSingleton>  gameState;
 
+    /// Made the application pointer shared to keep in memory
+    SharedPtr<GameEconomicGameClient> GameStateHandlerApplication;
 
     /// Added flags
     int consolestate;
     int uistate;
     int cameramode;
     int debughud;
-
-    SharedPtr<GameEconomicGameClient> GameStateHandlerApplication;
 
     String state;
 };

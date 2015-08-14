@@ -68,8 +68,10 @@ using namespace Urho3D;
 class GameEconomicServer;
 
 
+/// handle server side nmessage
 void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData)
 {
+    /// Network subsystem
     Network* network = GetSubsystem<Network>();
 
     using namespace NetworkMessage;
@@ -80,12 +82,12 @@ void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::Vari
     String PromptInput;
     Vector<String> SplitPromptInput;
 
-    if (msgID == 999)
+    /// If the administartion client sends a command
+    if (msgID == NetMessageAdminClientSend)
     {
         const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
         // Use a MemoryBuffer to read the message data so that there is no unnecessary copying
         MemoryBuffer msg(data);
-
 
         String text = msg.ReadString();
 
@@ -105,44 +107,130 @@ void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::Vari
         }
 
         /// ExecuteCommand
-        ExecuteCommand(FirstCommand, SplitPromptInput, sender);
+        ExecuteCommandAdminClient(FirstCommand, SplitPromptInput, sender);
+    }
+
+    /// if it was a heartbeat request
+    if (msgID == NetMessageRequest)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        // Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+
+        String text = msg.ReadString();
+
+        Urho3D::Connection* sender = static_cast<Urho3D::Connection*>(eventData[P_CONNECTION].GetPtr());
+
+        /// parse command
+        SplitPromptInput = ParseCommand(text.Trimmed());
+
+        /// First command
+        String FirstCommand = SplitPromptInput[0];
+
+        /// Check sisze for arguments
+        if(SplitPromptInput.Size()>0)
+        {
+            /// Remove first element since its not needed
+            SplitPromptInput.Erase(0);
+        }
+
+        /// ExecuteCommand
+        ExecuteCommandGameClient(FirstCommand, SplitPromptInput, sender);
+    }
+
+    /// If message was authenicated
+    if (msgID == NetMessageAuthenticateSend)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        // Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+
+        /// Read the string from the memory buffer
+        String text = msg.ReadString();
+
+        /// Parse received message
+        SplitPromptInput = ParseCommand(text.Trimmed());
+
+        /// Verify password - case sensitive
+        bool authorized = VerifyIdentityDB(DBAccount, SplitPromptInput.At(0),SplitPromptInput.At(1));
+
+        /// Get Sender
+        Urho3D::Connection* sender = static_cast<Urho3D::Connection*>(eventData[P_CONNECTION].GetPtr());
+
+        /// Send a response for authorized user or not
+        if(authorized)
+        {
+            String connectionAccount=ConnectionGetDBAccount(SplitPromptInput.At(0),SplitPromptInput.At(1));
+
+            /// Get current system time
+            /// Get current system time
+            Urho3D::Time systemtime(context_);
+            unsigned int currenttime = systemtime.GetSystemTime();
+
+            cout << connectionAccount.CString();
+
+            /// Send a message saying authorized
+            SendNetworkMessage(NetMessageAuthenticatedApproved,true,true,connectionAccount,sender);
+
+            /// Set Client to Authenticated Player
+            Urho3D::VariantMap NetworkClientIdentity;
+
+            NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTYPE] = Authenticated;
+            NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTARRIVAL]= currenttime;
+
+            /// Set the sender identity
+            sender->SetIdentity(NetworkClientIdentity);
+        }else
+        {
+            /// Send a message saying denied
+            SendNetworkMessage(NetMessageAuthenticatedDenied,true,true,"",sender);
+        }
     }
 }
 
+/// Check identity
 void GameEconomicServer::NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData)
 {
-    /// get connection
+    /// Get connection information
     Urho3D::Connection * newConnection = (Urho3D::Connection *) eventData[ClientConnected::P_CONNECTION].GetPtr();
 
+    /// Get the client type
+    unsigned int clienttype=eventData[NetworkClientIdentity::NETWORK_CLIENTYPE].GetInt();
+
+    /// Send out authenticate to acknwoledge a connection
+    if(clienttype==Unauthenticated)
+    {
+        /// send a message
+        SendNetworkMessage(NetMessageAuthenticateAcknowledge,true,true,"",newConnection);
+    }
 
     return;
 }
 
-
+/// Handle new connections
 void GameEconomicServer::NewConnection(StringHash eventType, Urho3D::VariantMap& eventData)
-{
-
+{\
     /// Get Connection
     Urho3D::Connection * newConnection = (Urho3D::Connection *) eventData[ClientConnected::P_CONNECTION].GetPtr();
 
     /// Output to screen
-    cout << "Network: New connection established Client(" << newConnection->ToString().CString() <<")"<<endl;
-
+    cout << "Network: New connection established Client(" << newConnection->ToString().CString() <<")" <<  endl;
 
     return;
 }
 
-
-/// network on update
+/// Netoworking update
 void GameEconomicServer::NetworkingOnUpdate(float timeStep)
 {
+    /// Create a time check
     static float testnetworkupdate=0;
 
+    /// Add time steps
     testnetworkupdate+=timeStep;
 
+    /// Poll notice
     if(testnetworkupdate>10)
     {
-
         /// Get current network
         Network* network = GetSubsystem<Network>();
         Urho3D::Connection* serverConnection = network->GetServerConnection();
@@ -174,18 +262,21 @@ void GameEconomicServer::NetworkingOnUpdate(float timeStep)
     return;
 }
 
-
+/// Send a network message
 void GameEconomicServer::SendNetworkMessage(NetworkMessageTypes NetworkMessageType, bool flag1, bool flag2, String MessageText, Urho3D::Connection * SenderTo)
 {
 
-     // A VectorBuffer object is convenient for constructing a message to send
-        VectorBuffer msg;
-        msg.WriteString(MessageText);
-        // Send the chat message as in-order and reliable
+    /// A VectorBuffer object is convenient for constructing a message to send
+    VectorBuffer msg;
+    msg.WriteString(MessageText);
 
-        SenderTo->SendMessage(NetworkMessageType,flag1,flag2, msg);
+ 	/// Get current system time
+    Urho3D::Time SystemTime(context_);
+    unsigned int currentTime = SystemTime.GetSystemTime();
 
-        cout << "\r\nNetwork: SentNetworkMessage (\"" << MessageText.CString() <<"\") to (" << SenderTo->ToString().CString() <<")" << endl;
+    SenderTo->SendMessage(NetworkMessageType,flag1,flag2, msg, currentTime);
 
-        return;
+    cout << "\r\nNetwork: SentNetworkMessage (\"" << MessageText.CString() <<"\") to (" << SenderTo->ToString().CString() <<")" << endl;
+
+    return;
 }

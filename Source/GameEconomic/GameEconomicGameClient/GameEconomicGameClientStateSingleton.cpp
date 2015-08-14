@@ -141,3 +141,9 @@ void GameEconomicGameClientStateSingleton::SetParameter(String parameter_)
     /// Do Nothing
     return;
 }
+
+void GameEconomicGameClientStateSingleton::ServerResponseHandler(StringHash eventType, VariantMap& eventData)
+{
+
+}
+

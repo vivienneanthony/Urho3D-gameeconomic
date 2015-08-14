@@ -462,3 +462,8 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
     return ;
 
 }
+void GameEconomicGameClientStateSplash::ServerResponseHandler(StringHash eventType, VariantMap& eventData)
+{
+
+}
+

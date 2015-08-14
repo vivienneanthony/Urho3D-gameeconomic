@@ -118,7 +118,8 @@ private:
     void HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData);
 
     /// Command line
-    void ExecuteCommand(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender);
+    void ExecuteCommandGameClient(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender);
+    void ExecuteCommandAdminClient(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender);
     Vector<String> ParseCommand(String EnteredString);
 
     /// Handle Commands
@@ -207,6 +208,9 @@ private:
 
     /// Database General
     bool VerifyIdentityDB(DBTable mode, String username, String password);
+    String ConnectionGetDBAccount(String Username, String Password);
+    String ConnectionGetPlayersDBAccount(String AccountUniqueID);
+
 
     /// Networking
     void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);

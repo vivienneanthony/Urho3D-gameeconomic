@@ -46,6 +46,10 @@
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 
+#include "../Networking.h"
+#include "../Platform.h"
+#include "../Accounts.h"
+
 
 string ConvertUIntToString(unsigned int val);
 
@@ -55,11 +59,8 @@ string ConvertUIntToString(unsigned int val);
 ///     - Adding a Text element to the graphical user interface
 ///     - Subscribing to and handling of update events
 
-
+using namespace Urho3D;
 using namespace std;
-
-
-
 
 class GameEconomicGameClient : public GameEconomicApp
 {
@@ -89,79 +90,56 @@ public:
             "</patch>";
     }
 
+    /// Initialization functions
     void Init(Context * context);
 
-    /// Diaplay login screen
-    void SetupScreenViewport(void);
-    void SetupScreenUI(void);
-
+    /// Exit function
     void Exit(void);
+
     /// Subscribe to application-wide logic update events.
     void SubscribeToEvents();
     /// Handle the logic update event.
     void HandleUpdate(StringHash eventType, VariantMap& eventData);
     /// Events Keyboard
     void HandleKeyDown(StringHash eventType, VariantMap& eventData);
-
+    /// Input Handlers - Function keys
+    void HandlerFunctionKeyDown(StringHash eventType, VariantMap& eventData);
+    /// Input Handler - Input
     void HandleInput(const String& input);
-    void eraseScene(void);
 
-    void AddLogoViewport(void);
-
-    int CreateCursor(void);
-
-    void MoveCamera(float timeStep);
-    void Print(const String& output);
-
+    /// Post Updates
     void HandlePostUpdates(StringHash eventType, VariantMap& eventData);
 
-    /// Render related functions
-    int LoadCharacterMesh(int mode, String nodename, unsigned int alienrace, unsigned int gender);
-    int loadplayerMesh(Node * playermeshNode, int alienrace, int gender,int mode);
-
-    /// File related functions
-    void LoadAccount(void);
-//    void SaveAccount(accountinformation account);
-    void SavePlayer(bool activeplayer);
-    int LoadAccountPlayers(void);
-    int LoadPlayer(int player) ;
-    int LoadTemporaryPlayer(int player);
-    int GenerateSceneLoadDifferential(const char *filename=NULL);
-    int LoadEnvironmentSettings(const char *environment);
+    /// Saved UI Code Just in case
+    void SetupScreenViewport(void);
+    void SetupScreenUI(void);
+    void AddLogoViewport(void);
+    int CreateCursor(void);
+    void Print(const String& output);
+    void EraseUI(void);
+    void EraseScene(void);
+    void UpdateNetworkStatusUI(bool online);
 
     /// Console related functions
     void InitializeConsole(void);
     void HandleConsoleCommand(StringHash eventType, VariantMap& eventData);
-    void HandlerFunctionKeyDown(StringHash eventType, VariantMap& eventData);
-
-
-    int ConsoleActionEnvironment(const char * lineinput);
-    int ConsoleActionCamera(const char * lineinput);
-    int ConsoleActionDebug(const char * lineinput);
-    int ConsoleActionCharacter(const char * lineinput);
-    int ConsoleActionRenderer(const char * lineinput);
-    int ConsoleActionBuild(const char * lineinput);
-
-    void EraseUI(void);
-    void EraseScene(void);
-    /// UI Related Functions
-    void loadSceneUI(void);
-    bool loadHUDFile(const char * filename, const int positionx, const int positiony);
-    void loadUIXMLClosePressed(StringHash eventType, VariantMap& eventData);
-    bool loadUIXML(int windowtype, const int positionx, const int positiony, int selected);
-    void QuickMenuPressed(StringHash eventType, VariantMap& eventData);
-    void UpdateUI(float timestep);
-    void PlayerWindowUpdateUI(int selected);
-    void PlayerWindowHandleDisplaySelection(StringHash eventType, VariantMap& eventData);
-    int UpdateUISceneLoader(void);
-    void UpdatePlayerInfoBar(void);
-    void SceneLoaderHanderPress(StringHash eventType, VariantMap& eventData);
-//    int GenerateSceneUpdateEnvironment(terrain_rule terrainrule);
 
     /// Temporary online
     bool IsClientConnected(void);
     bool ClientConnect(void);
     bool SetServerSettings(void);
+
+    /// Networking
+    void HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData);
+    void SendNetworkMessage(NetworkMessageTypes, String Message);
+    bool LoadNetworkConfig(NetworkConfiguration &loadingnetwork);
+    void HandlerServerConnected(StringHash eventType, Urho3D::VariantMap& eventData);
+    void HandlerServerDisconnected(StringHash eventType, Urho3D::VariantMap& eventData);
+    void HandlerServerConnectionFailed(StringHash eventType, Urho3D::VariantMap& eventData);
+    void NetworkingOnUpdate(float timeStep);
+    void ConnectHearbeat(NetworkConfiguration &tempnetwork);
+    void ConnectLogin(NetworkConfiguration &tempnetwork);
+
 
     /// Get subsubsystems
     Renderer * GetRenderSubsystems(void) const;
@@ -184,8 +162,10 @@ public:
     }
 
 
-    SharedPtr<GameEconomicGameClient> applicationPtr;
 
+
+    /// Save the application Pointer
+    SharedPtr<GameEconomicGameClient> applicationPtr;
 
 protected:
 
@@ -193,7 +173,6 @@ protected:
     SharedPtr<Scene> scene_;
     SharedPtr<Scene> scenePlayerUI_;
     SharedPtr<Scene> sceneLoadingGameModeTransition_;
-
 
     /// Camera scene node.
     SharedPtr<Node> cameraNode_;
@@ -216,21 +195,9 @@ protected:
     /// Urho3D Shared pointer for input
     SharedPtr<Input> input_;
 
-    /// Existence Weak pointer for a single character
-//    WeakPtr<Character> character_;
-
-    /// Existence player structure class and variable declation for character/player related information
-    //Player  TemporaryPlayer;
-    //Player  * TemporaryAccountPlayerList;
-    // unsigned int TemporaryAccountPlayerSelected;
-    //  unsigned int TemporaryAccountPlayerListLimit;
-
-    /// Existence class and variable declaration for alien race alliance information
-    vector<string> aliensarray;
-    vector<string> tempaliensarray;
-
     /// This is temoporarily the necessary code
-    bool accountexist;
+    AccountInformation * ThisAccount;
+    Vector<PlayerList> ThisAccountPlayerList;
 
     /// Server connection related
     bool ServerConnection;
@@ -243,15 +210,17 @@ protected:
     /// Camera pitch angle.
     float pitch_;
 
+    /// Network Valuables- Low footprint
+    NetworkConfiguration NetConfig;
+    NetworkMode NetOnline;
+    NetworkStatus NetStats;
+    AccountInformation NetUserAuthenticateInfo;
 
+    /// Platform related
+    PlatformOS CurrentPlatform;
 
 private:
-    void SplashShowGameLogo(void);
-    void SplashStatInit(void);
-    void HandlerSplashUpdate(StringHash eventType, VariantMap& eventData);
-    void SplashSetupScreenViewport(void);
 
-    Timer SplashTimer;
 };
 
 /// Login State
@@ -266,6 +235,7 @@ public:
     virtual void Exit();
     virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
     virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 private:
     void Singleton(void);
 protected:
@@ -282,6 +252,7 @@ public:
     virtual void Exit();
     virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
     virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 private:
 protected:
     void SplashScreen(void);
@@ -311,12 +282,18 @@ public:
     virtual void Exit();
     virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
     virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 private:
     void LoginScreen(void);
     void LoginScreenUI(void);
+    void SetupViewport(void);
+    void LoginProgressUI(void);
     void LoginScreenUINewAccountHandleClosePressed(StringHash eventType, VariantMap& eventData);
     void LoginScreenUILoginHandleClosePressed(StringHash eventType, VariantMap& eventData);
+    AccountInformation * LoginGetPlayerAccountFromAuthorization(String ServerString);
+    Vector<PlayerList> LoginGetAccountPlayersFromAuthorization(String ServerString);
 
+    void ShowServerStatusUI(void);
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
 };

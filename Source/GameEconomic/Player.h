@@ -48,6 +48,11 @@ struct PlayerList
     String Firstname;
     String Middlename;
     String Lastname;
+    unsigned int Level;
+    unsigned int AlienRace;
+    unsigned int AlienRaceAllianceAligned;
+    unsigned int Gender;
+    unsigned int PersonalityTrait;
 
     /// saved but unused
     String UniqueID;

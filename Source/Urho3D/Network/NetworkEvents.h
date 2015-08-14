@@ -30,17 +30,17 @@ namespace Urho3D
 /// Server connection established.
 EVENT(E_SERVERCONNECTED, ServerConnected)
 {
+}/// Server connection failed.
+EVENT(E_CONNECTFAILED, ConnectFailed)
+{
 }
+
 
 /// Server connection disconnected.
 EVENT(E_SERVERDISCONNECTED, ServerDisconnected)
 {
 }
 
-/// Server connection failed.
-EVENT(E_CONNECTFAILED, ConnectFailed)
-{
-}
 
 /// New client connection established.
 EVENT(E_CLIENTCONNECTED, ClientConnected)

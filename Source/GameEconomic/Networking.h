@@ -5,10 +5,16 @@
 
 enum NetworkMessageTypes
 {
-    NetMessageNone,
-    NetMessageAuthenticateSend,
+    NetMessageNone=30,
     NetMessageAuthenticateAcknowledge,
-    NetMessageAdminClientSend=999,
+    NetMessageAuthenticateSend,
+    NetMessageAuthenticatedApproved,
+    NetMessageAuthenticatedDenied,
+    NetMessageRequest=40,
+    NetMessageRequestApprovedGetAccountPlayers,
+    NetMessageHeartbeatRequest=90,
+    NetMessageHeartbeatAcknowledge,
+    NetMessageAdminClientSend=100,
     NetMessageAdminClientSendAcknowledge
 };
 
@@ -17,7 +23,8 @@ enum NetworkClientTypes
     Unknown=0,
     Unauthenticated,
     Authenticated=100,
-    AdminInterface=200
+    AdminInterface=200,
+    RequestHearbeat=900
 };
 
 enum NetworkMode

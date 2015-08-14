@@ -246,7 +246,7 @@ void GameEconomicServerClientConsole::Connect(networkconfiguration &tempnetwork)
     unsigned int currenttime = systemtime.GetSystemTime();
 
     /// Get eventmap and time
-    Urho3D::VariantMap NetworkClientIdentity;http://www.arcgames.com/en/forums#/categories/star-trek-online-general-discussion/p2
+    Urho3D::VariantMap NetworkClientIdentity;
 
     NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTYPE] =Unauthenticated;
     NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTARRIVAL]= currenttime;

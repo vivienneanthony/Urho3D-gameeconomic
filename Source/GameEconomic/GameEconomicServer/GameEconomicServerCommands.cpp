@@ -78,7 +78,7 @@ Vector<String> GameEconomicServer::ParseCommand(String EnteredString)
     return SplitEntered;
 }
 
-void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender)
+void GameEconomicServer::ExecuteCommandAdminClient(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender)
 {
     /// removed old code;
     String Command=FirstCommand.ToLower().Trimmed();
@@ -117,20 +117,39 @@ void GameEconomicServer::ExecuteCommand(String FirstCommand, Vector<String> Argu
     {
         HandlePlayerCommands(Arguments, sender);
     }
-    /*else if(Command==String("traders"))
-    {
-    String Results=ListAllDBTraders(sender);
+    return;
+}
 
-        /// Send results
-        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+/// Query from the client
+void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<String> Arguments, Urho3D::Connection * sender)
+{
+    /// removed old code;
+    String Command=FirstCommand.ToLower().Trimmed();
+
+    /// Get eventmap and time
+    Urho3D::VariantMap NetworkClientIdentity;
+
+    /// Get the identity
+    NetworkClientIdentity=sender->GetIdentity();
+
+    /// Try to get the information
+    unsigned int clienttype=NetworkClientIdentity[NetworkClientIdentity::NETWORK_CLIENTYPE].GetInt();
+
+    /// Return unauthorized
+    if(clienttype!=Authenticated)
+    {
+        return;
     }
-    else if(Command==String("markets"))
-    {
-        String Results=ListAllDBMarkets(sender);
 
-        /// Send results
-        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
-    }*/
+    /// Setup first command
+    if(Command==String("requestplayers"))
+    {
+        /// Get string and then form a result
+        String connectionDBPlayers=ConnectionGetPlayersDBAccount(Arguments.At(0));
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageRequestApprovedGetAccountPlayers,true,true,connectionDBPlayers,sender);
+    }
 
     return;
 }

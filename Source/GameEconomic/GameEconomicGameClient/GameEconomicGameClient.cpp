@@ -74,6 +74,10 @@
 #include "../../../Urho3D/Graphics/RenderPath.h"
 #include "../../../Urho3D/Math/Color.h"
 
+#include <Urho3D/Network/Network.h>
+#include <Urho3D/Network/NetworkEvents.h>
+
+
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/Accounts.h"
 
@@ -94,6 +98,8 @@
 #include <algorithm>
 
 #include "GameEconomicGameClient.h"
+#include "../Networking.h"
+#include "../Platform.h"
 
 #include "../../Urho3D/Engine/DebugHud.h"
 
@@ -130,8 +136,14 @@ GameEconomicGameClient::~GameEconomicGameClient()
     return;
 }
 
+
+/// Get initialize information for example platform
 void GameEconomicGameClient::Init(Context * context)
 {
+
+    /// Get the platform - Set global variable that determines the game
+    CurrentPlatform = OSTool::GetOS(GetPlatform());
+
     return;
 }
 
@@ -164,15 +176,25 @@ void GameEconomicGameClient::Start()
     /// add resource path to last
     cache -> AddResourceDir(additionresourcePath);
 
+    /// Turn on networking
+    if(LoadNetworkConfig(NetConfig)==false)
+    {
+        /// Set up network configuration
+        NetConfig.hostport = 3632;
+        NetConfig.hostserver = String("127.0.0.1");
+        NetConfig.hostidentity = Unauthenticated;
+    }
+
+    /// Set up default network status
+    NetOnline = NetDisconnected;
+    NetStats = NetworkOffline;
+
     /// Set the loaded style as default style
     uiRoot_->SetDefaultStyle(style);
 
     CreateCursor();
 
     ui->GetCursor()->SetVisible(true);
-
-    /// Set game active status
-    accountexist=false;
 
     /// Initialize Console
     InitializeConsole();
@@ -208,6 +230,12 @@ void GameEconomicGameClient::Start()
     testvalue=121;
 
     cout << "Debig: Existence App Existence " << applicationPtr ->GetTestString()<< endl;
+
+    /// Network related
+    SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameEconomicGameClient, HandleNetworkMessage));
+    SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameEconomicGameClient, HandlerServerConnected));
+    SubscribeToEvent(E_SERVERDISCONNECTED, HANDLER(GameEconomicGameClient, HandlerServerDisconnected));
+    SubscribeToEvent(E_CONNECTFAILED, HANDLER(GameEconomicGameClient, HandlerServerConnectionFailed));
 
     gamestatehandlercomponent_->Start();
 
@@ -342,6 +370,9 @@ void GameEconomicGameClient::HandleUpdate(StringHash eventType, VariantMap& even
 
     /// Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
+
+    /// network updating
+    NetworkingOnUpdate(timeStep);
 
     return;
 }
@@ -498,112 +529,7 @@ void GameEconomicGameClient::Exit()
 }
 
 
-/// Setup the main viewport
-void GameEconomicGameClient::SplashSetupScreenViewport(void)
-{
-    /// Get Needed SubSystems
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
-    Renderer* renderer = GetSubsystem<Renderer>();
-    Graphics* graphics = GetSubsystem<Graphics>();
-    UI* ui = GetSubsystem<UI>();
 
-    /// Get rendering window size as floats
-    float width = (float)graphics->GetWidth();
-    float height = (float)graphics->GetHeight();
-
-    renderer -> SetTextureQuality (QUALITY_HIGH);
-    renderer ->SetMaterialQuality (QUALITY_HIGH);
-    renderer ->SetShadowQuality (SHADOWQUALITY_HIGH_24BIT);
-
-    /// create a new scene
-    scene_= new Scene(context_);
-    scene_-> CreateComponent<Octree>();
-    scene_-> CreateComponent<DebugRenderer>();
-
-    /// Create a scene node for the camera, which we will move around
-    /// The camera will use default settings (1000 far clip distance, 45 degrees FOV, set aspect ratio automatically)
-    cameraNode_ = scene_->CreateChild("CameraSplashScreen");
-
-    /// Set an initial position for the camera scene node above the plane
-    cameraNode_->SetPosition(Vector3(0.0,0.0,5.0));
-    cameraNode_->SetRotation(Quaternion(0.0,-180.0,0.0));
-    Camera* cameraObject = cameraNode_->CreateComponent<Camera>();
-    cameraObject->SetOrthographic(1);
-    cameraObject->SetZoom(3);
-
-    /// Set up a viewport to the Renderer subsystem so that the 3D scene can be seen. We need to define the scene and the camera
-    /// at minimum. Additionally we could configure the viewport screen size and the rendering path (eg. forward / deferred) to
-    /// use, but now we just use full screen and default render path configured	SetOrthographic ( in the engine command line options
-    SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>()));
-    renderer->SetViewport(0, viewport);
-
-    return;
-}
-
-/// Add logo to the viewport
-void GameEconomicGameClient::SplashShowGameLogo(void)
-{
-    /// Get Needed SubSystems
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
-    Renderer* renderer = GetSubsystem<Renderer>();
-    Graphics* graphics = GetSubsystem<Graphics>();
-    UI* ui = GetSubsystem<UI>();
-
-    BorderImage* splashUI = new BorderImage(context_);
-    splashUI->SetName("Splash");
-
-    Texture2D* texture = cache->GetResource<Texture2D>("Resources/Textures/gamelogo.png");
-    splashUI->SetTexture(texture); // Set texture
-    splashUI->SetSize(texture->GetWidth(), texture->GetHeight());
-    splashUI->SetAlignment(HA_CENTER, VA_CENTER);
-
-    ui->GetRoot()->AddChild(splashUI);
-
-
-    return;
-}
-
-void GameEconomicGameClient::SplashStatInit(void)
-{
-
-    SubscribeToEvent(E_UPDATE, HANDLER(GameEconomicGameClient, HandlerSplashUpdate)); // Keep visible until rendering of the scene
-
-    /// start frame
-    GetSubsystem<Engine>()->RunFrame(); // Render Splash immediately
-
-    return;
-}
-
-
-void GameEconomicGameClient::HandlerSplashUpdate(StringHash eventType, VariantMap& eventData)
-{
-    /// Get Needed SubSystems
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
-    Renderer* renderer = GetSubsystem<Renderer>();
-    Graphics* graphics = GetSubsystem<Graphics>();
-    UI* ui = GetSubsystem<UI>();
-
-    /// Check scene status
-    if((scene_-> GetAsyncProgress()==true)&&(SplashTimer.GetMSec(false)>=600000000))
-    {
-
-        /// Create a scene node for the camera, which we will move around
-        /// The camera will use default settings (1000 far clip distance, 45 degrees FOV, set aspect ratio automatically)
-        Node * cameraNode_ = scene_->GetChild("CameraLogin");
-
-        /// If camera exist change viewport
-        if(cameraNode_)
-        {
-            /// Set up a viewport to the Renderer subsystem so that the 3D scene can be seen. We need to define the scene and the camera
-            /// at minimum. Additionally we could configure the viewport screen size and the rendering path (eg. forward / deferred) to
-            /// use, but now we just use full screen and default render path configured	SetOrthographic ( in the engine command line options
-            SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>()));
-            renderer->SetViewport(0, viewport);
-        }
-    }
-
-    return ;
-}
 
 
 /// code to handle console command inputs
@@ -675,3 +601,29 @@ void GameEconomicGameClient::EraseUI(void)
 
     return;
 }
+
+void GameEconomicGameClient::UpdateNetworkStatusUI(bool online)
+{
+    /// Get Urho3D Subsystem
+    UI* ui_ = GetSubsystem<UI>();
+
+    /// load window
+    UIElement * uiroot = ui_->	GetRoot ();
+
+    Text * NetworkStatusUpdateText = (Text *) uiroot->GetChild("ServerStatusUpdateText",true);
+
+    if(NetworkStatusUpdateText)
+    {
+        if(online)
+        {
+            NetworkStatusUpdateText->SetText("Online");
+        }
+        else
+        {
+            NetworkStatusUpdateText->SetText("Offline");
+        }
+    }
+
+    return;
+}
+

@@ -144,9 +144,88 @@ void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::
 
         serverresponse[ServerResponse::P_ARG] = text;
 
+
+
         /// Send the event
         SendEvent(N_SERVER_RESPONSE,serverresponse);
     }
+
+    if(msgID == NetMessageRequestApprovedGetFactions)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        /// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+        String text = msg.ReadString();
+
+        /// Clear Old Date
+        ThisFactionList.Empty();
+
+        /// Get results from new player list
+        ThisFactionList = LoadGetFactionsFromAuthorization(text);
+
+         /// Create a event and send it for login can listen to it
+        VariantMap  serverresponse;
+
+        serverresponse[ServerResponse::P_CMD] = ServerResponse_SentFactions;
+
+        serverresponse[ServerResponse::P_ARG] = text;
+
+        /// Send the event
+        SendEvent(N_SERVER_RESPONSE,serverresponse);
+
+
+    }
+
+    if(msgID == NetMessageRequestApprovedGetPlayerCreationResponse)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        /// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+        String text = msg.ReadString();
+
+
+         /// Create a event and send it for login can listen to it
+        VariantMap  serverresponse;
+
+        serverresponse[ServerResponse::P_CMD] = ServerResponse_CreatePlayerResponse;
+
+        serverresponse[ServerResponse::P_ARG] = text;
+
+        /// Send the event
+        SendEvent(N_SERVER_RESPONSE,serverresponse);
+
+
+    }
+
+    /// If we get all the aliens
+    if(msgID == NetMessageRequestApprovedGetAlienRaces)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        // Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+        String text = msg.ReadString();
+
+        /// Clear Old Date
+        ThisAlienRaceList.Empty();
+
+        /// Get results from new player list
+        ThisAlienRaceList = LoadGetAlienRacesFromAuthorization(text);
+
+
+        /// Create a event and send it for login can listen to it
+        VariantMap  serverresponse;
+
+        serverresponse[ServerResponse::P_CMD] = ServerResponse_SentAlienRaces;
+
+        serverresponse[ServerResponse::P_ARG] = text;
+
+        /// Send the event
+        SendEvent(N_SERVER_RESPONSE,serverresponse);
+
+
+    }
+
+
 
     /// Determine message authenicated or approved
     if(msgID == NetMessageAuthenticatedApproved

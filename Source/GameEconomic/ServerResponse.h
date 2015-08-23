@@ -9,7 +9,11 @@ enum ServerResponseTypes
     ServerResponse_None,
     ServerResponse_AccountAuthentication,
     ServerResponse_Disconnected,
-    ServerResponse_SentAccountPlayers
+    ServerResponse_SentAccountPlayers,
+    ServerResponse_SentFactions,
+    ServerResponse_SentAlienRaces,
+    ServerResponse_CreatePlayerResponse
+
 };
 
 /// Key pressed.

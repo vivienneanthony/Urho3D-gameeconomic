@@ -105,6 +105,8 @@
 using namespace std;
 using namespace Urho3D;
 
+class GameEconomicGameClient;
+
 /// State Login Constructor
 GameEconomicGameClientStateLogin::GameEconomicGameClientStateLogin(Context * context)
     :GameEconomicGameClientStateSingleton(context)
@@ -159,6 +161,8 @@ void GameEconomicGameClientStateLogin::Enter()
 /// State Login Exit
 void GameEconomicGameClientStateLogin::Exit()
 {
+  UnsubscribeFromAllEvents();
+
     /// Debug
     cout << "Debug: State Login Exit" << endl;
 
@@ -358,12 +362,7 @@ void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(Stri
 
     }
 
-    /// Erase UI
-    Existence -> EraseUI();
-
-
     ///UnsubscribeFromAllEvents();
-
 
     /// Create a event
     ///VariantMap gamestatechange;
@@ -423,11 +422,13 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
     unsigned int cmdType = eventData[ServerResponse::P_CMD].GetInt();
     String cmdArg = eventData[ServerResponse::P_ARG].GetString();
 
+    cout << cmdType << endl;
+
     /// if Account Authentication
     if(cmdType==ServerResponse_AccountAuthentication)
     {
         /// If unauthorized
-        if(cmdArg==String("Unauthorized"))
+        if(cmdArg==String("error"))
         {
             /// Clear the UI
             Existence->EraseUI();
@@ -452,6 +453,8 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
 
             /// allocate new
             Existence -> ThisAccount = new AccountInformation();
+            Existence -> CurrentPlayerFromList = 0;
+
 
             /// convert input string to player info
             Existence -> ThisAccount = LoginGetPlayerAccountFromAuthorization(cmdArg);
@@ -461,23 +464,49 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
             ServerRequest.Append("requestplayers ");
             ServerRequest.Append(Existence->ThisAccount->UniqueID);
 
-            /// create a new message
             VectorBuffer msg;
             msg.WriteString(ServerRequest);
 
             serverConnection->SendMessage(NetMessageRequest,true,true,msg,0);
         }
+
     }
 
     /// if on players received
     if(cmdType==ServerResponse_SentAccountPlayers)
     {
-        /// Clear Old Date
+
         Existence->ThisAccountPlayerList.Empty();
+        Existence->ThisAccountPlayerList = LoginGetAccountPlayersFromAuthorization(cmdArg);
 
-        /// Get results from new player list
-        Existence-> ThisAccountPlayerList= LoginGetAccountPlayersFromAuthorization(cmdArg);
 
+        /// Send request for alienraces
+        String ServerRequest;
+        ServerRequest = String("requestfactions");
+
+
+        VectorBuffer msg1;
+        msg1.WriteString(ServerRequest);
+
+        serverConnection->SendMessage(NetMessageRequest,true,true,msg1,0);
+    }
+
+    /// if on players received
+    if(cmdType==ServerResponse_SentFactions)
+    {
+        String ServerRequest;
+        /// Send request for alienraces
+        ServerRequest = String("requestalienraces");
+
+        VectorBuffer msg1;
+        msg1.WriteString(ServerRequest);
+
+        serverConnection->SendMessage(NetMessageRequest,true,true,msg1,0);
+    }
+
+    /// if on players received
+    if(cmdType==ServerResponse_SentAlienRaces)
+    {
         /// Verify size
         if(Existence->ThisAccountPlayerList.Size()==0)
         {
@@ -485,7 +514,35 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
         }
         else
         {
-            /// continue - go to main screen
+
+
+            /// loop through each one and add
+            for(unsigned int i=0; i<Existence->ThisAccountPlayerList.Size(); i++)
+            {
+
+                String PlayerName;
+
+                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Firstname);
+                PlayerName.Append(" ");
+                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Middlename);
+                PlayerName.Append(" ");
+                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Lastname);
+
+                /// settext
+                //cout << PlayerName.CString() << endl;
+
+
+
+            }
+
+
+            /// Create a event
+            VariantMap gamestatechange;
+            gamestatechange[GameState::P_CMD] = GAME_STATE_MAINMENU;
+
+            cout << "Debug: Attempt to send a state change" << endl;
+
+            this->SendEvent(G_STATES_CHANGE,gamestatechange);
         }
     }
 }
@@ -493,7 +550,6 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
 /// Progress window UI
 void GameEconomicGameClientStateLogin::LoginProgressUI(void)
 {
-
     /// Get Needed SubSystems
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     Renderer* renderer = GetSubsystem<Renderer>();
@@ -727,10 +783,17 @@ Vector<PlayerList> GameEconomicGameClientStateLogin::LoginGetAccountPlayersFromA
         PlayerList temporaryPlayer;
 
         temporaryPlayer.Firstname = ServerStringSplit.At(index);
+        temporaryPlayer.Middlename = ServerStringSplit.At(index+1);
+        temporaryPlayer.Lastname = ServerStringSplit.At(index+2);
+        ///temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
+        temporaryPlayer.Level = atoi(ServerStringSplit.At(index+4).CString());
+        temporaryPlayer.AlienRace = atoi(ServerStringSplit.At(index+5).CString());
+        temporaryPlayer.AlienRaceAllianceAligned = atoi(ServerStringSplit.At(index+6).CString());
+        temporaryPlayer.Gender = atoi(ServerStringSplit.At(index+7).CString());
+        temporaryPlayer.PersonalityTrait = atoi(ServerStringSplit.At(index+8).CString());
 
         /// Append temporaryplayer
         temporaryList.Push(temporaryPlayer);
-
     }
 
     return temporaryList;

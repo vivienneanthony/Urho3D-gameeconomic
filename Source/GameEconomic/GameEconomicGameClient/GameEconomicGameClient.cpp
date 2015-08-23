@@ -258,7 +258,7 @@ void GameEconomicGameClient::SubscribeToEvents()
 }
 
 /// Setup the main viewport
-void GameEconomicGameClient::SetupScreenViewport()
+void GameEconomicGameClient::SetupScreenViewport(void)
 {
     /// Get Needed SubSystems
     ResourceCache* cache = GetSubsystem<ResourceCache>();
@@ -627,3 +627,258 @@ void GameEconomicGameClient::UpdateNetworkStatusUI(bool online)
     return;
 }
 
+/// Setup the main viewport
+void GameEconomicGameClient::SetupScreenViewportBlank(void)
+{
+    /// Get Needed SubSystems
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    Renderer* renderer = GetSubsystem<Renderer>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+    UI* ui = GetSubsystem<UI>();
+
+    /// Get rendering window size as floats
+    float width = (float)graphics->GetWidth();
+    float height = (float)graphics->GetHeight();
+
+    renderer -> SetTextureQuality (QUALITY_HIGH);
+    renderer ->SetMaterialQuality (QUALITY_HIGH);
+    renderer ->SetShadowQuality (SHADOWQUALITY_HIGH_24BIT);
+
+    /// create a new scene
+    scene_= new Scene(context_);
+    scene_-> CreateComponent<Octree>();
+    scene_-> CreateComponent<DebugRenderer>();
+
+    /// Create a scene node for the camera, which we will move around
+    /// The camera will use default settings (1000 far clip distance, 45 degrees FOV, set aspect ratio automatically)
+    cameraNode_ = scene_->CreateChild("Camera");
+
+    /// Set an initial position for the camera scene node above the plane
+    cameraNode_->SetPosition(Vector3(0.0,0.0,5.0));
+    cameraNode_->SetRotation(Quaternion(0.0,-180.0,0.0));
+    Camera* cameraObject = cameraNode_->CreateComponent<Camera>();
+    cameraObject->SetOrthographic(1);
+    cameraObject->SetZoom(3);
+
+    /// Set up a viewport to the Renderer subsystem so that the 3D scene can be seen. We need to define the scene and the camera
+    /// at minimum. Additionally we could configure the viewport screen size and the rendering path (eg. forward / deferred) to
+    /// use, but now we just use full screen and default render path configured	SetOrthographic ( in the engine command line options
+    SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>()));
+    renderer->SetViewport(0, viewport);
+
+    return;
+}
+
+/// Get players from authorization
+Vector<AlienRaceInformation> GameEconomicGameClient::LoadGetAlienRacesFromAuthorization(String ServerString)
+{
+
+    /// Change convert
+    String TempString=ServerString;
+    Vector <String> ServerStringSplit;
+
+    /// Replace | to a space
+    TempString.Replace ('|', ' ', false);
+
+    /// Split the string
+    ServerStringSplit = TempString.Split(' ');
+
+    /// Create a empty list for now
+    Vector<AlienRaceInformation> temporaryList;
+
+    cout << "test 1" << endl;
+
+    /// return blank list
+    if(ServerStringSplit.At(1)==String("0"))
+    {
+        return temporaryList;
+    }
+
+    cout << "test 2" << endl;
+
+    /// Converstion here
+    unsigned int NumberCols=atoi(ServerStringSplit.At(0).CString());
+    unsigned int NumberRows=atoi(ServerStringSplit.At(1).CString());
+
+    for(unsigned int i=0; i<NumberRows; i++)
+    {
+        unsigned int index=(i*NumberCols)+2;
+
+        /// Create temporary Player
+        AlienRaceInformation temporaryAlienRace;
+
+        temporaryAlienRace.Name=ServerStringSplit.At(index+0);
+        temporaryAlienRace.Prefix=ServerStringSplit.At(index+1);
+        temporaryAlienRace.Description=ServerStringSplit.At(index+2);
+        temporaryAlienRace.AlignedFaction=ServerStringSplit.At(index+3);
+        temporaryAlienRace.UniqueID=ServerStringSplit.At(index+4);
+
+
+        cout << "Adding" << endl;
+
+        /// Append temporaryplayer
+        temporaryList.Push(temporaryAlienRace);
+    }
+
+    return temporaryList;
+}
+
+
+
+
+/// Get players from authorization
+Vector<FactionInformation> GameEconomicGameClient::LoadGetFactionsFromAuthorization(String ServerString)
+{
+
+    /// Change convert
+    String TempString=ServerString;
+    Vector <String> ServerStringSplit;
+
+    /// Replace | to a space
+    TempString.Replace ('|', ' ', false);
+
+    /// Split the string
+    ServerStringSplit = TempString.Split(' ');
+
+    /// Create a empty list for now
+    Vector<FactionInformation> temporaryList;
+
+    /// return blank list
+    if(ServerStringSplit.At(1)==String("0"))
+    {
+        return temporaryList;
+    }
+
+    /// Converstion here
+    unsigned int NumberCols=atoi(ServerStringSplit.At(0).CString());
+    unsigned int NumberRows=atoi(ServerStringSplit.At(1).CString());
+
+    for(unsigned int i=0; i<NumberRows; i++)
+    {
+        unsigned int index=(i*NumberCols)+2;
+
+        /// Create temporary Player
+        FactionInformation temporaryFaction;
+
+        temporaryFaction.Name=ServerStringSplit.At(index+0);
+        temporaryFaction.Prefix=ServerStringSplit.At(index+1);
+        temporaryFaction.Description=ServerStringSplit.At(index+2);
+        temporaryFaction.UniqueID=ServerStringSplit.At(index+3);
+
+        ///Replace characters
+        temporaryFaction.Description.Replace('_',' ',true);
+
+        /// Append temporaryplayer
+        temporaryList.Push(temporaryFaction);
+    }
+
+    return temporaryList;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// Get account information
+AccountInformation * GameEconomicGameClient::LoginGetPlayerAccountFromAuthorization(String ServerString)
+{
+    /// Change convert
+    String TempString=ServerString;
+    Vector <String> ServerStringSplit;
+
+    /// Create a pointer
+    AccountInformation * ReturnAccountInformation  = new AccountInformation();
+
+    /// Replace | to a space
+    TempString.Replace ('|', ' ', false);
+
+    /// Split the string
+    ServerStringSplit = TempString.Split(' ');
+
+    if(ServerStringSplit.At(1)==String("0"))
+    {
+        return NULL;
+    }
+
+    /// copy data
+    ReturnAccountInformation->Username=ServerStringSplit.At(3);
+    ReturnAccountInformation->Firstname=ServerStringSplit.At(4);
+    ReturnAccountInformation->Middlename=ServerStringSplit.At(5);
+    ReturnAccountInformation->Lastname=ServerStringSplit.At(6);
+    ReturnAccountInformation->Email.Clear();
+    ReturnAccountInformation->Password.Clear();
+    ReturnAccountInformation->LastLogin=0;
+    ReturnAccountInformation->UniqueID=ServerStringSplit.At(12);
+
+    return ReturnAccountInformation;
+}
+
+
+/// Get players from authorization
+Vector<PlayerList> GameEconomicGameClient::LoginGetAccountPlayersFromAuthorization(String ServerString)
+{
+
+    /// Change convert
+    String TempString=ServerString;
+    Vector <String> ServerStringSplit;
+
+    /// Replace | to a space
+    TempString.Replace ('|', ' ', false);
+
+    /// Split the string
+    ServerStringSplit = TempString.Split(' ');
+
+    /// Create a empty list for now
+    Vector<PlayerList> temporaryList;
+
+    /// return blank list
+    if(ServerStringSplit.At(1)==String("0"))
+    {
+        return temporaryList;
+    }
+
+    /// Converstion here
+    unsigned int NumberCols=atoi(ServerStringSplit.At(0).CString());
+    unsigned int NumberRows=atoi(ServerStringSplit.At(1).CString());
+
+    for(unsigned int i=0; i<NumberRows; i++)
+    {
+        unsigned int index=(i*NumberCols)+2;
+
+        /// Create temporary Player
+        PlayerList temporaryPlayer;
+
+        temporaryPlayer.Firstname = ServerStringSplit.At(index);
+        temporaryPlayer.Middlename = ServerStringSplit.At(index+1);
+        temporaryPlayer.Lastname = ServerStringSplit.At(index+2);
+        ///temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
+        temporaryPlayer.Level = atoi(ServerStringSplit.At(index+4).CString());
+        temporaryPlayer.AlienRace = atoi(ServerStringSplit.At(index+5).CString());
+        temporaryPlayer.AlienRaceAllianceAligned = atoi(ServerStringSplit.At(index+6).CString());
+        temporaryPlayer.Gender = atoi(ServerStringSplit.At(index+7).CString());
+        temporaryPlayer.PersonalityTrait = atoi(ServerStringSplit.At(index+8).CString());
+
+        /// Append temporaryplayer
+        temporaryList.Push(temporaryPlayer);
+    }
+
+    return temporaryList;
+}

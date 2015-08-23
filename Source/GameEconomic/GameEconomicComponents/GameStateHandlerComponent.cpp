@@ -147,6 +147,8 @@ void GameStateHandlerComponent::RegisterGameStates(Context* context)
     context->RegisterFactory<GameEconomicGameClientStateSingleton>();
     context->RegisterFactory<GameEconomicGameClientStateLogin>();
     context->RegisterFactory<GameEconomicGameClientStateSplash>();
+    context->RegisterFactory<GameEconomicGameClientStateMainScreen>();
+    context->RegisterFactory<GameEconomicGameClientStatePlayer>();
 
     /// Debug Info
     cout << "Debug: Game State Handler RegisterGameStates " << &context << endl;
@@ -216,6 +218,37 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         gameState->Enter();
 
     }
+    else if (String(GameEconomicGameClientStatePlayer::GetTypeNameStatic())==newState)
+    {
+        /// change to that state
+        cout << "Debug: Create Splash Called" << endl;
+
+        state=GameEconomicGameClientStatePlayer::GetTypeNameStatic();
+
+        GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStatePlayer(context_);
+
+        /// delete old state
+        delete  gameState;
+        gameState=newgameState;
+        gameState->Enter();
+
+    }
+    else if (String(GameEconomicGameClientStateMainScreen::GetTypeNameStatic())==newState)
+    {
+        /// change to that state
+        cout << "Debug: Create MainScreen Called" << endl;
+
+        state=GameEconomicGameClientStateMainScreen::GetTypeNameStatic();
+
+        GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStateMainScreen(context_);
+
+        /// delete old state
+        delete  gameState;
+
+        gameState=newgameState;
+        gameState->Enter();
+
+    }
 
     return;
 }
@@ -252,6 +285,26 @@ void GameStateHandlerComponent::onStateChange( Urho3D::StringHash eventType, Urh
         };
         /// create a new state
         createState(GameEconomicGameClientStateSplash::GetTypeNameStatic(),eventData);
+        break;
+    case  GAME_STATE_PLAYERCREATE: //called from intro GameIntroSample
+        /// exit out
+        if(gameState!=NULL)
+        {
+            gameState->Exit();
+        };
+        /// create a new state
+        createState(GameEconomicGameClientStatePlayer::GetTypeNameStatic(),eventData);
+        break;
+
+    case  GAME_STATE_MAINMENU: //called from intro GameIntroSample
+
+        /// exit out
+        if(gameState!=NULL)
+        {
+            gameState->Exit();
+        };
+        /// create a new state
+        createState(GameEconomicGameClientStateMainScreen::GetTypeNameStatic(),eventData);
         break;
     default:
         cout << "Debug: Unkown State " << newState;

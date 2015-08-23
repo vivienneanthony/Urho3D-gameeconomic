@@ -95,14 +95,14 @@
 
 #include "GameEconomicGameClient.h"
 
-
 #include "../../Urho3D/Engine/DebugHud.h"
-
 
 #define DEFAULTSIZE 4096
 
 using namespace std;
 using namespace Urho3D;
+
+class GameEconomicGameClient;
 
 /// State SplashConstructor
 GameEconomicGameClientStateSplash::GameEconomicGameClientStateSplash(Context * context)
@@ -239,15 +239,16 @@ void GameEconomicGameClientStateSplash::SplashShowGameLogo(void)
     float width = (float)graphics->GetWidth();
     float height = (float)graphics->GetHeight();
 
-    BorderImage* splashUI = new BorderImage(context_);
-    splashUI->SetName("Splash");
+    BorderImage* splashUItest = new BorderImage(context_);
+    splashUItest->SetName("Splash");
+
+    ui->GetRoot()->AddChild(splashUItest);
 
     Texture2D* texture = cache->GetResource<Texture2D>("Resources/Textures/gamelogo.png");
-    splashUI->SetTexture(texture); // Set texture
-    splashUI->SetSize(width,height);
-    splashUI->SetAlignment(HA_CENTER, VA_CENTER);
+    splashUItest->SetTexture(texture); // Set texture
+    splashUItest->SetSize(width,height);
+    splashUItest->SetAlignment(HA_CENTER, VA_CENTER);
 
-    ui->GetRoot()->AddChild(splashUI);
 
 
     return;
@@ -448,7 +449,7 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         ///TitleText->SetStyleAuto();
         TitleTextUIElement->SetStyleAuto();
 
-        UnsubscribeFromAllEvents();
+///        UnsubscribeFromAllEvents();
 
 
         /// Create a event

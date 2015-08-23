@@ -50,6 +50,9 @@
 #include "../Platform.h"
 #include "../Accounts.h"
 
+#include "../GameEconomicServer/GameEconomicServerDatabaseGeneral.h"
+#include "GameEconomicGameClientStatePlayer.h"
+
 
 string ConvertUIntToString(unsigned int val);
 
@@ -71,6 +74,8 @@ public:
     friend class GameEconomicGameClientStateSingleton;
     friend class GameEconomicGameClientStateLogin;
     friend class GameEconomicGameClientStateSplash;
+    friend class GameEconomicGameClientStateMainScreen;
+    friend class GameEconomicGameClientStatePlayer;
 
     /// Construct.
     GameEconomicGameClient(Context* context);
@@ -107,11 +112,14 @@ public:
     /// Input Handler - Input
     void HandleInput(const String& input);
 
+
+
     /// Post Updates
     void HandlePostUpdates(StringHash eventType, VariantMap& eventData);
 
     /// Saved UI Code Just in case
     void SetupScreenViewport(void);
+    void SetupScreenViewportBlank(void);
     void SetupScreenUI(void);
     void AddLogoViewport(void);
     int CreateCursor(void);
@@ -129,6 +137,12 @@ public:
     bool ClientConnect(void);
     bool SetServerSettings(void);
 
+    /// moved here
+    AccountInformation * LoginGetPlayerAccountFromAuthorization(String ServerString);
+
+
+    Vector<PlayerList> LoginGetAccountPlayersFromAuthorization(String ServerString);
+
     /// Networking
     void HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData);
     void SendNetworkMessage(NetworkMessageTypes, String Message);
@@ -140,6 +154,13 @@ public:
     void ConnectHearbeat(NetworkConfiguration &tempnetwork);
     void ConnectLogin(NetworkConfiguration &tempnetwork);
 
+    /// UI related
+    bool loadHUDFile(const char * filename, const int positionx, const int positiony);
+
+    //FactionInformation * GetFactionsFromAuthorization(String ServerString);
+    //AlienRaceInformation * GetAlienRacesFromAuthorization(String ServerString);
+    Vector<AlienRaceInformation> LoadGetAlienRacesFromAuthorization(String ServerString);
+    Vector<FactionInformation> LoadGetFactionsFromAuthorization(String ServerString);
 
     /// Get subsubsystems
     Renderer * GetRenderSubsystems(void) const;
@@ -161,11 +182,9 @@ public:
         return applicationPtr;
     }
 
-
-
-
     /// Save the application Pointer
     SharedPtr<GameEconomicGameClient> applicationPtr;
+
 
 protected:
 
@@ -195,10 +214,6 @@ protected:
     /// Urho3D Shared pointer for input
     SharedPtr<Input> input_;
 
-    /// This is temoporarily the necessary code
-    AccountInformation * ThisAccount;
-    Vector<PlayerList> ThisAccountPlayerList;
-
     /// Server connection related
     bool ServerConnection;
 
@@ -209,6 +224,14 @@ protected:
     float yaw_;
     /// Camera pitch angle.
     float pitch_;
+
+    /// This is temoporarily the necessary code
+    AccountInformation * ThisAccount;
+    unsigned int CurrentPlayerFromList;
+    Vector<PlayerList> ThisAccountPlayerList;
+
+    Vector<FactionInformation> ThisFactionList;
+    Vector<AlienRaceInformation> ThisAlienRaceList;
 
     /// Network Valuables- Low footprint
     NetworkConfiguration NetConfig;
@@ -294,10 +317,84 @@ private:
     Vector<PlayerList> LoginGetAccountPlayersFromAuthorization(String ServerString);
 
     void ShowServerStatusUI(void);
+
+
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
 };
 
+
+/// Main Screen State
+class GameEconomicGameClientStateMainScreen: public GameEconomicGameClientStateSingleton
+{
+    OBJECT(GameEconomicGameClientStateMainScreen);
+
+public:
+    GameEconomicGameClientStateMainScreen(Context * context);
+    virtual ~GameEconomicGameClientStateMainScreen();
+    virtual void Enter();
+    virtual void Exit();
+    virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
+    virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
+private:
+    void MainScreen(void);
+    void MainScreenUI(void);
+    void MainScreenViewport(void);
+    void TerminateSkynet(void);
+    void   UpdateMainMenuCharacterInfo(void);
+    void ChangePlayerUI(void);
+    void ChangePlayerUIHandleCloseButton(StringHash eventType, VariantMap& eventData);
+    void ChangePlayerUIHandleSelection(StringHash eventType, VariantMap& eventData);
+
+protected:
+    SharedPtr<GameEconomicGameClient> Existence;
+    void HandleMenuPressed(StringHash eventType, VariantMap& eventData);
+};
+
+
+/// Main Screen State
+class GameEconomicGameClientStatePlayer: public GameEconomicGameClientStateSingleton
+{
+    OBJECT(GameEconomicGameClientStatePlayer);
+
+public:
+    GameEconomicGameClientStatePlayer(Context * context);
+    virtual ~GameEconomicGameClientStatePlayer();
+    virtual void Enter();
+    virtual void Exit();
+    virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
+    virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
+private:
+    void Player(void);
+    void CreatePlayerScreenUI(void);
+    void CreatePlayerUISelectPressed(StringHash eventType, VariantMap& eventData);
+    void CreatePlayerUITabButtonPressed(StringHash eventType, VariantMap& eventData);
+    void CreatePlayerUICreateCharacterPressed(StringHash eventType, VariantMap& eventData);
+
+
+    void CreatePlayerUpdateAlienRaceList(void);
+    void CreatePlayerUpdateFactionsList(void);
+    void CreatePlayerMainScreenViewport(void);
+    void CreatePlayerUpdateMainMenuCharacterInfo(void);
+    void CreatePlayerSetVisible(VisibleWindow TabWindow);
+    void CreatePlayerHandleFactionTabButton(void);
+    void CreatePlayerHandleProfileTabButton(void);
+    void CreatePlayerHandleGenderTabButton(void);
+    void CreatePlayerHandleRaceTabButton(void);
+    void CreatePlayerHandlePersonalityTabButton(void);
+    void CreatePlayerUpdatePersonalityList(void);
+    void CreatePlayerUpdateGenderList(void);
+    void CreatePlayerNameInputHandleChange(StringHash eventType, VariantMap& eventData);
+    void CreatePlayerHandlePlayerCompleted(StringHash eventType, VariantMap& eventData);
+    void CreatePlayerUIHandleListViews(StringHash eventType, VariantMap& eventData);
+
+protected:
+    SharedPtr<GameEconomicGameClient> Existence;
+
+    PlayerObject * NewPlayer;
+};
 
 
 /// Miscellanous functions
@@ -314,5 +411,6 @@ bool intersects( range a, range b );
 range make_range( float a, float b );
 
 #endif
+
 
 

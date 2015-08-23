@@ -48,6 +48,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 #include "GameEconomicServer.h"
 
@@ -60,6 +61,7 @@
 #include <Urho3D/DebugNew.h>
 #include "../GameEconomicComponents/Accounts.h"
 #include "../Networking.h"
+#include "../UniqueGenerator.h"
 
 
 using namespace std;
@@ -117,6 +119,36 @@ void GameEconomicServer::ExecuteCommandAdminClient(String FirstCommand, Vector<S
     {
         HandlePlayerCommands(Arguments, sender);
     }
+    else if(Command==String("getfactions"))
+    {
+        /// Get string and then form a result
+        String Results=ConnectionGetAllDBFactions();
+
+        cout << Results.CString()<< endl;
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
+    else if(Command==String("getraces"))
+    {
+        /// Get string and then form a result
+        String Results=ConnectionGetAlienRacesDBAccount("");
+
+        cout << Results.CString()<< endl;
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
+    else if(Command==String("getracesspecific"))
+    {
+        /// Get string and then form a result
+        String Results=ConnectionGetAlienRacesDBAccount(Arguments.At(0));
+
+        cout << Results.CString()<< endl;
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
+    }
     return;
 }
 
@@ -149,6 +181,110 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
 
         /// Send a message saying authorized
         SendNetworkMessage(NetMessageRequestApprovedGetAccountPlayers,true,true,connectionDBPlayers,sender);
+    }
+
+    /// Setup first command
+    if(Command==String("requestfactions"))
+    {
+        /// Get string and then form a result
+        String connectionDBPlayers=ConnectionGetAllDBFactions();
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageRequestApprovedGetFactions,true,true,connectionDBPlayers,sender);
+    }
+
+    /// Setup first command
+    if(Command==String("requestalienraces"))
+    {
+
+        cout << "It got here" << endl;
+
+        /// Get string and then form a result
+        String connectionDBPlayers=ConnectionGetAlienRacesDBAccount("");
+
+        cout << connectionDBPlayers.CString() << endl;
+
+        /// Send a message saying authorized
+        SendNetworkMessage(NetMessageRequestApprovedGetAlienRaces,true,true,connectionDBPlayers,sender);
+
+    }
+
+
+    /// Add player command
+    if(Command == String("createplayer"))
+    {
+        /// create a tempPlayer
+        PlayerObject TempPlayer;
+
+        // convert data to dbsafe
+        String Firstname = Arguments.At(1);
+        String Middlename = Arguments.At(2);
+        String Lastname = Arguments.At(3);
+
+        /// Clean up input
+        Firstname.Replace("'","\'");
+        Middlename.Replace("'","\'");
+        Lastname.Replace("'","\'");
+
+        /// clean up anything database query buggie
+        Firstname.Replace("`","_");
+        Middlename.Replace("`","_");
+        Lastname.Replace("`","_");
+
+        Firstname.Replace(" ","_");
+        Middlename.Replace(" ","_");
+        Lastname.Replace(" ","_");
+
+        Firstname.Replace("\"","_");
+        Middlename.Replace("\"","_");
+        Lastname.Replace("\"","_");
+
+        /// copy database
+        TempPlayer.OwnerUniqueID = Arguments.At(0);
+
+        TempPlayer.Firstname = Arguments.At(1);
+        TempPlayer.Middlename = Arguments.At(2);
+        TempPlayer.Lastname = Arguments.At(3);
+
+
+        /// generate a random id
+        string * newuniqueid;
+        newuniqueid = new string();
+
+        newuniqueid = UniqueGenerator::GenerateUniqueID(8);
+
+        TempPlayer.UniqueID = String(newuniqueid->c_str());
+
+        /// copy the rest
+        TempPlayer.Level = atoi(Arguments.At(4).CString());
+        TempPlayer.AlienRace = atoi(Arguments.At(5).CString());
+        TempPlayer.AlienAllianceAligned = atoi(Arguments.At(6).CString());
+        TempPlayer.Gender = atoi(Arguments.At(7).CString());
+        TempPlayer.PersonalityTrait = atoi(Arguments.At(8).CString());
+
+        /// Copy specific Players
+        TempPlayer.Health=0;
+
+        TempPlayer.Experience = 0;
+        TempPlayer.Reputation = 0;
+        TempPlayer.Reputation1 = 0;
+        TempPlayer.Reputation2 = 0;
+        TempPlayer.Reputation3 = 0;
+        TempPlayer.Reputation4 = 0;
+        TempPlayer.Reputation5 = 0;
+
+        cout << "it heard" << endl;
+
+        /// insert into DB
+        if(insertDBPlayer(TempPlayer))
+        {
+            SendNetworkMessage(NetMessageRequestApprovedGetPlayerCreationResponse,true,true,"accepted",sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageRequestApprovedGetPlayerCreationResponse,true,true,"error",sender);
+        }
+
     }
 
     return;

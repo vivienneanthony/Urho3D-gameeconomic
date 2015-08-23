@@ -94,18 +94,20 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
     TemporaryDBPlayer.Gender = TempPlayer.Gender;
     TemporaryDBPlayer.PersonalityTrait = TempPlayer.PersonalityTrait;
     TemporaryDBPlayer.UniqueID = TempPlayer.UniqueID.Trimmed();
+    TemporaryDBPlayer.OwnerUniqueID = TempPlayer.OwnerUniqueID.Trimmed();
 
 
     if(TemporaryDBPlayer.Firstname.Empty()
             ||TemporaryDBPlayer.Middlename.Empty()
             ||TemporaryDBPlayer.Lastname.Empty()
-            ||TemporaryDBPlayer.UniqueID.Empty())
+            ||TemporaryDBPlayer.UniqueID.Empty()
+            ||TemporaryDBPlayer.OwnerUniqueID.Empty())
     {
         cout << "Cannot create prepared statement for insertDBPlayer(PlayerObject &TempPlayer)";
         return false;
     }
     ///StateStart
-    String PreparedStatement = String("INSERT INTO Players (`PlayerFirstname`, `PlayerMiddlename`, `PlayerLastname`, `PlayerLevel`, `PlayerExperience`, `PlayerReputation`,`PlayerReputation1`,`PlayerReputation2`,`PlayerReputation3`,`PlayerReputation4`,`PlayerReputation5`,`PlayerAlienRace`,`PlayerAlienAllianceAligned`,`PlayerGender`,`PlayerPersonalityTrait`, `PlayerUniqueID`) Values (");
+    String PreparedStatement = String("INSERT INTO Players (`PlayerFirstname`, `PlayerMiddlename`, `PlayerLastname`, `PlayerLevel`, `PlayerExperience`, `PlayerReputation`,`PlayerReputation1`,`PlayerReputation2`,`PlayerReputation3`,`PlayerReputation4`,`PlayerReputation5`,`PlayerAlienRace`,`PlayerAlienAllianceAligned`,`PlayerGender`,`PlayerPersonalityTrait`, `PlayerUniqueID`, `PlayerOwnerUniqueID`) Values (");
 
     /// Copy information to statement
     PreparedStatement.Append("'"+TemporaryDBPlayer.Firstname+"'");
@@ -124,6 +126,7 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
     PreparedStatement.Append(","+String(TemporaryDBPlayer.Gender)+"");
     PreparedStatement.Append(","+String(TemporaryDBPlayer.PersonalityTrait)+"");
     PreparedStatement.Append(",'"+TemporaryDBPlayer.UniqueID+"'");
+    PreparedStatement.Append(",'"+TemporaryDBPlayer.OwnerUniqueID+"'");
 
     /// Create the rest of the statement
     PreparedStatement.Append(");");
@@ -565,7 +568,4 @@ bool GameEconomicServer::DeleteSingleDBPlayer(PlayerObject &TempPlayer)
 
     return Results;
 }
-
-
-
 

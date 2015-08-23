@@ -49,6 +49,7 @@
 #include "../GameEconomicComponents/Trader.h"
 #include "Map.h"
 #include "../Networking.h"
+#include "GameEconomicServerDatabaseGeneral.h"
 
 using namespace std;
 using namespace Urho3D;
@@ -210,6 +211,13 @@ private:
     bool VerifyIdentityDB(DBTable mode, String username, String password);
     String ConnectionGetDBAccount(String Username, String Password);
     String ConnectionGetPlayersDBAccount(String AccountUniqueID);
+
+    /// GenerallDB
+    Vector<String> selectDBGeneral(Vector<String> TableName,Vector<String> TableNameParameter, accessdbtable databasetable );
+    Vector<FactionInformation> * GetAllFactionsDBFactions(void);
+    Vector<AlienRaceInformation> * GetAlienRacesDBAlienRaces(String SelectFaction);
+    String ConnectionGetAllDBFactions(void);
+    String ConnectionGetAlienRacesDBAccount(String AlignedFactions);
 
 
     /// Networking

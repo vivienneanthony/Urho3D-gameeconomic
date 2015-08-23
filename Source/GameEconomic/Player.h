@@ -102,6 +102,8 @@ struct PlayerObject
 
     /// saved but unused
     String UniqueID;
+    String OwnerUniqueID;
+
 };
 
 #endif

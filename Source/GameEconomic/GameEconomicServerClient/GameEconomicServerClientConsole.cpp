@@ -278,7 +278,7 @@ void GameEconomicServerClientConsole::SendMessage(String Message)
         VectorBuffer msg;
         msg.WriteString(Message);
         // Send the chat message as in-order and reliable
-        serverConnection->SendMessage(999, true, true, msg);
+        serverConnection->SendMessage(NetMessageAdminClientSend, true, true, msg);
     }
 
     return;

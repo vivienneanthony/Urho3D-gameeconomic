@@ -14,6 +14,7 @@
 #define         STATE_MAIN                          11
 #define         STATE_GAME                          12
 
+
 #define         UI_CONSOLEOFF                     0
 #define         UI_CONSOLEON                      1
 
@@ -71,7 +72,9 @@ public:
 
 private:
     /// Made the gameState a shared to keep in memory
-    SharedPtr <GameEconomicGameClientStateSingleton>  gameState;
+//    SharedPtr <GameEconomicGameClientStateSingleton>  gameState;
+
+    GameEconomicGameClientStateSingleton *  gameState;
 
     /// Made the application pointer shared to keep in memory
     SharedPtr<GameEconomicGameClient> GameStateHandlerApplication;

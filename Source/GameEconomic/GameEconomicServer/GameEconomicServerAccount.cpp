@@ -132,7 +132,6 @@ bool GameEconomicServer::insertDBAccount(AccountInformation &TempAccount)
 
     string mysqlpreparedstatement =string(PreparedStatement.CString());
 
-
     /// attempt to write
     if(!connectionDB -> executePreparedStatement(mysqlpreparedstatement))
     {
@@ -146,7 +145,6 @@ bool GameEconomicServer::deleteDBAccount(Vector<String> TableName,Vector<String>
 {
     /// get db
     connectorDB * connectionDB = GetSubsystem<connectorDB>();
-
 
     /// Set up a single statement
     bool multipletablenames=false;
@@ -179,7 +177,7 @@ bool GameEconomicServer::deleteDBAccount(Vector<String> TableName,Vector<String>
         {
             PreparedStatement.Append(" AND ");
         }
-        /// unique values
+
         /// unique values
         if(TableName.At(i).ToLower()=="accountusername")
         {
@@ -407,20 +405,16 @@ bool GameEconomicServer::verifyDBAccount(Vector<String> TableName,Vector<String>
     return true;
 }
 
-
 Vector<String> GameEconomicServer::selectDBAccount(Vector<String> TableName,Vector<String> TableNameParameter)
 {
 
     /// get db
     connectorDB * connectionDB = GetSubsystem<connectorDB>();
 
-
-
     /// Set up a single statement
     bool multipletablenames=false;
 
     Vector<String> Results;
-
 
     /// Table name does not match
     if(TableName.Size()!=TableNameParameter.Size())
@@ -449,8 +443,6 @@ Vector<String> GameEconomicServer::selectDBAccount(Vector<String> TableName,Vect
         {
             PreparedStatement.Append(" AND ");
         }
-        /// unique values
-        /// unique values
         /// unique values
         if(TableName.At(i).ToLower()=="accountusername")
         {
@@ -485,7 +477,6 @@ Vector<String> GameEconomicServer::selectDBAccount(Vector<String> TableName,Vect
     /// end statement
     PreparedStatement.Append(";");
 
-
     cout << PreparedStatement.CString() << endl;
 
     /// Change statement to string
@@ -493,6 +484,12 @@ Vector<String> GameEconomicServer::selectDBAccount(Vector<String> TableName,Vect
 
     /// attempt to write
     Results = connectionDB -> executePreparedStatementResult(mysqlpreparedstatement);
+
+    for(unsigned int i=0; i<Results.Size(); i ++)
+    {
+        cout << "r:" <<Results.At(i).CString() << endl;
+    }
+
 
     return Results;
 }
@@ -525,7 +522,6 @@ bool GameEconomicServer::UpdateSingleDBAccount(AccountInformation &TempAccount)
 
     return Results;
 }
-
 
 bool GameEconomicServer::DeleteSingleDBAccount(AccountInformation &TempAccount)
 {

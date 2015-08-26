@@ -44,6 +44,7 @@
 
 #include "../Accounts.h"
 #include "../Administrator.h"
+#include "../Starbase.h"
 #include "../GameEconomicComponents/Player.h"
 #include "../GameEconomicComponents/Market.h"
 #include "../GameEconomicComponents/Trader.h"
@@ -211,13 +212,17 @@ private:
     bool VerifyIdentityDB(DBTable mode, String username, String password);
     String ConnectionGetDBAccount(String Username, String Password);
     String ConnectionGetPlayersDBAccount(String AccountUniqueID);
+    String ConnectionGetDBStabase(String OwnerID);
+    StarbaseInformation * GetStarbaseDBStarbase(String OwnerID);
 
     /// GenerallDB
+    bool insertDBGeneral(Vector<String> ColumnType,Vector<String> ColumnTypeParameter, accessdbtable databasetable);
     Vector<String> selectDBGeneral(Vector<String> TableName,Vector<String> TableNameParameter, accessdbtable databasetable );
     Vector<FactionInformation> * GetAllFactionsDBFactions(void);
     Vector<AlienRaceInformation> * GetAlienRacesDBAlienRaces(String SelectFaction);
     String ConnectionGetAllDBFactions(void);
     String ConnectionGetAlienRacesDBAccount(String AlignedFactions);
+    bool ConnnectInsertBaseDBStarbase(Vector<String>ColumnType,Vector<String> ColumnTypeParameter);
 
 
     /// Networking

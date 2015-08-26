@@ -214,6 +214,8 @@ Vector<PlayerList> * GameEconomicServer::GetPlayersDBAccount(String AccountUniqu
     /// Select Player
     Vector<String> Results = selectDBPlayer(TableNames,TableFields);
 
+    cout << "it got here" << endl;
+
     /// If no records found
     if(Results.At(1)==String("0"))
     {
@@ -272,7 +274,7 @@ String GameEconomicServer::ConnectionGetDBAccount(String Username, String Passwo
     if(EmailValidCheck(Username)==true)
     {
          TableNames.At(0) = String("accountemail");
-    }
+    }http://www.weather.com/weather/today/l/07102:4:US
 
     /// Add password
     TableNames.Push("accountpassword");
@@ -280,6 +282,11 @@ String GameEconomicServer::ConnectionGetDBAccount(String Username, String Passwo
     TableFields.Push(Password);
 
     Results = selectDBAccount(TableNames,TableFields);
+
+    if(Results.Size()==0)
+    {
+        return String("|0|0");
+    }
 
     /// Append String
     for(unsigned int i=0;i<Results.Size();i++)
@@ -302,6 +309,12 @@ String GameEconomicServer::ConnectionGetPlayersDBAccount(String AccountUniqueID)
     Vector <PlayerList>  * ReturnPlayers;
 
     ReturnPlayers=GetPlayersDBAccount(AccountUniqueID);
+
+    /// Return no character make sure
+    if(ReturnPlayers==NULL)
+    {
+        return String("|0|0");
+    }
 
     /// Copy Cols and Row Counts
     ReturnString.Append("|");

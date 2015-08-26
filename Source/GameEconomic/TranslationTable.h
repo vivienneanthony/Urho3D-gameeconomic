@@ -17,7 +17,7 @@ enum AlienRaces
 
 static const char* AlienRacesIndentifiers[] =
 {
-    "vulcan","feds","nevs","ofaugath", "ateyin", "nume", "situ"
+    "vulcan","feds","nevs","ofaugath", "ateyin", "nume", "situ","conf"
 };
 
 

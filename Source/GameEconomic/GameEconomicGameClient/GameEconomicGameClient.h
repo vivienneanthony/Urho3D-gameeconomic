@@ -49,6 +49,7 @@
 #include "../Networking.h"
 #include "../Platform.h"
 #include "../Accounts.h"
+#include "../Starbase.h"
 
 #include "../GameEconomicServer/GameEconomicServerDatabaseGeneral.h"
 #include "GameEconomicGameClientStatePlayer.h"
@@ -227,6 +228,7 @@ protected:
 
     /// This is temoporarily the necessary code
     AccountInformation * ThisAccount;
+    StarbaseInformation * ThisStarbase;
     unsigned int CurrentPlayerFromList;
     Vector<PlayerList> ThisAccountPlayerList;
 
@@ -241,6 +243,9 @@ protected:
 
     /// Platform related
     PlatformOS CurrentPlatform;
+
+    /// toucheenabled_;
+    bool touchenabled_;
 
 private:
 
@@ -315,6 +320,7 @@ private:
     void LoginScreenUILoginHandleClosePressed(StringHash eventType, VariantMap& eventData);
     AccountInformation * LoginGetPlayerAccountFromAuthorization(String ServerString);
     Vector<PlayerList> LoginGetAccountPlayersFromAuthorization(String ServerString);
+    void TerminateCommLink(StringHash eventType, VariantMap& eventData);
 
     void ShowServerStatusUI(void);
 
@@ -394,6 +400,8 @@ protected:
     SharedPtr<GameEconomicGameClient> Existence;
 
     PlayerObject * NewPlayer;
+
+    bool AllowClose;
 };
 
 

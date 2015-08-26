@@ -114,6 +114,7 @@ class GameEconomicGameClient;
 /// State Player Constructor
 GameEconomicGameClientStatePlayer::GameEconomicGameClientStatePlayer(Context* context):
     GameEconomicGameClientStateSingleton (context)
+    ,AllowClose(false)
     ,NewPlayer(NULL)
     ,Existence(NULL)
 {
@@ -361,6 +362,7 @@ void GameEconomicGameClientStatePlayer::CreatePlayerUITabButtonPressed(StringHas
 /// Tab Button pressed
 void GameEconomicGameClientStatePlayer::CreatePlayerUICreateCharacterPressed(StringHash eventType, VariantMap& eventData)
 {
+
     return;
 }
 

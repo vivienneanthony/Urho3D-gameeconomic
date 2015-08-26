@@ -245,6 +245,11 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         /// delete old state
         delete  gameState;
 
+
+        String cmdArg = eventData[GameState::P_ARG].GetString();
+
+        cout << cmdArg.CString() << endl;
+
         gameState=newgameState;
         gameState->Enter();
 

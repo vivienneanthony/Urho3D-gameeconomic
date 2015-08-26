@@ -114,7 +114,10 @@ using namespace Urho3D;
 DEFINE_APPLICATION_MAIN(GameEconomicGameClient)
 
 GameEconomicGameClient::GameEconomicGameClient(Context* context) :
-    GameEconomicApp(context), uiRoot_(GetSubsystem<UI>()->GetRoot())
+    GameEconomicApp(context),
+    uiRoot_(GetSubsystem<UI>()->GetRoot()),
+    ThisAccount(NULL),
+    ThisStarbase(NULL)
 {
     /// Register
 
@@ -143,6 +146,24 @@ void GameEconomicGameClient::Init(Context * context)
 
     /// Get the platform - Set global variable that determines the game
     CurrentPlatform = OSTool::GetOS(GetPlatform());
+
+    /// Change touch enbabled based on platform
+    if (CurrentPlatform==PlatformAndroid||CurrentPlatform==PlatformIOS)
+    {
+        /// touch enable for Android and iOS
+        touchenabled_=true;
+    }
+    else if (GetPlatform() == "Android" || GetPlatform() == "iOS")
+    {
+
+        /// touch enable for Android and iOS
+        touchenabled_=true;
+    }
+    else
+    {
+        /// diaable touch enabled
+        touchenabled_=false;
+    }
 
     return;
 }
@@ -714,6 +735,7 @@ Vector<AlienRaceInformation> GameEconomicGameClient::LoadGetAlienRacesFromAuthor
         temporaryAlienRace.UniqueID=ServerStringSplit.At(index+4);
 
 
+
         cout << "Adding" << endl;
 
         /// Append temporaryplayer
@@ -828,6 +850,8 @@ AccountInformation * GameEconomicGameClient::LoginGetPlayerAccountFromAuthorizat
     ReturnAccountInformation->LastLogin=0;
     ReturnAccountInformation->UniqueID=ServerStringSplit.At(12);
 
+
+
     return ReturnAccountInformation;
 }
 
@@ -869,12 +893,14 @@ Vector<PlayerList> GameEconomicGameClient::LoginGetAccountPlayersFromAuthorizati
         temporaryPlayer.Firstname = ServerStringSplit.At(index);
         temporaryPlayer.Middlename = ServerStringSplit.At(index+1);
         temporaryPlayer.Lastname = ServerStringSplit.At(index+2);
-        ///temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
+        temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
         temporaryPlayer.Level = atoi(ServerStringSplit.At(index+4).CString());
         temporaryPlayer.AlienRace = atoi(ServerStringSplit.At(index+5).CString());
         temporaryPlayer.AlienRaceAllianceAligned = atoi(ServerStringSplit.At(index+6).CString());
         temporaryPlayer.Gender = atoi(ServerStringSplit.At(index+7).CString());
         temporaryPlayer.PersonalityTrait = atoi(ServerStringSplit.At(index+8).CString());
+
+        cout << "playeruniqueid" << temporaryPlayer.UniqueID.CString()<< endl;
 
         /// Append temporaryplayer
         temporaryList.Push(temporaryPlayer);

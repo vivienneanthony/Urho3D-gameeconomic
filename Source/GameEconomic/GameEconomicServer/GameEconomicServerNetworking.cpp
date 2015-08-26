@@ -151,6 +151,9 @@ void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::Vari
         /// Parse received message
         SplitPromptInput = ParseCommand(text.Trimmed());
 
+        cout << "input" << SplitPromptInput.At(0).CString() <<endl;
+        cout << "input" <<SplitPromptInput.At(1).CString() <<endl;
+
         /// Verify password - case sensitive
         bool authorized = VerifyIdentityDB(DBAccount, SplitPromptInput.At(0),SplitPromptInput.At(1));
 
@@ -183,7 +186,7 @@ void GameEconomicServer::HandleNetworkMessage(StringHash eventType, Urho3D::Vari
         }else
         {
             /// Send a message saying denied
-            SendNetworkMessage(NetMessageAuthenticatedDenied,true,true,"",sender);
+            SendNetworkMessage(NetMessageAuthenticatedDenied,true,true,"|0|0",sender);
         }
     }
 }

@@ -15,6 +15,8 @@ enum NetworkMessageTypes
     NetMessageRequestApprovedGetFactions,
     NetMessageRequestApprovedGetAlienRaces,
     NetMessageRequestApprovedGetPlayerCreationResponse,
+    NetMessageRequestApprovedGetStarbase,
+    NetMessageRequestApprovedAddStarbaseResponse,
     NetMessageHeartbeatRequest=90,
     NetMessageHeartbeatAcknowledge,
     NetMessageAdminClientSend=100,

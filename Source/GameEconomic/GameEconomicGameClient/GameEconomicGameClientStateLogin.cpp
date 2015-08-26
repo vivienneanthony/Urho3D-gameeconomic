@@ -161,7 +161,7 @@ void GameEconomicGameClientStateLogin::Enter()
 /// State Login Exit
 void GameEconomicGameClientStateLogin::Exit()
 {
-  UnsubscribeFromAllEvents();
+    UnsubscribeFromAllEvents();
 
     /// Debug
     cout << "Debug: State Login Exit" << endl;
@@ -253,28 +253,52 @@ void GameEconomicGameClientStateLogin::LoginScreenUI(void)
 
     /// Declare buttons
     Button* loginButton = new Button(context_);
-    Button* newaccountButton = new Button(context_);
+    Button* TerminateCommLink = new Button(context_);
+    Text * TerminateCommLinkText = new Text(context_);
 
     /// Use login button
     loginButton->SetName("Login");
     loginButton->SetStyle("loginButton");
 
+    TerminateCommLink->SetName("TerminateCommLink");
+
+    /// Set parameters
+    TerminateCommLink->SetFixedSize(220,18);
+    TerminateCommLink->SetPosition((width/2)-(220/2), height-96);
+    TerminateCommLink->SetOpacity(.2);
+
+    TerminateCommLinkText->SetPosition(0,height-94);
+    TerminateCommLinkText->	SetHorizontalAlignment(HA_CENTER);
+    TerminateCommLinkText->SetOpacity(.8);
+    TerminateCommLinkText->SetFont(String("Anonymous"),14);
+    TerminateCommLinkText->SetText(String("TERMINATE SERVERLINK"));
+
+    /// Change Opacity
+    loginButton->SetOpacity(.9);
+
     /// Add login button
     Existence->window_->AddChild(loginButton);
+
+    /// Add more text
+    Existence->uiRoot_->AddChild(TerminateCommLink);
+    Existence->uiRoot_->AddChild(TerminateCommLinkText);
 
     /// Apply styles
     Existence->window_->SetStyleAuto();
     usernameText->SetStyleAuto();
     passwordText->SetStyleAuto();
+    TerminateCommLink->SetStyleAuto();
+    TerminateCommLinkText->SetStyleAuto();
+
+    /// Position login button in center
+    loginButton->SetPosition((Existence->window_->GetWidth()/2)-(loginButton->GetWidth()/2),108);
 
     /// Attach handler based on new account - Temporary
     SubscribeToEvent(loginButton, E_RELEASED, HANDLER(GameEconomicGameClientStateLogin, LoginScreenUILoginHandleClosePressed));
+    SubscribeToEvent(TerminateCommLink, E_RELEASED, HANDLER(GameEconomicGameClientStateLogin, TerminateCommLink));
 
     return;
 }
-
-
-
 
 
 /// State Login Screen UI
@@ -287,14 +311,14 @@ void GameEconomicGameClientStateLogin::ShowServerStatusUI(void)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     Graphics* graphics_= GetSubsystem<Graphics>();
 
+    UIElement* NetworkStatusUIElement = new UIElement(context_);
+    Text* NetworkStatusUpdateText = new Text(context_);
+
     /// Get rendering window size as floats
     float width = (float)graphics_->GetWidth();
     float height = (float)graphics_->GetHeight();
 
-    UIElement* NetworkStatusUIElement = new UIElement(context_);
-    Text* NetworkStatusText = new Text(context_);
-    Text* NetworkStatusUpdateText = new Text(context_);
-
+    /// Add login UIElement
     Existence->uiRoot_->AddChild(NetworkStatusUIElement);
 
     /// Create Window 'titlebar' container
@@ -302,26 +326,18 @@ void GameEconomicGameClientStateLogin::ShowServerStatusUI(void)
     NetworkStatusUIElement->SetLayoutMode(LM_FREE);
     NetworkStatusUIElement->SetPosition((float)0, (float)height-32);
 
-    NetworkStatusText->SetName("ServerStatusText");
-    NetworkStatusText->SetText("server.stats");
-    NetworkStatusText->SetPosition((float)(width/2)+64,(float)0);
-
     NetworkStatusUpdateText->SetName("ServerStatusUpdateText");
-    NetworkStatusUpdateText->SetText("in.progress");
-    NetworkStatusUpdateText->SetPosition(float(width/2)-64,(float)0);
+    NetworkStatusUpdateText->SetText("(awaiting)");
+    NetworkStatusUpdateText->SetPosition(float(width/2)-32,(float)0);
 
     /// Add the controls to the title bar
-    NetworkStatusUIElement->AddChild(NetworkStatusText);
     NetworkStatusUIElement->AddChild(NetworkStatusUpdateText);
 
     NetworkStatusUIElement ->SetStyleAuto();
-    NetworkStatusText ->SetStyleAuto();
     NetworkStatusUpdateText ->SetStyleAuto();
-
 
     return;
 }
-
 
 /// Handlers for login screen (Handler) - Login Account
 void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(StringHash eventType, VariantMap& eventData)
@@ -333,17 +349,22 @@ void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(Stri
     /// Get root element for the UI
     UIElement * RootUIElement = ui_->GetRoot();
 
-    LineEdit* lineEdit = (LineEdit*)ui_->GetRoot()->GetChild("usernameInput", true);
-    String username = lineEdit->GetText();
+    LineEdit* UserNameInput = (LineEdit*)ui_->GetRoot()->GetChild("usernameInput", true);
+    LineEdit* PasswordInput = (LineEdit*)ui_->GetRoot()->GetChild("passwordInput", true);
 
-
-    LineEdit* lineEdit2 = (LineEdit*)ui_->GetRoot()->GetChild("passwordInput", true);
-    String password = lineEdit2->GetText();
-
+    /// Get input from window
+    String Username = UserNameInput->GetText();
+    String Password = PasswordInput->GetText();
 
     /// copy so network can access the information
-    Existence->NetUserAuthenticateInfo.Username = username;
-    Existence->NetUserAuthenticateInfo.Password = password;
+    Existence->NetUserAuthenticateInfo.Username = Username;
+    Existence->NetUserAuthenticateInfo.Password = Password;
+
+    /// If password or username is empty
+    if(Username.Empty()||Password.Empty())
+    {
+        return;
+    }
 
     /// if network is offline
     if(Existence->NetStats==NetworkOffline)
@@ -351,64 +372,38 @@ void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(Stri
         return;
     }
 
-    /// Connect
+    /// Connect to server with the current network configuration
     Existence->ConnectLogin(Existence->NetConfig);
 
-    /// Remove Existence Logo Node if it exist
-    if(Existence->scene_->GetChild("ExistenceLogo",true))
-    {
-        Existence->scene_->GetChild("ExistenceLogo",true)->RemoveAllComponents();
-        Existence->scene_->GetChild("ExistenceLogo",true)->Remove();
+    /*
+        /// Remove Existence Logo Node if it exist
+        if(Existence->scene_->GetChild("ExistenceLogo",true))
+        {
+            Existence->scene_->GetChild("ExistenceLogo",true)->RemoveAllComponents();
+            Existence->scene_->GetChild("ExistenceLogo",true)->Remove();
 
-    }
-
-    ///UnsubscribeFromAllEvents();
-
-    /// Create a event
-    ///VariantMap gamestatechange;
-    ///gamestatechange[GameState::P_CMD] = GAME_STATE_MAINMENU;
-
-    ///cout << "Debug: Attempt to send a state change" << endl;
-
-    ///this->SendEvent(G_STATES_CHANGE,gamestatechange);
-
+        }
+    */
     return;
 }
 
 /// Handlers for login screen (Handler) -New Account
 void GameEconomicGameClientStateLogin::LoginScreenUINewAccountHandleClosePressed(StringHash eventType, VariantMap& eventData)
 {
-    /// Get all revelant resources
-    UI* ui_ = GetSubsystem<UI>();
-    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
-
-    /// Get root element for the UI
-    UIElement * RootUIElement = ui_->GetRoot();
-
-    /// if network is offline
-    if(Existence->NetStats==NetworkOffline)
-    {
-        return;
-    }
-
-
-    LineEdit* lineEdit = (LineEdit*)ui_->GetRoot()->GetChild("usernameInput", true);
-    String username = lineEdit->GetText();
-
-
-    /// Remove Existence Logo Node if it exist
-    if(Existence->scene_->GetChild("ExistenceLogo",true))
-    {
-        Existence->scene_->GetChild("ExistenceLogo",true)->RemoveAllComponents();
-        Existence->scene_->GetChild("ExistenceLogo",true)->Remove();
-    }
-
-
-    /// Show load progress
-    LoginProgressUI();
+    ///
 
     return;
 }
+
+
+/// Handlers for login screen (Handler) -New Account
+void GameEconomicGameClientStateLogin::TerminateCommLink(StringHash eventType, VariantMap& eventData)
+{
+    exit(0);
+
+    return;
+}
+
 
 /// Handler for server response
 void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventType, VariantMap& eventData)
@@ -422,13 +417,11 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
     unsigned int cmdType = eventData[ServerResponse::P_CMD].GetInt();
     String cmdArg = eventData[ServerResponse::P_ARG].GetString();
 
-    cout << cmdType << endl;
-
     /// if Account Authentication
     if(cmdType==ServerResponse_AccountAuthentication)
     {
         /// If unauthorized
-        if(cmdArg==String("error"))
+        if(cmdArg==String("|0|0")||cmdArg==String("Unauthorized")||cmdArg==String("error"))
         {
             /// Clear the UI
             Existence->EraseUI();
@@ -455,19 +448,40 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
             Existence -> ThisAccount = new AccountInformation();
             Existence -> CurrentPlayerFromList = 0;
 
-
             /// convert input string to player info
-            Existence -> ThisAccount = LoginGetPlayerAccountFromAuthorization(cmdArg);
 
-            /// create request
-            String ServerRequest;
-            ServerRequest.Append("requestplayers ");
-            ServerRequest.Append(Existence->ThisAccount->UniqueID);
+            if(cmdArg!=String("|0|0")||!cmdArg.Empty())
+            {
+                Existence -> ThisAccount = LoginGetPlayerAccountFromAuthorization(cmdArg);
 
-            VectorBuffer msg;
-            msg.WriteString(ServerRequest);
 
-            serverConnection->SendMessage(NetMessageRequest,true,true,msg,0);
+                /// create request
+                String ServerRequest;
+                ServerRequest.Append("requestplayers ");
+                ServerRequest.Append(Existence->ThisAccount->UniqueID);
+
+                VectorBuffer msg;
+                msg.WriteString(ServerRequest);
+
+                serverConnection->SendMessage(NetMessageRequest,true,true,msg,0);
+            }
+            else
+            {
+                Existence -> ThisAccount = LoginGetPlayerAccountFromAuthorization(cmdArg);
+
+
+                /// create request
+                String ServerRequest;
+                ServerRequest.Append("requestfact");
+
+
+                VectorBuffer msg;
+                msg.WriteString(ServerRequest);
+
+                serverConnection->SendMessage(NetMessageRequest,true,true,msg,0);
+
+
+            }
         }
 
     }
@@ -510,31 +524,18 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
         /// Verify size
         if(Existence->ThisAccountPlayerList.Size()==0)
         {
-            /// nothing - go to create new player
+            /// Create a event
+            VariantMap gamestatechange;
+            gamestatechange[GameState::P_CMD] = GAME_STATE_PLAYERCREATE;
+            gamestatechange[GameState::P_ARG] = String("ALLOWCLOSE_NO");
+
+            cout << "Debug: Attempt to send a state change" << endl;
+
+            this->SendEvent(G_STATES_CHANGE,gamestatechange);
+
         }
         else
         {
-
-
-            /// loop through each one and add
-            for(unsigned int i=0; i<Existence->ThisAccountPlayerList.Size(); i++)
-            {
-
-                String PlayerName;
-
-                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Firstname);
-                PlayerName.Append(" ");
-                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Middlename);
-                PlayerName.Append(" ");
-                PlayerName.Append(Existence->ThisAccountPlayerList.At(i).Lastname);
-
-                /// settext
-                //cout << PlayerName.CString() << endl;
-
-
-
-            }
-
 
             /// Create a event
             VariantMap gamestatechange;
@@ -782,10 +783,11 @@ Vector<PlayerList> GameEconomicGameClientStateLogin::LoginGetAccountPlayersFromA
         /// Create temporary Player
         PlayerList temporaryPlayer;
 
+        /// Copy unique ID
         temporaryPlayer.Firstname = ServerStringSplit.At(index);
         temporaryPlayer.Middlename = ServerStringSplit.At(index+1);
         temporaryPlayer.Lastname = ServerStringSplit.At(index+2);
-        ///temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
+        temporaryPlayer.UniqueID = ServerStringSplit.At(index+3);
         temporaryPlayer.Level = atoi(ServerStringSplit.At(index+4).CString());
         temporaryPlayer.AlienRace = atoi(ServerStringSplit.At(index+5).CString());
         temporaryPlayer.AlienRaceAllianceAligned = atoi(ServerStringSplit.At(index+6).CString());

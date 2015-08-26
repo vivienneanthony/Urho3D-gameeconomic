@@ -54,13 +54,13 @@ Network::Network(Context* context) :
     updateAcc_(0.0f)
 {
     network_ = new kNet::Network();
-    
+
     // Register Network library object factories
     RegisterNetworkLibrary(context_);
-    
+
     SubscribeToEvent(E_BEGINFRAME, HANDLER(Network, HandleBeginFrame));
     SubscribeToEvent(E_RENDERUPDATE, HANDLER(Network, HandleRenderUpdate));
-    
+
     // Blacklist remote events which are not to be allowed to be registered in any case
     blacklistedRemoteEvents_.Insert(E_CONSOLECOMMAND);
     blacklistedRemoteEvents_.Insert(E_LOGMESSAGE);
@@ -110,9 +110,9 @@ Network::~Network()
     // If server connection exists, disconnect, but do not send an event because we are shutting down
     Disconnect(100);
     serverConnection_.Reset();
-    
+
     clientConnections_.Clear();
-    
+
     delete network_;
     network_ = 0;
 }
@@ -126,10 +126,10 @@ void Network::HandleMessage(kNet::MessageConnection *source, kNet::packet_id_t p
         MemoryBuffer msg(data, (unsigned)numBytes);
         if (connection->ProcessMessage(msgId, msg))
             return;
-        
+
         // If message was not handled internally, forward as an event
         using namespace NetworkMessage;
-        
+
         VariantMap& eventData = GetEventDataMap();
         eventData[P_CONNECTION] = connection;
         eventData[P_MESSAGEID] = (int)msgId;
@@ -147,15 +147,15 @@ u32 Network::ComputeContentID(kNet::message_id_t msgId, const char* data, size_t
     case MSG_CONTROLS:
         // Return fixed content ID for controls
         return CONTROLS_CONTENT_ID;
-        
+
     case MSG_NODELATESTDATA:
     case MSG_COMPONENTLATESTDATA:
-        {
-            // Return the node or component ID, which is first in the message
-            MemoryBuffer msg(data, (unsigned)numBytes);
-            return msg.ReadNetID();
-        }
-        
+    {
+        // Return the node or component ID, which is first in the message
+        MemoryBuffer msg(data, (unsigned)numBytes);
+        return msg.ReadNetID();
+    }
+
     default:
         // By default return no content ID
         return 0;
@@ -165,15 +165,15 @@ u32 Network::ComputeContentID(kNet::message_id_t msgId, const char* data, size_t
 void Network::NewConnectionEstablished(kNet::MessageConnection* connection)
 {
     connection->RegisterInboundMessageHandler(this);
-    
+
     // Create a new client connection corresponding to this MessageConnection
     SharedPtr<Connection> newConnection(new Connection(context_, true, kNet::SharedPtr<kNet::MessageConnection>(connection)));
     newConnection->ConfigureNetworkSimulator(simulatedLatency_, simulatedPacketLoss_);
     clientConnections_[connection] = newConnection;
     LOGINFO("Client " + newConnection->ToString() + " connected");
-    
+
     using namespace ClientConnected;
-    
+
     VariantMap& eventData = GetEventDataMap();
     eventData[P_CONNECTION] = newConnection;
     newConnection->SendEvent(E_CLIENTCONNECTED, eventData);
@@ -182,20 +182,20 @@ void Network::NewConnectionEstablished(kNet::MessageConnection* connection)
 void Network::ClientDisconnected(kNet::MessageConnection* connection)
 {
     connection->Disconnect(0);
-    
+
     // Remove the client connection that corresponds to this MessageConnection
     HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Find(connection);
     if (i != clientConnections_.End())
     {
         Connection* connection = i->second_;
         LOGINFO("Client " + connection->ToString() + " disconnected");
-        
+
         using namespace ClientDisconnected;
-        
+
         VariantMap& eventData = GetEventDataMap();
         eventData[P_CONNECTION] = connection;
         connection->SendEvent(E_CLIENTDISCONNECTED, eventData);
-        
+
         clientConnections_.Erase(i);
     }
 }
@@ -203,14 +203,14 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
 bool Network::Connect(const String& address, unsigned short port, Scene* scene, const VariantMap& identity)
 {
     PROFILE(Connect);
-    
+
     // If a previous connection already exists, disconnect it and wait for some time for the connection to terminate
     if (serverConnection_)
     {
         serverConnection_->Disconnect(100);
         OnServerDisconnected();
     }
-    
+
     kNet::SharedPtr<kNet::MessageConnection> connection = network_->Connect(address.CString(), port, kNet::SocketOverUDP, this);
     if (connection)
     {
@@ -235,7 +235,7 @@ void Network::Disconnect(int waitMSec)
 {
     if (!serverConnection_)
         return;
-    
+
     PROFILE(Disconnect);
     serverConnection_->Disconnect(waitMSec);
 }
@@ -244,9 +244,9 @@ bool Network::StartServer(unsigned short port)
 {
     if (IsServerRunning())
         return true;
-    
+
     PROFILE(StartServer);
-    
+
     if (network_->StartServer(port, kNet::SocketOverUDP, this, true) != 0)
     {
         LOGINFO("Started server on port " + String(port));
@@ -263,9 +263,9 @@ void Network::StopServer()
 {
     if (!IsServerRunning())
         return;
-    
+
     PROFILE(StopServer);
-    
+
     clientConnections_.Clear();
     network_->StopServer();
     LOGINFO("Stopped server");
@@ -277,15 +277,15 @@ void Network::BroadcastMessage(int msgID, bool reliable, bool inOrder, const Vec
 }
 
 void Network::BroadcastMessage(int msgID, bool reliable, bool inOrder, const unsigned char* data, unsigned numBytes,
-    unsigned contentID)
+                               unsigned contentID)
 {
-   // Make sure not to use kNet internal message ID's
+    // Make sure not to use kNet internal message ID's
     if (msgID <= 0x4 || msgID >= 0x3ffffffe)
     {
         LOGERROR("Can not send message with reserved ID");
         return;
     }
-    
+
     kNet::NetworkServer* server = network_->GetServer();
     if (server)
         server->BroadcastMessage(msgID, reliable, inOrder, 0, contentID, (const char*)data, numBytes);
@@ -296,14 +296,14 @@ void Network::BroadcastMessage(int msgID, bool reliable, bool inOrder, const uns
 void Network::BroadcastRemoteEvent(StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
         i->second_->SendRemoteEvent(eventType, inOrder, eventData);
 }
 
 void Network::BroadcastRemoteEvent(Scene* scene, StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
     {
         if (i->second_->GetScene() == scene)
             i->second_->SendRemoteEvent(eventType, inOrder, eventData);
@@ -322,10 +322,10 @@ void Network::BroadcastRemoteEvent(Node* node, StringHash eventType, bool inOrde
         LOGERROR("Sender node has a local ID, can not send remote node event");
         return;
     }
-    
+
     Scene* scene = node->GetScene();
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
     {
         if (i->second_->GetScene() == scene)
             i->second_->SendRemoteEvent(node, eventType, inOrder, eventData);
@@ -358,7 +358,7 @@ void Network::RegisterRemoteEvent(StringHash eventType)
         LOGERROR("Attempted to register blacklisted remote event type " + String(eventType));
         return;
     }
-    
+
     allowedRemoteEvents_.Insert(eventType);
 }
 
@@ -389,9 +389,9 @@ void Network::SendPackageToClients(Scene* scene, PackageFile* package)
         LOGERROR("Null package specified for SendPackageToClients");
         return;
     }
-    
+
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
     {
         if (i->second_->GetScene() == scene)
             i->second_->SendPackageToClient(package);
@@ -401,7 +401,7 @@ void Network::SendPackageToClients(Scene* scene, PackageFile* package)
 SharedPtr<HttpRequest> Network::MakeHttpRequest(const String& url, const String& verb, const Vector<String>& headers, const String& postData)
 {
     PROFILE(MakeHttpRequest);
-    
+
     // The initialization of the request will take time, can not know at this point if it has an error or not
     SharedPtr<HttpRequest> request(new HttpRequest(url, verb, headers, postData));
     return request;
@@ -430,9 +430,9 @@ Vector<SharedPtr<Connection> > Network::GetClientConnections() const
 {
     Vector<SharedPtr<Connection> > ret;
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::ConstIterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
         ret.Push(i->second_);
-    
+
     return ret;
 }
 
@@ -449,18 +449,18 @@ bool Network::CheckRemoteEvent(StringHash eventType) const
 void Network::Update(float timeStep)
 {
     PROFILE(UpdateNetwork);
-    
+
     // Process server connection if it exists
     if (serverConnection_)
     {
         kNet::MessageConnection* connection = serverConnection_->GetMessageConnection();
-        
+
         // Receive new messages
         connection->Process();
-        
+
         // Process latest data messages waiting for the correct nodes or components to be created
         serverConnection_->ProcessPendingLatestData();
-        
+
         // Check for state transitions
         kNet::ConnectionState state = connection->GetConnectionState();
         if (serverConnection_->IsConnectPending() && state == kNet::ConnectionOK)
@@ -470,7 +470,7 @@ void Network::Update(float timeStep)
         else if (state == kNet::ConnectionClosed)
             OnServerDisconnected();
     }
-    
+
     // Process the network server if started
     kNet::SharedPtr<kNet::NetworkServer> server = network_->GetServer();
     if (server)
@@ -480,42 +480,42 @@ void Network::Update(float timeStep)
 void Network::PostUpdate(float timeStep)
 {
     PROFILE(PostUpdateNetwork);
-    
+
     // Check if periodic update should happen now
     updateAcc_ += timeStep;
     bool updateNow = updateAcc_ >= updateInterval_;
-    
+
     if (updateNow)
     {
         // Notify of the impending update to allow for example updated client controls to be set
         SendEvent(E_NETWORKUPDATE);
         updateAcc_ = fmodf(updateAcc_, updateInterval_);
-        
+
         if (IsServerRunning())
         {
             // Collect and prepare all networked scenes
             {
                 PROFILE(PrepareServerUpdate);
-                
+
                 networkScenes_.Clear();
                 for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-                    i != clientConnections_.End(); ++i)
+                        i != clientConnections_.End(); ++i)
                 {
                     Scene* scene = i->second_->GetScene();
                     if (scene)
                         networkScenes_.Insert(scene);
                 }
-                
+
                 for (HashSet<Scene*>::ConstIterator i = networkScenes_.Begin(); i != networkScenes_.End(); ++i)
                     (*i)->PrepareNetworkUpdate();
             }
-            
+
             {
                 PROFILE(SendServerUpdate);
-                
+
                 // Then send server updates for each client connection
                 for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-                    i != clientConnections_.End(); ++i)
+                        i != clientConnections_.End(); ++i)
                 {
                     i->second_->SendServerUpdate();
                     i->second_->SendRemoteEvents();
@@ -523,14 +523,14 @@ void Network::PostUpdate(float timeStep)
                 }
             }
         }
-        
+
         if (serverConnection_)
         {
             // Send the client update
             serverConnection_->SendClientUpdate();
             serverConnection_->SendRemoteEvents();
         }
-        
+
         // Notify that the update was sent
         SendEvent(E_NETWORKUPDATESENT);
     }
@@ -539,28 +539,28 @@ void Network::PostUpdate(float timeStep)
 void Network::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     using namespace BeginFrame;
-    
+
     Update(eventData[P_TIMESTEP].GetFloat());
 }
 
 void Network::HandleRenderUpdate(StringHash eventType, VariantMap& eventData)
 {
     using namespace RenderUpdate;
-    
+
     PostUpdate(eventData[P_TIMESTEP].GetFloat());
 }
 
 void Network::OnServerConnected()
 {
     serverConnection_->SetConnectPending(false);
-    
+
     LOGINFO("Connected to server");
-    
+
     // Send the identity map now
     VectorBuffer msg;
     msg.WriteVariantMap(serverConnection_->GetIdentity());
     serverConnection_->SendMessage(MSG_IDENTITY, true, true, msg);
-    
+
     SendEvent(E_SERVERCONNECTED);
 }
 
@@ -569,7 +569,7 @@ void Network::OnServerDisconnected()
     // Differentiate between failed connection, and disconnection
     bool failedConnect = serverConnection_ && serverConnection_->IsConnectPending();
     serverConnection_.Reset();
-    
+
     if (!failedConnect)
     {
         LOGINFO("Disconnected from server");
@@ -588,7 +588,7 @@ void Network::ConfigureNetworkSimulator()
         serverConnection_->ConfigureNetworkSimulator(simulatedLatency_, simulatedPacketLoss_);
 
     for (HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Begin();
-        i != clientConnections_.End(); ++i)
+            i != clientConnections_.End(); ++i)
         i->second_->ConfigureNetworkSimulator(simulatedLatency_, simulatedPacketLoss_);
 }
 

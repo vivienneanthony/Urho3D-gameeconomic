@@ -78,7 +78,6 @@ Vector<String> GameEconomicServer::selectDBGeneral(Vector<String> TableName,Vect
 
     Vector<String> Results;
 
-
     /// Table name does not match
     if(TableName.Size()!=TableNameParameter.Size())
     {
@@ -103,6 +102,9 @@ Vector<String> GameEconomicServer::selectDBGeneral(Vector<String> TableName,Vect
         break;
     case AccessTable_AlienRace:
         PreparedStatement.Append(String("AlienRaces"));
+        break;
+    case AccessTable_Starbase:
+        PreparedStatement.Append(String("Starbases"));
         break;
     }
 
@@ -147,8 +149,24 @@ Vector<String> GameEconomicServer::selectDBGeneral(Vector<String> TableName,Vect
 
         }
         break;
+
+        case AccessTable_Starbase:
+        {
+            /// unique values
+            if(TableName.At(i).ToLower()==String("starbaseowner"))
+            {
+                PreparedStatement.Append("StarbaseOwner = '"+TableNameParameter.At(i)+"'");
+            };
+            /// unique values
+            if(TableName.At(i).ToLower()==String("starbaseuniqueid"))
+            {
+                PreparedStatement.Append("StarbaseUniqueID = '"+TableNameParameter.At(i)+"'");
+            };
+        }
+        break;
         }
     }
+
     /// end statement
     PreparedStatement.Append(";");
 
@@ -233,7 +251,7 @@ Vector<AlienRaceInformation> * GameEconomicServer::GetAlienRacesDBAlienRaces(Str
         TableNames.Push(String("alienracealignedfaction"));
         TableFields.Push(SelectFaction);
 
-        cout << "pushed here" << endl;
+        /// cout << "pushed here" << endl;
 
     }
     /// Select AlienRace
@@ -275,6 +293,163 @@ Vector<AlienRaceInformation> * GameEconomicServer::GetAlienRacesDBAlienRaces(Str
     return ReturnAlienRaces;
 }
 
+
+
+/// Get Player Information
+String GameEconomicServer::ConnectionGetAlienRacesDBAccount(String AlignedFactions)
+{
+    /// Create empty tables and fields and get results
+    String ReturnString;
+
+    /// Return player information
+    Vector <AlienRaceInformation>  * ReturnAlienRaces;
+
+    ReturnAlienRaces=GetAlienRacesDBAlienRaces(AlignedFactions);
+
+    /// Copy Cols and Row Counts
+    ReturnString.Append("|");
+
+    /// If no results return 0|0
+    if(ReturnAlienRaces==NULL)
+    {
+        ReturnString.Append("0|0");
+
+        return ReturnString;
+    }
+
+    if(ReturnAlienRaces->Size()>0)
+    {
+        ReturnString.Append("5");
+    }
+    else
+    {
+        ReturnString.Append("0");
+    }
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(ReturnAlienRaces->Size()));
+
+    /// If blank return nothing
+    if(ReturnAlienRaces->Size()==0)
+    {
+        return ReturnString;
+    }
+
+    /// Transform to string
+    for(unsigned int i=0; i<ReturnAlienRaces->Size(); i++)
+    {
+        /// GetResults and copy it
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnAlienRaces->At(i).Name);
+
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnAlienRaces->At(i).Prefix);
+
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnAlienRaces->At(i).Description);
+
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnAlienRaces->At(i).AlignedFaction);
+
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnAlienRaces->At(i).UniqueID);
+    }
+
+    return ReturnString;
+}
+
+StarbaseInformation * GameEconomicServer::GetStarbaseDBStarbase(String OwnerID)
+{
+    /// Create empty tables and fields and get results
+    Vector<String> TableNames;
+    Vector<String> TableFields;
+
+    TableNames.Push("starbaseowner");
+    TableFields.Push(OwnerID);
+
+    /// Return player information
+    StarbaseInformation * ReturnStarbase = NULL;
+
+    /// create a bew player
+    ReturnStarbase = new StarbaseInformation();
+
+    /// Select Starbase
+    Vector<String> Results = selectDBGeneral(TableNames,TableFields, AccessTable_Starbase);
+
+    /// If no records found
+    if(Results.At(1)==String("0"))
+    {
+        /// return null if player is not found
+
+        delete ReturnStarbase;
+
+        return NULL;
+    }
+
+    /// Convert rows to 1
+    unsigned int NumberRows = atoi(Results.At(1).CString());
+    unsigned int NumberCols = atoi(Results.At(0).CString());
+
+    /// loop through
+    for(unsigned int i=0; i<NumberRows; i++)
+    {
+        /// find index
+        unsigned int index=(i*NumberCols)+3;
+
+        StarbaseInformation TempStarbase;
+
+        /// copy information
+        ReturnStarbase->Name = Results.At(index);
+        ReturnStarbase->MapData = Results.At(index+1);
+        ReturnStarbase->Owner = Results.At(index+2);
+        ReturnStarbase->UniqueID = Results.At(index+3);
+    }
+
+    return ReturnStarbase;
+}
+
+
+String GameEconomicServer::ConnectionGetDBStabase(String OwnerID)
+{
+    /// Create empty tables and fields and get results
+    String ReturnString;
+
+    /// Return player information
+    StarbaseInformation  * ReturnStarbase;
+
+    ReturnStarbase=GetStarbaseDBStarbase(OwnerID);
+
+    /// Copy Cols and Row Counts
+    ReturnString.Append("|");
+
+
+    /// If no results return 0|0
+    if(ReturnStarbase==NULL)
+    {
+        ReturnString.Append("0|0");
+
+        return ReturnString;
+    }
+
+    ReturnString.Append("|");
+    ReturnString.Append(String("1"));
+
+    /// GetResults and copy it
+    ReturnString.Append("|");
+    ReturnString.Append(ReturnStarbase->Name);
+
+    ReturnString.Append("|");
+    ReturnString.Append(ReturnStarbase->MapData);
+
+    ReturnString.Append("|");
+    ReturnString.Append(ReturnStarbase->Owner);
+
+    ReturnString.Append("|");
+    ReturnString.Append(ReturnStarbase->UniqueID);
+
+    return ReturnString;
+}
+
 /// Get Player Information
 
 String GameEconomicServer::ConnectionGetAllDBFactions(void)
@@ -303,11 +478,11 @@ String GameEconomicServer::ConnectionGetAllDBFactions(void)
 
     if(ReturnFactions->Size()>0)
     {
-            ReturnString.Append("4");
+        ReturnString.Append("4");
     }
     else
     {
-            ReturnString.Append("0");
+        ReturnString.Append("0");
     }
 
     ReturnString.Append("|");
@@ -316,90 +491,137 @@ String GameEconomicServer::ConnectionGetAllDBFactions(void)
     /// If blank return nothing
     if(ReturnFactions->Size()==0)
     {
-      return ReturnString;
-    }
-
-    /// Transform to string
-    for(unsigned int i=0;i<ReturnFactions->Size();i++)
-    {
-            /// GetResults and copy it
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnFactions->At(i).Name);
-
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnFactions->At(i).Prefix);
-
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnFactions->At(i).Description);
-
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnFactions->At(i).UniqueID);
-
-    }
-
-    return ReturnString;
-}
-
-/// Get Player Information
-String GameEconomicServer::ConnectionGetAlienRacesDBAccount(String AlignedFactions)
-{
-    /// Create empty tables and fields and get results
-    String ReturnString;
-
-    /// Return player information
-    Vector <AlienRaceInformation>  * ReturnAlienRaces;
-
-    ReturnAlienRaces=GetAlienRacesDBAlienRaces(AlignedFactions);
-
-    /// Copy Cols and Row Counts
-    ReturnString.Append("|");
-
-    /// If no results return 0|0
-    if(ReturnAlienRaces==NULL)
-    {
-        ReturnString.Append("0|0");
-
         return ReturnString;
     }
 
-    if(ReturnAlienRaces->Size()>0)
-    {
-            ReturnString.Append("5");
-    }
-    else
-    {
-            ReturnString.Append("0");
-    }
-
-    ReturnString.Append("|");
-    ReturnString.Append(String(ReturnAlienRaces->Size()));
-
-    /// If blank return nothing
-    if(ReturnAlienRaces->Size()==0)
-    {
-      return ReturnString;
-    }
-
     /// Transform to string
-    for(unsigned int i=0;i<ReturnAlienRaces->Size();i++)
+    for(unsigned int i=0; i<ReturnFactions->Size(); i++)
     {
-            /// GetResults and copy it
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnAlienRaces->At(i).Name);
+        /// GetResults and copy it
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnFactions->At(i).Name);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnAlienRaces->At(i).Prefix);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnFactions->At(i).Prefix);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnAlienRaces->At(i).Description);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnFactions->At(i).Description);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnAlienRaces->At(i).AlignedFaction);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnFactions->At(i).UniqueID);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnAlienRaces->At(i).UniqueID);
     }
 
     return ReturnString;
 }
 
+
+/// Insert into a account
+bool GameEconomicServer::insertDBGeneral(Vector<String> ColumnType,Vector<String> ColumnTypeParameter, accessdbtable databasetable)
+{
+    /// get db
+    connectorDB * connectionDB = GetSubsystem<connectorDB>();
+
+    /// time related variables
+    //time_t rawtime;
+    //struct tm * timeinfo;
+    //char buffer [80];
+
+    /// get current time
+    //time (&rawtime);
+    //timeinfo = localtime (&rawtime);
+
+    /// convert time
+    //strftime (buffer,40,"%Y%m%d %r",timeinfo);
+
+    bool multipleColumnTypes = false;
+    String PreparedStatement;
+
+
+    /// Clear string
+    PreparedStatement.Empty();
+
+    /// Table name does not match
+    if(ColumnType.Size()==0||ColumnTypeParameter.Size()==0)
+    {
+        return false;
+    }
+
+    /// Table name does not match
+    if(ColumnType.Size()!=ColumnTypeParameter.Size())
+    {
+        return false;
+    }
+
+    /// Muiltiple parameters
+    if(ColumnType.Size()>1)
+    {
+        multipleColumnTypes=true;
+    }
+
+    /// access dbatable type
+    switch(databasetable)
+    {
+    case AccessTable_Starbase:
+        PreparedStatement.Append(String("INSERT INTO Starbases (`StarbaseName`, `StarbaseMapData`, `StarbaseOwner`, `StarbaseUniqueID`) VALUES ("));
+        break;
+    default:
+        return false;
+    }
+
+    /// loop through each
+    for(unsigned int i=0; i<ColumnType.Size(); i++)
+    {
+        /// seatch through multiple table names
+        if(multipleColumnTypes)
+        {
+            PreparedStatement.Append(",");
+        }
+
+        if(ColumnType.At(i).ToLower()==String("string"))
+        {
+            PreparedStatement.Append("'"+ColumnTypeParameter.At(i)+"'");
+        }
+        else if(ColumnType.At(i).ToLower()==String("integer"))
+        {
+            PreparedStatement.Append(""+ColumnTypeParameter.At(i)+"");
+        }
+    }
+
+    /// Create the rest of the statement
+    PreparedStatement.Append(");");
+
+    string mysqlpreparedstatement =string(PreparedStatement.CString());
+
+    /// attempt to write
+    if(!connectionDB -> executePreparedStatement(mysqlpreparedstatement))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/// set null
+bool GameEconomicServer::ConnnectInsertBaseDBStarbase(Vector<String>ColumnType,Vector<String> ColumnTypeParameter)
+{
+    /// set int
+    bool results=false;
+
+    /// Table name does not match
+    if(ColumnType.Size()==0||ColumnTypeParameter.Size()==0)
+    {
+        return results;
+    }
+
+    /// Table name does not match
+    if(ColumnType.Size()!=ColumnTypeParameter.Size())
+    {
+        return results;
+    }
+
+    /// set specific variable uniqueid
+    results = insertDBGeneral(ColumnType,ColumnTypeParameter, AccessTable_Starbase);
+
+    return results;
+}

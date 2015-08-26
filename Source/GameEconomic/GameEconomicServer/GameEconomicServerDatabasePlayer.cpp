@@ -492,6 +492,14 @@ String GameEconomicServer::ListAllDBAccounts(Urho3D::Connection * sender)
 
     String ResultsString;
 
+    /// If no no accounts
+    if(Results.Size()==0)
+    {
+        return String("|0|0");
+    }
+
+
+
     for(unsigned int i=0; i<Results.Size(); i++)
     {
         /// Append
@@ -516,6 +524,13 @@ String GameEconomicServer::ListAllDBPlayers(Urho3D::Connection * sender)
 
     String ResultsString;
 
+    /// If no players found
+    if(Results.Size()==0)
+    {
+        return String("|0|0");
+    }
+
+    /// loop append to string
     for(unsigned int i=0; i<Results.Size(); i++)
     {
         /// Append

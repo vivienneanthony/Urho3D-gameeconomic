@@ -158,6 +158,22 @@ void GameEconomicGameClientStateMainScreen::Enter()
     /// Load the user interace
     MainScreen();
 
+    /// Get connection
+    Network* Network_ = GetSubsystem<Network>();
+    Connection* ServerConnection = Network_->GetServerConnection();
+
+    /// create request
+    String ServerRequest;
+    ServerRequest.Append("requeststarbase ");
+    ServerRequest.Append(Existence->ThisAccountPlayerList.At(Existence->CurrentPlayerFromList).UniqueID);
+
+    ///cout << ServerRequest.CString() << endl;
+
+    VectorBuffer msg;
+    msg.WriteString(ServerRequest);
+
+    ServerConnection->SendMessage(NetMessageRequest,true,true,msg,0);
+
     return;
 }
 
@@ -166,8 +182,10 @@ void GameEconomicGameClientStateMainScreen::Exit()
     /// Debug
     cout << "Debug: State Main Screen Exit" << endl;
 
+    /// Get subystem
     UI* ui = GetSubsystem<UI>();
 
+    /// Clear the UI
     ui->Clear();
 
     UnsubscribeFromAllEvents();
@@ -283,12 +301,24 @@ void GameEconomicGameClientStateMainScreen::MainScreen(void)
 
     UpdateMainMenuCharacterInfo();
 
+    Text* StatusText = (Text*)uiroot_->GetChild("StatusText", true);
+
+    /// set size
+    StatusText->SetFixedSize(287,40);
+    StatusText->SetMinSize(287,40);
+    StatusText->SetMaxSize(287,40);
+    StatusText->SetPosition(8,300);
+    StatusText->SetEnabled(true);
+    StatusText->SetVisible(true);
+    StatusText->SetWordwrap(true);
+
+    StatusText->SetStyleAuto();
+
     /// Attempt to attach to the list view
     SubscribeToEvent(MainMenuListView,E_ITEMCLICKED,HANDLER(GameEconomicGameClientStateMainScreen,HandleMenuPressed));
 
     return;
 }
-
 
 /// Main screen user interface function
 void GameEconomicGameClientStateMainScreen::MainScreenUI(void)
@@ -311,13 +341,49 @@ void GameEconomicGameClientStateMainScreen::MainScreenUI(void)
 void GameEconomicGameClientStateMainScreen::ServerResponseHandler(StringHash eventType, VariantMap& eventData)
 {
 
-}
+    /// Get Needed SubSystems
+    UI* ui = GetSubsystem<UI>();
 
+    /// Get connection
+    Network* network = GetSubsystem<Network>();
+    Connection* serverConnection = network->GetServerConnection();
+
+    /// Get the root
+    UIElement * uiRoot_ = ui->GetRoot();
+
+    /// Take the frame time step, which is stored as a float
+    unsigned int cmdType = eventData[ServerResponse::P_CMD].GetInt();
+    String cmdArg = eventData[ServerResponse::P_ARG].GetString();
+
+    /// if Account Authentication
+    if(cmdType==ServerResponse_SentStarbase)
+    {
+        /// Get status text
+        Text * StatusText = (Text *) uiRoot_->GetChild("StatusText",true);
+
+        /// If unauthorized
+        if(cmdArg==String("|0|0"))
+        {
+            /// If StatusText exist and starbase not loaded
+            StatusText->SetText(String("Error. You are stationed at the homeworld. Enter Starbase to start."));
+
+
+        }
+        else
+        {
+            /// If StatusText exist and starbase loaded
+            StatusText->SetText(String("Starbase loaded mission"));
+
+        }
+    }
+
+    return;
+}
 
 /// Setup viewport
 void GameEconomicGameClientStateMainScreen::MainScreenViewport(void)
 {
-/// Get Needed SubSystems
+    /// Get Needed SubSystems
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     Renderer* renderer = GetSubsystem<Renderer>();
     Graphics* graphics_ = GetSubsystem<Graphics>();
@@ -327,6 +393,7 @@ void GameEconomicGameClientStateMainScreen::MainScreenViewport(void)
     float width = (float)graphics_->GetWidth();
     float height = (float)graphics_->GetHeight();
 
+    /// Get the root
     UIElement * uiRoot_ = ui->GetRoot();
 
     Sprite* BackgroundBoxSprite = new Sprite(context_);
@@ -399,13 +466,14 @@ void GameEconomicGameClientStateMainScreen::HandleMenuPressed(StringHash eventTy
     unsigned int selection= eventData[ItemClicked::P_SELECTION].GetInt();
 
     /// if terminate
-    if(selection==MainMenu_TerminateHangar)
+    switch(selection)
+    {
+    case MainMenu_TerminateHangar:
     {
         TerminateSkynet();
     }
-
-    /// should be matching element
-    if(selection==MainMenu_CreatePlayer)
+    break;
+    case MainMenu_CreatePlayer:
     {
         /// Unsubscribe
         MainMenuListView->UnsubscribeFromAllEvents();
@@ -413,18 +481,20 @@ void GameEconomicGameClientStateMainScreen::HandleMenuPressed(StringHash eventTy
         /// Create a event
         VariantMap gamestatechange;
         gamestatechange[GameState::P_CMD] = GAME_STATE_PLAYERCREATE;
+        gamestatechange[GameState::P_ARG] = String("ALLOWCLOSE_YES");
 
         SendEvent(G_STATES_CHANGE,gamestatechange);
     }
-    /// should be matching element
-    if(selection==MainMenu_ChangePlayer)
+    break;
+    case MainMenu_ChangePlayer:
     {
         if(CharacterPlayerLoaderUIElement==NULL)
         {
-                ChangePlayerUI();
+            ChangePlayerUI();
         }
     }
-
+    break;
+    }
 
     return;
 }
@@ -529,6 +599,7 @@ void GameEconomicGameClientStateMainScreen::UpdateMainMenuCharacterInfo(void)
     return;
 }
 
+/// Change character player UI
 void GameEconomicGameClientStateMainScreen::ChangePlayerUI(void)
 {
 
@@ -604,11 +675,10 @@ void GameEconomicGameClientStateMainScreen::ChangePlayerUIHandleCloseButton(Stri
     return;
 }
 
-
 /// UIHandleCloseButton
 void GameEconomicGameClientStateMainScreen::ChangePlayerUIHandleSelection(StringHash eventType, VariantMap& eventData)
 {
-        /// Resource
+    /// Resource
     GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
     UI * ui_ = GetSubsystem<UI>();
 
@@ -623,12 +693,25 @@ void GameEconomicGameClientStateMainScreen::ChangePlayerUIHandleSelection(String
 
     Existence-> CurrentPlayerFromList = selection;
 
+    /// Get connection
+    Network* Network_ = GetSubsystem<Network>();
+    Connection* ServerConnection = Network_->GetServerConnection();
+
+    /// create request
+    String ServerRequest;
+    ServerRequest.Append("requeststarbase ");
+    ServerRequest.Append(Existence->ThisAccountPlayerList.At(Existence->CurrentPlayerFromList).UniqueID);
+
+    ///cout << ServerRequest.CString() << endl;
+    VectorBuffer msg;
+    msg.WriteString(ServerRequest);
+
+    ServerConnection->SendMessage(NetMessageRequest,true,true,msg,0);
 
     /// Remove
     CharacterPlayerLoaderUIElement->Remove();
 
-    /// Update
-
+    /// Update the character information screen
     UpdateMainMenuCharacterInfo();
 
     return;

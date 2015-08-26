@@ -149,6 +149,7 @@ void GameEconomicServer::ExecuteCommandAdminClient(String FirstCommand, Vector<S
         /// Send a message saying authorized
         SendNetworkMessage(NetMessageAdminClientSendAcknowledge,true,true,Results,sender);
     }
+
     return;
 }
 
@@ -179,6 +180,7 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
         /// Get string and then form a result
         String connectionDBPlayers=ConnectionGetPlayersDBAccount(Arguments.At(0));
 
+
         /// Send a message saying authorized
         SendNetworkMessage(NetMessageRequestApprovedGetAccountPlayers,true,true,connectionDBPlayers,sender);
     }
@@ -189,6 +191,7 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
         /// Get string and then form a result
         String connectionDBPlayers=ConnectionGetAllDBFactions();
 
+
         /// Send a message saying authorized
         SendNetworkMessage(NetMessageRequestApprovedGetFactions,true,true,connectionDBPlayers,sender);
     }
@@ -196,17 +199,82 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
     /// Setup first command
     if(Command==String("requestalienraces"))
     {
+        /// Get string and then form a result
+        String connectionDBAlienRaces=ConnectionGetAlienRacesDBAccount("");
+
+        cout << connectionDBAlienRaces.CString() << endl;
+
+        /// Send a message saying authorized
+        if(connectionDBAlienRaces==String("|0|0"))
+        {
+            /// Send a message saying authorized
+            SendNetworkMessage(NetMessageRequestApprovedGetAlienRaces,true,true,String("|0|0"),sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageRequestApprovedGetAlienRaces,true,true,connectionDBAlienRaces,sender);
+        }
+    }
+
+    /// Setup first command
+    if(Command==String("requeststarbase"))
+    {
 
         cout << "It got here" << endl;
 
         /// Get string and then form a result
-        String connectionDBPlayers=ConnectionGetAlienRacesDBAccount("");
+        String connectionDBStarbase=ConnectionGetDBStabase(Arguments.At(0));
 
-        cout << connectionDBPlayers.CString() << endl;
+        cout << connectionDBStarbase.CString() << endl;
 
         /// Send a message saying authorized
-        SendNetworkMessage(NetMessageRequestApprovedGetAlienRaces,true,true,connectionDBPlayers,sender);
+        if(connectionDBStarbase==String("|0|0"))
+        {
+            /// If no database is found
+            SendNetworkMessage(NetMessageRequestApprovedGetStarbase,true,true,String("|0|0"),sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageRequestApprovedGetStarbase,true,true,connectionDBStarbase,sender);
+        }
+    }
 
+/// Setup first command
+    if(Command==String("addstarbase"))
+    {
+        Vector<String> ColumnType;
+        Vector<String> ColumnValue;
+
+        ColumnType.Push(String("string"));
+        ColumnType.Push(String("string"));
+        ColumnType.Push(String("string"));
+        ColumnType.Push(String("string"));
+
+        ColumnValue.Push(Arguments.At(1));
+        ColumnValue.Push(Arguments.At(2));
+        ColumnValue.Push(Arguments.At(0));
+
+        /// create a uniqueid
+        string * generateduniqueid = new string();
+
+        generateduniqueid->reserve(8);
+        generateduniqueid = UniqueGenerator::GenerateUniqueID(8);
+
+        ColumnValue.Push(String(generateduniqueid->c_str()));
+
+        /// Get string and then form a result
+        bool results = ConnnectInsertBaseDBStarbase(ColumnType,ColumnValue);
+
+        /// Send a message saying authorized
+        if(results)
+        {
+            /// Send a message saying authorized
+            SendNetworkMessage(NetMessageRequestApprovedAddStarbaseResponse,true,true,String("approved"),sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageRequestApprovedAddStarbaseResponse,true,true,String("denied"),sender);
+        }
     }
 
 

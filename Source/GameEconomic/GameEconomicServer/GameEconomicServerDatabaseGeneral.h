@@ -7,6 +7,7 @@ enum accessdbtable
     AccessTable_None,
     AccessTable_Faction,
     AccessTable_AlienRace,
+    AccessTable_Starbase,
     AccessTable_Personality
 };
 

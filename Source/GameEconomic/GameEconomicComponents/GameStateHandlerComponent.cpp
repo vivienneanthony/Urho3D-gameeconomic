@@ -149,6 +149,8 @@ void GameStateHandlerComponent::RegisterGameStates(Context* context)
     context->RegisterFactory<GameEconomicGameClientStateSplash>();
     context->RegisterFactory<GameEconomicGameClientStateMainScreen>();
     context->RegisterFactory<GameEconomicGameClientStatePlayer>();
+    context->RegisterFactory<GameEconomicGameClientStateProgress>();
+    context->RegisterFactory<GameEconomicGameClientStateGameMode>();
 
     /// Debug Info
     cout << "Debug: Game State Handler RegisterGameStates " << &context << endl;
@@ -233,6 +235,21 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         gameState->Enter();
 
     }
+    else if (String(GameEconomicGameClientStateProgress::GetTypeNameStatic())==newState)
+    {
+        /// change to that state
+        cout << "Debug: Create Splash Called" << endl;
+
+        state=GameEconomicGameClientStateProgress::GetTypeNameStatic();
+
+        GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStateProgress(context_);
+
+        /// delete old state
+        delete  gameState;
+        gameState=newgameState;
+        gameState->Enter();
+
+    }
     else if (String(GameEconomicGameClientStateMainScreen::GetTypeNameStatic())==newState)
     {
         /// change to that state
@@ -241,6 +258,27 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         state=GameEconomicGameClientStateMainScreen::GetTypeNameStatic();
 
         GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStateMainScreen(context_);
+
+        /// delete old state
+        delete  gameState;
+
+
+        String cmdArg = eventData[GameState::P_ARG].GetString();
+
+        cout << cmdArg.CString() << endl;
+
+        gameState=newgameState;
+        gameState->Enter();
+
+    }
+    else if (String(GameEconomicGameClientStateGameMode::GetTypeNameStatic())==newState)
+    {
+        /// change to that state
+        cout << "Debug: Create GameMode Called" << endl;
+
+        state=GameEconomicGameClientStateGameMode::GetTypeNameStatic();
+
+        GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStateGameMode(context_);
 
         /// delete old state
         delete  gameState;
@@ -310,6 +348,27 @@ void GameStateHandlerComponent::onStateChange( Urho3D::StringHash eventType, Urh
         };
         /// create a new state
         createState(GameEconomicGameClientStateMainScreen::GetTypeNameStatic(),eventData);
+        break;
+
+    case  GAME_STATE_PROGRESS: //called from intro GameIntroSample
+
+        /// exit out
+        if(gameState!=NULL)
+        {
+            gameState->Exit();
+        };
+        /// create a new state
+        createState(GameEconomicGameClientStateProgress::GetTypeNameStatic(),eventData);
+        break;
+    case  GAME_STATE_GAMEMODE: //called from intro GameIntroSample
+
+        /// exit out
+        if(gameState!=NULL)
+        {
+            gameState->Exit();
+        };
+        /// create a new state
+        createState(GameEconomicGameClientStateGameMode::GetTypeNameStatic(),eventData);
         break;
     default:
         cout << "Debug: Unkown State " << newState;

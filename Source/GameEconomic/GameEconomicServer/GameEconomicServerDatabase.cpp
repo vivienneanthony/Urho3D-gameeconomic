@@ -180,8 +180,9 @@ PlayerObject *  GameEconomicServer::GetSingleDBPlayer(String PlayerUniqueID)
     ReturnPlayer->AlienAllianceAligned=atoi(Results.At(15).CString());
     ReturnPlayer->Gender=atoi(Results.At(16).CString());
     ReturnPlayer->PersonalityTrait=atoi(Results.At(17).CString());
-    ReturnPlayer->GalaxySeed=Results.At(18).CString();
-    ReturnPlayer->Credits=atoi(Results.At(19).CString());
+    ReturnPlayer->UniqueID=Results.At(18).CString();
+    ReturnPlayer->GalaxySeed=Results.At(19).CString();
+    ReturnPlayer->Credits=atoi(Results.At(20).CString());
 
     /// Clear Traits
     ReturnPlayer->TotalGroundPassiveTraits=0;
@@ -273,8 +274,9 @@ String GameEconomicServer::ConnectionGetDBAccount(String Username, String Passwo
     /// if a valid email was given
     if(EmailValidCheck(Username)==true)
     {
-         TableNames.At(0) = String("accountemail");
-    }http://www.weather.com/weather/today/l/07102:4:US
+        TableNames.At(0) = String("accountemail");
+    }
+
 
     /// Add password
     TableNames.Push("accountpassword");
@@ -289,11 +291,11 @@ String GameEconomicServer::ConnectionGetDBAccount(String Username, String Passwo
     }
 
     /// Append String
-    for(unsigned int i=0;i<Results.Size();i++)
+    for(unsigned int i=0; i<Results.Size(); i++)
     {
-            /// GetResults
-            ReturnString.Append("|");
-            ReturnString.Append(Results.At(i));
+        /// GetResults
+        ReturnString.Append("|");
+        ReturnString.Append(Results.At(i));
     }
 
     return ReturnString;
@@ -321,11 +323,11 @@ String GameEconomicServer::ConnectionGetPlayersDBAccount(String AccountUniqueID)
 
     if(ReturnPlayers->Size()>0)
     {
-            ReturnString.Append("9");
+        ReturnString.Append("9");
     }
     else
     {
-            ReturnString.Append("0");
+        ReturnString.Append("0");
     }
 
     ReturnString.Append("|");
@@ -335,43 +337,151 @@ String GameEconomicServer::ConnectionGetPlayersDBAccount(String AccountUniqueID)
     if(ReturnPlayers->Size()==0)
     {
 
-      return ReturnString;
+        return ReturnString;
     }
 
     /// Transform to string
-    for(unsigned int i=0;i<ReturnPlayers->Size();i++)
+    for(unsigned int i=0; i<ReturnPlayers->Size(); i++)
     {
-            /// GetResults and copy it
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnPlayers->At(i).Firstname);
+        /// GetResults and copy it
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnPlayers->At(i).Firstname);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnPlayers->At(i).Middlename);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnPlayers->At(i).Middlename);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnPlayers->At(i).Lastname);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnPlayers->At(i).Lastname);
 
-            ReturnString.Append("|");
-            ReturnString.Append(ReturnPlayers->At(i).UniqueID);
+        ReturnString.Append("|");
+        ReturnString.Append(ReturnPlayers->At(i).UniqueID);
 
-            ReturnString.Append("|");
-            ReturnString.Append(String(ReturnPlayers->At(i).Gender));
+        ReturnString.Append("|");
+        ReturnString.Append(String(ReturnPlayers->At(i).Gender));
 
-            ReturnString.Append("|");
-            ReturnString.Append(String(ReturnPlayers->At(i).AlienRace));
+        ReturnString.Append("|");
+        ReturnString.Append(String(ReturnPlayers->At(i).AlienRace));
 
-            ReturnString.Append("|");
-            ReturnString.Append(String(ReturnPlayers->At(i).AlienRaceAllianceAligned));
+        ReturnString.Append("|");
+        ReturnString.Append(String(ReturnPlayers->At(i).AlienRaceAllianceAligned));
 
-            ReturnString.Append("|");
-            ReturnString.Append(String(ReturnPlayers->At(i).PersonalityTrait));
+        ReturnString.Append("|");
+        ReturnString.Append(String(ReturnPlayers->At(i).PersonalityTrait));
 
-            ReturnString.Append("|");
-            ReturnString.Append(String(ReturnPlayers->At(i).Level));
+        ReturnString.Append("|");
+        ReturnString.Append(String(ReturnPlayers->At(i).Level));
+
+
     }
 
     return ReturnString;
 }
+
+/// get single player
+String GameEconomicServer::ConnectionGetSingleDBPlayer(String PlayerUniqueID)
+{
+    /// create a player object
+    PlayerObject * TemporarySinglePlayer;
+
+    /// Create a results string
+    String ReturnString;
+
+    if(PlayerUniqueID.Empty())
+    {
+        return String("Error");
+    }
+
+    /// allocate a new object
+    TemporarySinglePlayer = new PlayerObject();
+
+    TemporarySinglePlayer = GetSingleDBPlayer(PlayerUniqueID);
+
+    if(TemporarySinglePlayer==NULL)
+    {
+        /// delete temporary
+        delete TemporarySinglePlayer;
+
+        return String("|0|0");
+
+    }
+
+    ReturnString.Append(String("|17|1"));
+
+    ReturnString.Append("|");
+    ReturnString.Append(TemporarySinglePlayer->Firstname);
+
+    ReturnString.Append("|");
+    ReturnString.Append(TemporarySinglePlayer->Middlename);
+
+    ReturnString.Append("|");
+    ReturnString.Append(TemporarySinglePlayer->Lastname);
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Level));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Experience));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation1));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation2));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation3));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation4));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Reputation5));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->AlienRace));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->AlienAllianceAligned));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Gender));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->PersonalityTrait));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->GalaxySeed));
+
+    ReturnString.Append("|");
+    ReturnString.Append(String(TemporarySinglePlayer->Credits));
+
+    ReturnString.Append("|");
+    ReturnString.Append(TemporarySinglePlayer->UniqueID);
+
+
+    delete TemporarySinglePlayer;
+
+    return ReturnString;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

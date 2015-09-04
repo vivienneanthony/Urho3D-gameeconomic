@@ -110,7 +110,6 @@ class GameEconomicGameClient;
 /// State Login Constructor
 GameEconomicGameClientStateLogin::GameEconomicGameClientStateLogin(Context * context)
     :GameEconomicGameClientStateSingleton(context)
-    ,Existence(NULL)
 {
     /// Debug
     cout << "Debug: State Login Constructor" << endl;
@@ -472,14 +471,12 @@ void GameEconomicGameClientStateLogin::ServerResponseHandler(StringHash eventTyp
 
                 /// create request
                 String ServerRequest;
-                ServerRequest.Append("requestfact");
-
+                ServerRequest.Append("requestfactions");
 
                 VectorBuffer msg;
                 msg.WriteString(ServerRequest);
 
                 serverConnection->SendMessage(NetMessageRequest,true,true,msg,0);
-
 
             }
         }

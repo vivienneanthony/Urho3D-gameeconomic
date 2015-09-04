@@ -95,6 +95,8 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
     TemporaryDBPlayer.PersonalityTrait = TempPlayer.PersonalityTrait;
     TemporaryDBPlayer.UniqueID = TempPlayer.UniqueID.Trimmed();
     TemporaryDBPlayer.OwnerUniqueID = TempPlayer.OwnerUniqueID.Trimmed();
+    TemporaryDBPlayer.GalaxySeed = String("none");
+    TemporaryDBPlayer.Credits = 0;
 
 
     if(TemporaryDBPlayer.Firstname.Empty()
@@ -107,7 +109,7 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
         return false;
     }
     ///StateStart
-    String PreparedStatement = String("INSERT INTO Players (`PlayerFirstname`, `PlayerMiddlename`, `PlayerLastname`, `PlayerLevel`, `PlayerExperience`, `PlayerReputation`,`PlayerReputation1`,`PlayerReputation2`,`PlayerReputation3`,`PlayerReputation4`,`PlayerReputation5`,`PlayerAlienRace`,`PlayerAlienAllianceAligned`,`PlayerGender`,`PlayerPersonalityTrait`, `PlayerUniqueID`, `PlayerOwnerUniqueID`) Values (");
+    String PreparedStatement = String("INSERT INTO Players (`PlayerFirstname`, `PlayerMiddlename`, `PlayerLastname`, `PlayerLevel`, `PlayerExperience`, `PlayerReputation`,`PlayerReputation1`,`PlayerReputation2`,`PlayerReputation3`,`PlayerReputation4`,`PlayerReputation5`,`PlayerAlienRace`,`PlayerAlienAllianceAligned`,`PlayerGender`,`PlayerPersonalityTrait`, `PlayerGalaxySeed`,  PlayerCredits, `PlayerUniqueID`, `PlayerOwnerUniqueID`) Values (");
 
     /// Copy information to statement
     PreparedStatement.Append("'"+TemporaryDBPlayer.Firstname+"'");
@@ -125,6 +127,8 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
     PreparedStatement.Append(","+String((unsigned int)TemporaryDBPlayer.AlienAllianceAligned)+"");
     PreparedStatement.Append(","+String(TemporaryDBPlayer.Gender)+"");
     PreparedStatement.Append(","+String(TemporaryDBPlayer.PersonalityTrait)+"");
+    PreparedStatement.Append(",'"+TemporaryDBPlayer.GalaxySeed+"'");
+    PreparedStatement.Append(","+String(TemporaryDBPlayer.Credits)+"");
     PreparedStatement.Append(",'"+TemporaryDBPlayer.UniqueID+"'");
     PreparedStatement.Append(",'"+TemporaryDBPlayer.OwnerUniqueID+"'");
 
@@ -132,6 +136,8 @@ bool GameEconomicServer::insertDBPlayer(PlayerObject &TempPlayer)
     PreparedStatement.Append(");");
 
     string mysqlpreparedstatement =string(PreparedStatement.CString());
+
+    cout << PreparedStatement.CString() << endl;
 
 
     /// attempt to write

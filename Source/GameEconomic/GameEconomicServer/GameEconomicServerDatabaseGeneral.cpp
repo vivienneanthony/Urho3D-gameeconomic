@@ -430,9 +430,7 @@ String GameEconomicServer::ConnectionGetDBStabase(String OwnerID)
 
         return ReturnString;
     }
-
-    ReturnString.Append("|");
-    ReturnString.Append(String("1"));
+    ReturnString.Append(String("4|1"));
 
     /// GetResults and copy it
     ReturnString.Append("|");
@@ -573,7 +571,7 @@ bool GameEconomicServer::insertDBGeneral(Vector<String> ColumnType,Vector<String
     for(unsigned int i=0; i<ColumnType.Size(); i++)
     {
         /// seatch through multiple table names
-        if(multipleColumnTypes)
+        if(i>0)
         {
             PreparedStatement.Append(",");
         }
@@ -592,6 +590,8 @@ bool GameEconomicServer::insertDBGeneral(Vector<String> ColumnType,Vector<String
     PreparedStatement.Append(");");
 
     string mysqlpreparedstatement =string(PreparedStatement.CString());
+
+    cout << PreparedStatement.CString()<<endl;
 
     /// attempt to write
     if(!connectionDB -> executePreparedStatement(mysqlpreparedstatement))

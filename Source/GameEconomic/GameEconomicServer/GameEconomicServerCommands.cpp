@@ -185,6 +185,34 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
         SendNetworkMessage(NetMessageRequestApprovedGetAccountPlayers,true,true,connectionDBPlayers,sender);
     }
 
+/// Setup first command
+    if(Command==String("requestplayerdetail"))
+    {
+
+        cout << "It got here" << endl;
+
+        /// Get string and then form a result
+        String connectionGetSingleDBPlayerResult=ConnectionGetSingleDBPlayer(Arguments.At(0));
+
+        cout << connectionGetSingleDBPlayerResult.CString() << endl;
+
+        /// Send a message saying authorized
+        if(connectionGetSingleDBPlayerResult.ToLower()==String("|0|0"))
+        {
+            /// If no database is found
+            SendNetworkMessage(NetMessageRequestApprovedGetPlayerDetail,true,true,String("|0|0"),sender);
+        }
+        else if(connectionGetSingleDBPlayerResult.ToLower()==String("error"))
+        {
+            /// If no database is found
+            SendNetworkMessage(NetMessageRequestApprovedGetPlayerDetail,true,true,String("error"),sender);
+        }
+        else
+        {
+            SendNetworkMessage(NetMessageRequestApprovedGetPlayerDetail,true,true,connectionGetSingleDBPlayerResult,sender);
+        }
+    }
+
     /// Setup first command
     if(Command==String("requestfactions"))
     {
@@ -238,6 +266,7 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
             SendNetworkMessage(NetMessageRequestApprovedGetStarbase,true,true,connectionDBStarbase,sender);
         }
     }
+
 
 /// Setup first command
     if(Command==String("addstarbase"))
@@ -340,6 +369,9 @@ void GameEconomicServer::ExecuteCommandGameClient(String FirstCommand, Vector<St
         TempPlayer.Reputation3 = 0;
         TempPlayer.Reputation4 = 0;
         TempPlayer.Reputation5 = 0;
+
+        TempPlayer.Credits = 0;
+        TempPlayer.GalaxySeed = String("none");
 
         cout << "it heard" << endl;
 
@@ -624,6 +656,9 @@ void GameEconomicServer::HandlePlayerCommands(Vector <String> &Arguments, Urho3D
         TempPlayer.AlienAllianceAligned = 0;
         TempPlayer.Gender = 0;
         TempPlayer.PersonalityTrait = 0;
+        TempPlayer.Credits = 0;
+        TempPlayer.GalaxySeed = String("none");
+
 
         if(insertDBPlayer(TempPlayer))
         {
@@ -700,7 +735,6 @@ void GameEconomicServer::HandlePlayerCommands(Vector <String> &Arguments, Urho3D
 
         TempPlayer = GetSingleDBPlayer(Arguments.At(1));
     }
-
 
 
     return;

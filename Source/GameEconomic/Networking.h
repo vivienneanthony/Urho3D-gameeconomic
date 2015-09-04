@@ -17,6 +17,7 @@ enum NetworkMessageTypes
     NetMessageRequestApprovedGetPlayerCreationResponse,
     NetMessageRequestApprovedGetStarbase,
     NetMessageRequestApprovedAddStarbaseResponse,
+    NetMessageRequestApprovedGetPlayerDetail,
     NetMessageHeartbeatRequest=90,
     NetMessageHeartbeatAcknowledge,
     NetMessageAdminClientSend=100,

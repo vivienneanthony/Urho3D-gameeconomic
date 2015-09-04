@@ -407,7 +407,7 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         Text * LogoText = new Text(context_);
         LogoText -> SetTextAlignment(HA_CENTER);
         LogoText -> SetFont(Mionta,32);
-        LogoText -> SetText("EXISTENCE");
+        LogoText -> SetText("HANGARS");
 
         /// Create LetterBox UI Element
         UIElement * LogoTextUIElement = new UIElement(context_);
@@ -421,7 +421,7 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         LogoTextUIElement->SetStyleAuto();
 
         /// Move text to a position
-        LogoTextUIElement->SetPosition((width/2)-288,200);
+        LogoTextUIElement->SetPosition((width/2)-240,200);
 
         /// Create Title text
         Text * TitleText = new Text(context_);
@@ -443,7 +443,7 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         TitleTextUIElement->SetStyleAuto();
 
         /// Move text to a position
-        TitleTextUIElement->SetPosition((width/2)-108,240);
+        TitleTextUIElement->SetPosition((width/2)-108+32,240);
 
 
         ///TitleText->SetStyleAuto();

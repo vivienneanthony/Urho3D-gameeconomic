@@ -80,6 +80,9 @@
 
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/Accounts.h"
+#include "../GameEconomicComponents/ResourceNodeComponent.h"
+#include "../GameEconomicComponents/ResourceComponent.h"
+#include "../GameEconomicComponents/ResourceManager.h"
 
 #include <string>
 #include <iostream>
@@ -123,6 +126,11 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
 
     GameStateHandlerComponent::RegisterNewSubsystem(context);
     GameStateHandlerComponent::RegisterGameStates(context);
+    ResourceManager::RegisterObject(context);
+    ResourceComponent::RegisterObject(context);
+    ResourceNodeComponent::RegisterObject(context);
+
+
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
 
@@ -252,11 +260,15 @@ void GameEconomicGameClient::Start()
 
     cout << "Debig: Existence App Existence " << applicationPtr ->GetTestString()<< endl;
 
+    touchenabled_=false;
+
     /// Network related
     SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameEconomicGameClient, HandleNetworkMessage));
     SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameEconomicGameClient, HandlerServerConnected));
     SubscribeToEvent(E_SERVERDISCONNECTED, HANDLER(GameEconomicGameClient, HandlerServerDisconnected));
     SubscribeToEvent(E_CONNECTFAILED, HANDLER(GameEconomicGameClient, HandlerServerConnectionFailed));
+
+    ResourcesManager = new ResourceManager(context_);
 
     gamestatehandlercomponent_->Start();
 
@@ -550,9 +562,6 @@ void GameEconomicGameClient::Exit()
 }
 
 
-
-
-
 /// code to handle console command inputs
 void GameEconomicGameClient::HandleConsoleCommand(StringHash eventType, VariantMap& eventData)
 {
@@ -796,28 +805,6 @@ Vector<FactionInformation> GameEconomicGameClient::LoadGetFactionsFromAuthorizat
 
     return temporaryList;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /// Get account information
 AccountInformation * GameEconomicGameClient::LoginGetPlayerAccountFromAuthorization(String ServerString)

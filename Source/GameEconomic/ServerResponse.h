@@ -13,7 +13,9 @@ enum ServerResponseTypes
     ServerResponse_SentFactions,
     ServerResponse_SentAlienRaces,
     ServerResponse_CreatePlayerResponse,
-    ServerResponse_SentStarbase
+    ServerResponse_SentStarbase,
+    ServerResponse_AddedStarbase,
+    ServerResponse_SentPlayerFullDetail
 
 };
 

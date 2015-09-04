@@ -96,6 +96,8 @@
 #include "../../Urho3D/Engine/DebugHud.h"
 
 #include "GameEconomicGameClient.h"
+#include "GameEconomicGameClientUI.h"
+#include "GameEconomicGameClientStateGameMode.h"
 
 #define DEFAULTSIZE 4096
 
@@ -144,4 +146,121 @@ bool GameEconomicGameClient::loadHUDFile(const char * filename, const int positi
     }
 
     return true;
+}
+
+
+/// Load a HUD file in a XML format in the file system
+
+bool GameEconomicGameClient::loadUIXML(int windowtype, const int positionx, const int positiony, int selected)
+{
+    /// Get resources
+    ResourceCache * cache = GetSubsystem<ResourceCache>();
+    FileSystem * filesystem = GetSubsystem<FileSystem>();
+    UI* ui_ = GetSubsystem<UI>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+
+    /// Get rendering window size as floats
+    float width = (float)graphics->GetWidth();
+    float height = (float)graphics->GetHeight();
+
+    /// get current root
+    UIElement * RootUIElement = ui_->GetRoot();
+    UIElement * HUDFileElement= new UIElement(context_);
+    UIElement * playerInfoHudElement= new UIElement(context_);
+
+    String filenameHUD;
+
+    /// chose based on menu type
+    /// chose based on menu type
+    if(windowtype==UIMINIQUICKMENU)
+    {
+        filenameHUD.Append("Resources/UI/QuickMenu.xml");
+    }
+
+    XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
+
+    /// Configure resources
+    XMLElement hudElement;
+
+    /// Load Resource
+    XMLFile* hudFile= cache->GetResource<XMLFile>(filenameHUD);
+
+    /// Get root element XML
+    hudElement =  hudFile->GetRoot();
+
+    /// Add a min top bar
+    HUDFileElement-> LoadXML(hudElement, style);
+
+    /// Add a uielement for the bar
+    RootUIElement -> AddChild(HUDFileElement);
+
+    /// Position the window
+    HUDFileElement -> SetPosition(positionx,positiony);
+
+    HUDFileElement->SetStyleAuto();
+
+    HUDFileElement->BringToFront();
+
+    /// Get the child and assign a close pressed
+    Button * closebutton = (Button *) HUDFileElement -> GetChild("closeButton",true);
+
+    /// If load is quickmenu on side assign buttons and move position  to far right
+    if(windowtype==UIMINIQUICKMENU)
+    {
+        /// set position
+        HUDFileElement -> SetPosition(width-18,100);
+
+        /// get buttons assign a event
+        Button * exitButton  = (Button *) HUDFileElement -> GetChild("ExitButton",true);
+
+        exitButton->SetEnabled(true);
+
+        SubscribeToEvent(exitButton, E_RELEASED, HANDLER(GameEconomicGameClient, QuickMenuPressed));
+    }
+
+
+    return true;
+}
+
+
+void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& eventData)
+{
+    /// Get needed resources
+    Renderer* renderer = GetSubsystem<Renderer>();
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    UI* ui_ = GetSubsystem<UI>();
+    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
+
+    /// get the button that was clicked
+    Button* clicked = static_cast<Button*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    String clickedButtonString(clicked->GetName());
+
+    string clickedtext;
+    unsigned int clickedbutton=0;
+
+    stringstream ss(clickedButtonString.CString());
+    ss >> clickedtext >> clickedbutton;
+
+    /// If exit was clicked
+    if (clickedtext=="ExitButton")
+    {
+        if(gamestatehandlercomponent_->GetDebugHudMode()==true)
+        {
+            gamestatehandlercomponent_->SetDebugHudMode(false);
+            GetSubsystem<DebugHud>()->ToggleAll();
+        }
+
+        /// Create a event
+        VariantMap gamemodechange;
+        gamemodechange[GameModeChange::P_CMD] = GAMEMODE_EVENT_TERMINATE;
+
+        cout << "Debug: Attempt to send a state change" << endl;
+
+        this->SendEvent(G_MODE_CHANGE,gamemodechange);
+
+        return;
+    }
+
+
 }

@@ -188,7 +188,7 @@ void GameEconomicGameClientStateMainScreen::Exit()
     /// Clear the UI
     ui->Clear();
 
-    UnsubscribeFromAllEvents();
+    ///UnsubscribeFromAllEvents();
 
     return;
 }
@@ -468,6 +468,18 @@ void GameEconomicGameClientStateMainScreen::HandleMenuPressed(StringHash eventTy
     /// if terminate
     switch(selection)
     {
+    case MainMenu_EnterStarbase:
+    {
+        /// Unsubscribe
+        MainMenuListView->UnsubscribeFromAllEvents();
+
+        /// Create a event
+        VariantMap gamestatechange;
+        gamestatechange[GameState::P_CMD] = GAME_STATE_PROGRESS;
+
+        SendEvent(G_STATES_CHANGE,gamestatechange);
+    }
+    break;
     case MainMenu_TerminateHangar:
     {
         TerminateSkynet();
@@ -672,6 +684,9 @@ void GameEconomicGameClientStateMainScreen::ChangePlayerUIHandleCloseButton(Stri
     /// Remove
     CharacterPlayerLoaderUIElement->Remove();
 
+
+
+
     return;
 }
 
@@ -708,11 +723,28 @@ void GameEconomicGameClientStateMainScreen::ChangePlayerUIHandleSelection(String
 
     ServerConnection->SendMessage(NetMessageRequest,true,true,msg,0);
 
+/// create request
+    String ServerRequest2;
+    ServerRequest2.Append("requestplayerdetail ");
+    ServerRequest2.Append(Existence->ThisAccountPlayerList.At(Existence->CurrentPlayerFromList).UniqueID);
+
+    cout << ServerRequest2.CString() << endl;
+
+    VectorBuffer msg2;
+    msg2.WriteString(ServerRequest2);
+
+    ServerConnection->SendMessage(NetMessageRequest,true,true,msg2,0);
+
+
     /// Remove
     CharacterPlayerLoaderUIElement->Remove();
 
     /// Update the character information screen
     UpdateMainMenuCharacterInfo();
+
+
+
+
 
     return;
 }

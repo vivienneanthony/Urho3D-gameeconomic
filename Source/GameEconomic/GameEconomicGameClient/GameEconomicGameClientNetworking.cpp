@@ -144,8 +144,6 @@ void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::
 
         serverresponse[ServerResponse::P_ARG] = text;
 
-
-
         /// Send the event
         SendEvent(N_SERVER_RESPONSE,serverresponse);
     }
@@ -183,7 +181,6 @@ void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::
         MemoryBuffer msg(data);
         String text = msg.ReadString();
 
-
         /// Create a event and send it for login can listen to it
         VariantMap  serverresponse;
 
@@ -202,7 +199,6 @@ void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::
         MemoryBuffer msg(data);
         String text = msg.ReadString();
 
-
         /// Create a event and send it for login can listen to it
         VariantMap  serverresponse;
 
@@ -212,8 +208,43 @@ void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::
 
         /// Send the event
         SendEvent(N_SERVER_RESPONSE,serverresponse);
+    }
+
+    if(msgID == NetMessageRequestApprovedAddStarbaseResponse)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        /// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+        String text = msg.ReadString();
+
+        /// Create a event and send it for login can listen to it
+        VariantMap  serverresponse;
+
+        serverresponse[ServerResponse::P_CMD] = ServerResponse_AddedStarbase;
+
+        serverresponse[ServerResponse::P_ARG] = text;
+
+        /// Send the event
+        SendEvent(N_SERVER_RESPONSE,serverresponse);
+    }
 
 
+    if(msgID == NetMessageRequestApprovedGetPlayerDetail)
+    {
+        const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
+        /// Use a MemoryBuffer to read the message data so that there is no unnecessary copying
+        MemoryBuffer msg(data);
+        String text = msg.ReadString();
+
+        /// Create a event and send it for login can listen to it
+        VariantMap  serverresponse;
+
+        serverresponse[ServerResponse::P_CMD] = ServerResponse_SentPlayerFullDetail;
+
+        serverresponse[ServerResponse::P_ARG] = text;
+
+        /// Send the event
+        SendEvent(N_SERVER_RESPONSE,serverresponse);
     }
 
 

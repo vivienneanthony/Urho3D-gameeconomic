@@ -223,7 +223,7 @@ private:
     String ConnectionGetAllDBFactions(void);
     String ConnectionGetAlienRacesDBAccount(String AlignedFactions);
     bool ConnnectInsertBaseDBStarbase(Vector<String>ColumnType,Vector<String> ColumnTypeParameter);
-
+    String ConnectionGetSingleDBPlayer(String PlayerUniqueID);
 
     /// Networking
     void NewConnectionIdentity(StringHash eventType, Urho3D::VariantMap& eventData);

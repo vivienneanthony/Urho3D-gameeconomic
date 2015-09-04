@@ -51,8 +51,13 @@
 #include "../Accounts.h"
 #include "../Starbase.h"
 
+
 #include "../GameEconomicServer/GameEconomicServerDatabaseGeneral.h"
+#include "../GameEconomicComponents/ResourceComponent.h"
+#include "../GameEconomicComponents/ResourceManager.h"
 #include "GameEconomicGameClientStatePlayer.h"
+#include "GameEconomicGameClientUI.h"
+#include "GameEconomicGameClientStateProgress.h"
 
 
 string ConvertUIntToString(unsigned int val);
@@ -77,6 +82,8 @@ public:
     friend class GameEconomicGameClientStateSplash;
     friend class GameEconomicGameClientStateMainScreen;
     friend class GameEconomicGameClientStatePlayer;
+    friend class GameEconomicGameClientStateProgress;
+    friend class GameEconomicGameClientStateGameMode;
 
     /// Construct.
     GameEconomicGameClient(Context* context);
@@ -157,6 +164,9 @@ public:
 
     /// UI related
     bool loadHUDFile(const char * filename, const int positionx, const int positiony);
+    void QuickMenuPressed(StringHash eventType, VariantMap& eventData);
+    bool loadUIXML(int windowtype, const int positionx, const int positiony, int selected);
+
 
     //FactionInformation * GetFactionsFromAuthorization(String ServerString);
     //AlienRaceInformation * GetAlienRacesFromAuthorization(String ServerString);
@@ -229,9 +239,12 @@ protected:
     /// This is temoporarily the necessary code
     AccountInformation * ThisAccount;
     StarbaseInformation * ThisStarbase;
+    PlayerObject * ThisPlayer;
+
     unsigned int CurrentPlayerFromList;
     Vector<PlayerList> ThisAccountPlayerList;
 
+    /// Alien and Faction List
     Vector<FactionInformation> ThisFactionList;
     Vector<AlienRaceInformation> ThisAlienRaceList;
 
@@ -246,6 +259,8 @@ protected:
 
     /// toucheenabled_;
     bool touchenabled_;
+
+    ResourceManager * ResourcesManager;
 
 private:
 
@@ -379,7 +394,6 @@ private:
     void CreatePlayerUITabButtonPressed(StringHash eventType, VariantMap& eventData);
     void CreatePlayerUICreateCharacterPressed(StringHash eventType, VariantMap& eventData);
 
-
     void CreatePlayerUpdateAlienRaceList(void);
     void CreatePlayerUpdateFactionsList(void);
     void CreatePlayerMainScreenViewport(void);
@@ -404,6 +418,100 @@ protected:
     bool AllowClose;
 };
 
+/// Login State
+class GameEconomicGameClientStateProgress : public GameEconomicGameClientStateSingleton
+{
+    OBJECT(GameEconomicGameClientStateProgress);
+public:
+    SharedPtr<GameEconomicGameClient> baseclass;
+    GameEconomicGameClientStateProgress(Context * context);
+    virtual ~GameEconomicGameClientStateProgress();
+    virtual void Enter();
+    virtual void Exit();
+    virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
+    virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
+
+
+private:
+    PlayerObject * ConvertServerStringtoPlayer(String ServerString);
+    StarbaseInformation * ConvertServerStringtoStarbase(String ServerString);
+    void ProgressScreenViewport(void);
+    void ProgressScreenUI(void);
+    void Intro(void);
+
+    void GenerateMapDataToGameMap(string MapData);
+    void GenerateMapDataConvertIntoGameObject(MapDataType inputtype, string InputString);
+    vector<string> Split(const string &s, char delim);
+    void HandleContinuePressed(StringHash eventType, VariantMap& eventData);
+
+    bool loadScene(void);
+
+
+
+protected:
+    SharedPtr<GameEconomicGameClient> Existence;
+    SharedPtr<Scene> progressScene_;
+    SharedPtr<UI> progressUI_;
+    SharedPtr<RenderPath> progressrendererPath_;
+    /// RenderPath shared
+    SharedPtr<RenderPath> effectRenderPath;
+
+    SharedPtr<Camera> progresscameraNode_;
+    SharedPtr<Viewport> progressViewport_;
+    SharedPtr<Window> progressWindow_;
+
+    Timer ProgressTimer;
+    String progressloadparameters_;
+
+    int progressload_;
+    int progressloadingstate;
+
+    /// Open file as a Urho3d Datafile
+    SharedPtr<File> dataFile;
+    SharedPtr<File> ProgressDataFile;
+
+    bool loadedtransition;
+    WeakPtr<VariantMap> eventDataPtr;
+
+    unsigned int progressloadmode_;
+    unsigned int progressloadgenerated_;
+
+    bool FirstTime;
+    bool ContinueGame;
+
+};
+
+
+class GameEconomicGameClientStateGameMode: public GameEconomicGameClientStateSingleton
+{
+    OBJECT(GameEconomicGameClientStateGameMode);
+public:
+    GameEconomicGameClientStateGameMode(Context * context);
+    virtual ~GameEconomicGameClientStateGameMode();
+    virtual void Enter();
+    virtual void Exit();
+    virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
+    virtual void SetParameter(String parameters_);
+    virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
+
+    void HandleUpdate(StringHash eventType, VariantMap& eventData);
+    void OnMoveCamera(float timeStep);
+    bool Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode);
+    void GetTargetPressed(void);
+
+private:
+    void GameMode(void);
+    void LoadGameModeUI(void);
+    void HandlerPostUpdates(StringHash eventType, VariantMap& eventData);
+    void InteractListener(StringHash eventType, VariantMap& eventData);
+    void GameModeSendEventHandler(StringHash eventType, VariantMap& eventData);
+    void GameModeAddUIElements(void);
+
+protected:
+/// pointer
+    SharedPtr<GameEconomicGameClient> Existence;
+};
 
 /// Miscellanous functions
 vector<string> split(const string& s, const string& delim, const bool keep_empty=true);
@@ -419,6 +527,7 @@ bool intersects( range a, range b );
 range make_range( float a, float b );
 
 #endif
+
 
 
 

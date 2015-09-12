@@ -75,7 +75,7 @@
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../Player.h"
-#include "../Starbase.h"
+///#include "../GameEconomicComponents/Starbase.h"
 
 #include <string>
 #include <iostream>
@@ -197,6 +197,12 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
 
     UIElement * uiRoot_ = ui_ -> GetRoot();
 
+    /// Create UI
+    UIElement * GameUIElement = new UIElement(context_);
+    GameUIElement -> SetName("GameUI");
+
+    uiRoot_ ->AddChild(GameUIElement);
+
     /// Set an initial position for the camera scene node above the plane
     Existence->cameraNode_->SetPosition(Vector3(0.0f,1.0f,0.0f));
     Existence->cameraNode_->SetRotation(Quaternion(0.1f,0.1f,0.1f));
@@ -226,13 +232,12 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
     Existence->effectRenderPath->Append(cache_->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
 
     /// Make the bloom mixing parameter more pronounced
-    Existence->effectRenderPath->SetShaderParameter("BloomMix", Vector2(0.9f, 0.6f));
+    Existence->effectRenderPath->SetShaderParameter("BloomMix", Vector2(Existence->GameConfig->VideoBloomParam1,
+            Existence->GameConfig->VideoBloomParam2));
     Existence->effectRenderPath->SetEnabled("Bloom", false);
     Existence->effectRenderPath->SetEnabled("FXAA3", false);
 
     Existence -> viewport->SetRenderPath(Existence->effectRenderPath);
-
-    ///Existence->cameraNode_ = cameraNode_;
 
     /// Get rendering window size as floats
     float Width = (float)graphics_->GetWidth();
@@ -271,8 +276,6 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
     {
         MainTopBarBackground->SetScale(1.0f+((Width-1280)/1280),1);
     }
-
-
 
     GameModeAddUIElements();
 
@@ -469,7 +472,7 @@ bool GameEconomicGameClientStateGameMode::Raycast(float maxDistance, Vector3& hi
     /// Get the pointer position
     Ray cameraRay = camera->GetScreenRay((float)pos.x_ / graphics->GetWidth(), (float)pos.y_ / graphics->GetHeight());
 
-    /// Pick only geometry objects, not eg. zones or lights, only get the first (closest) hit
+    /// Pick only geometry objects, not eg. zones or #include "../../../Urho3D/Scene/LogicComponent.h"s, only get the first (closest) hit
     PODVector<RayQueryResult> results;
     RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, maxDistance, DRAWABLE_GEOMETRY, DEFAULT_VIEWMASK &~ (1 << 0));
     Existence->scene_->GetComponent<Octree>()->RaycastSingle(query);
@@ -534,7 +537,6 @@ void GameEconomicGameClientStateGameMode::GameModeSendEventHandler(StringHash ev
 
         this->SendEvent(G_STATES_CHANGE,gamestatechange);
 
-        cout << "it got here" << endl;
     }
 }
 
@@ -553,26 +555,191 @@ void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
 
     float Width = graphics_->GetWidth();
 
+    Button* StarbaseButton = new Button(context_);
+    StarbaseButton->SetName("StarbaseButton");
+    StarbaseButton->SetFixedSize(90,16);
+    StarbaseButton->SetOpacity(.7);
+
     /// Text area
     Text* StarbaseText=new Text(context_);
     Text* GalaxyText=new Text(context_);
 
     StarbaseText->SetName("StarbaseText");
     StarbaseText->SetText("| STARBASE |");
-
     GalaxyText->SetName("GalaxyText");
     GalaxyText->SetText("| GALAXY |");
 
     /// addlones
-    /// Add the controls to the title bar
+
+    MainTopBarMenuUIElement ->AddChild(StarbaseButton);
     MainTopBarMenuUIElement ->AddChild(StarbaseText);
+
+
     MainTopBarMenuUIElement->AddChild(GalaxyText);
 
     StarbaseText->SetPosition(Width/2+200,2);
+
+    StarbaseButton->SetPosition(Width/2+200+2,2);
+
     GalaxyText->SetPosition(Width/2+290,2);
 
     /// Apply styles
     StarbaseText->SetStyleAuto();
+    StarbaseButton->SetStyleAuto();
     GalaxyText->SetStyleAuto();
+
+    /// If button is relesed
+    SubscribeToEvent(StarbaseButton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleTopMenuPressed));
+
+    return;
 }
+
+/// Load a HUD file in a XML format in the file system - Prevent double loading
+bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int positionx=0, const int positiony=0)
+{
+    /// Get resources
+    ResourceCache * cache = GetSubsystem<ResourceCache>();
+    FileSystem * filesystem = GetSubsystem<FileSystem>();
+    UI* ui_ = GetSubsystem<UI>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+
+    /// Get rendering window size as floats
+    float width = (float)graphics->GetWidth();
+    float height = (float)graphics->GetHeight();
+
+    /// get current root
+    UIElement * RootUIElement = ui_->GetRoot();
+    UIElement * GameModeUIElement= RootUIElement->GetChild("GameUI",true);
+    UIElement * HUDFileElement= new UIElement(context_);
+
+    /// if no GameUI return false
+    if(GameModeUIElement==NULL)
+    {
+        return 0;
+    }
+
+    /// Filename Hud
+    String filenameHUD;
+
+    /// chose based on menu type
+    if(windowtype==UIGAME_UISTARBASEDISPLAYBRIEF)
+    {
+        /// If window exist
+        UIElement * StarbaseDisplayBriefUIElement= GameModeUIElement->GetChild("StarbaseDisplayBriefUIElement",true);
+
+        /// if the window exist exit
+        if(StarbaseDisplayBriefUIElement)
+        {
+            return 0;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/GameStarbaseDisplayBrief.xml");
+    }
+
+    XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
+
+    /// Configure resources
+    XMLElement hudElement;
+
+    /// Load Resource
+    XMLFile* hudFile= cache->GetResource<XMLFile>(filenameHUD);
+
+    /// if filename can't be find exit
+    if(hudFile==NULL)
+    {
+        return 0;
+    }
+
+    /// Get root element XML
+    hudElement =  hudFile->GetRoot();
+
+    /// Add a min top bar
+    HUDFileElement-> LoadXML(hudElement, style);
+
+    /// Add a uielement for the bar
+    RootUIElement -> AddChild(HUDFileElement);
+
+    /// Position the window
+    HUDFileElement -> SetPosition(positionx,positiony);
+
+    HUDFileElement->SetStyleAuto();
+
+    HUDFileElement->BringToFront();
+
+    /// Get the child and assign a close pressed
+    Button * closebutton = (Button *) HUDFileElement -> GetChild("closeButton",true);
+
+    /// If the close button exist
+    if(closebutton)
+    {
+        /// Assign close function to the button
+        SubscribeToEvent(closebutton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleUIWindowClosed));
+    }
+
+    return true;
+}
+
+/// Handler for top menu pressed
+void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventType, VariantMap& eventData)
+{
+    /// Get needed resources
+    Renderer* renderer = GetSubsystem<Renderer>();
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    UI* ui_ = GetSubsystem<UI>();
+    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+
+    /// Get rendering window size as floats
+    float Width = (float)graphics->GetWidth();
+    float Height = (float)graphics->GetHeight();
+
+    /// get the button that was clicked
+    Button* clicked = static_cast<Button*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    String clickedButtonString(clicked->GetName());
+
+    /// Get the UI Root element
+    UIElement * UIRoot = ui_->GetRoot();
+
+    /// If exit was clicked
+    if (clickedButtonString.Contains("StarbaseButton")==true)
+    {
+        /// Load UI
+        LoadUIXML(UIGAME_UISTARBASEDISPLAYBRIEF,0,0);
+
+        /// Get the Window
+        Window * BriefWindow = (Window *) UIRoot->GetChild("StarbaseDisplayBriefWindow",true);
+
+        /// If window exist
+        BriefWindow->SetPosition((Width/2)-(BriefWindow->GetWidth()/2),(Height/2)-(BriefWindow->GetHeight()/2));
+
+    }
+
+    return;
+}
+
+/// Handler for window created
+void GameEconomicGameClientStateGameMode::HandleUIWindowClosed(StringHash eventType, VariantMap& eventData)
+{
+
+    /// Get roott
+    UI* ui_ = GetSubsystem<UI>();
+
+    /// Get the UI Root element
+    UIElement * RootUIElement= ui_->GetRoot();
+
+    /// Get control that was clicked
+    UIElement* clicked = static_cast<UIElement*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    /// Get the parent
+    UIElement* selfparent = clicked -> GetParent();
+
+    /// Disable and hide
+    selfparent -> SetDeepEnabled(false);
+    selfparent -> GetParent() -> Remove();
+
+    return;
+}
+
 

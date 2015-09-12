@@ -42,6 +42,7 @@ ResourceComponent::~ResourceComponent()
 /// Add ResourceComponent
 bool ResourceComponent::AddProperties(ResourceComponentInformation ComponentInformation)
 {
+    /*
     /// If the name is empty then return false
     if (ComponentInformation.Name.Empty()||ComponentInformation.Name.Front()<'A'||ComponentInformation.Name.Front()>'Z')
     {
@@ -65,7 +66,7 @@ bool ResourceComponent::AddProperties(ResourceComponentInformation ComponentInfo
     {
         return false;
     }
-
+*/
     /// Component
     ThisResourceComponent->Name=ComponentInformation.Name;
     ThisResourceComponent->ComponentResource=ComponentInformation.ComponentResource;
@@ -74,7 +75,29 @@ bool ResourceComponent::AddProperties(ResourceComponentInformation ComponentInfo
     ThisResourceComponent->ComponentState=ComponentInformation.ComponentState;
     ThisResourceComponent->ComponentType=ComponentInformation.ComponentType;
 
+    cout << ThisResourceComponent->Symbol.CString()<< endl;
+
     return true;
+}
+
+/// use this to return null if need be
+ResourceComponentInformation * ResourceComponent::GetProperties(void)
+{
+    /// Create component information
+    ResourceComponentInformation * ComponentInformation;
+
+    /// Save Information
+    ComponentInformation = new ResourceComponentInformation();
+
+    /// Component
+    ComponentInformation->Name=ThisResourceComponent->Name;
+    ComponentInformation->ComponentResource=ThisResourceComponent->ComponentResource;
+    ComponentInformation->Symbol=ThisResourceComponent->Symbol;
+    ComponentInformation->Density=ThisResourceComponent->Density;
+    ComponentInformation->ComponentState=ThisResourceComponent->ComponentState;
+    ComponentInformation->ComponentType=ThisResourceComponent->ComponentType;
+
+    return ComponentInformation;
 }
 
 /// Entity Register Object

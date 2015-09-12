@@ -9,7 +9,11 @@ enum ResourceComponentType
     RCType_PeriodicElement,
     RCType_RawMaterial,
     RCType_Component,
-    RCType_Structural
+    RCType_Tool,
+    RCType_Forcefield,
+    RCType_Structural,
+    RCType_Light,
+    RCType_NotApplicable=99999
 };
 
 enum ResourceComponentState
@@ -18,7 +22,8 @@ enum ResourceComponentState
     RCState_PeriodicUnidentified,
     RCState_Gaseous,
     RCState_Liquid,
-    RCState_Solid
+    RCState_Solid,
+    RCState_NotApplicable=99999
 };
 
 struct ResourceComponentInformation

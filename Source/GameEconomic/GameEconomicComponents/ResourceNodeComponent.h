@@ -28,6 +28,7 @@
 #include "../../../Urho3D/Resource/ResourceCache.h"
 #include "../../../Urho3D/Scene/Node.h"
 #include "Resource.h"
+#include "ResourceComponent.h"
 
 using namespace Urho3D;
 using namespace std;
@@ -53,7 +54,8 @@ public:
     ///ClearResources
 private:
     /// Component information
-    String ResourceNode_ResourceName;
+    String ResourceNode_Name;
+   ResourceComponentType ResourceNode_Type;
 
     /// Node Resources
     Vector<ResourceInformation> NodeResources;

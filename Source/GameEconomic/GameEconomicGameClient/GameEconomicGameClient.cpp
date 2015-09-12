@@ -29,6 +29,7 @@
 #include "../../../Urho3D/Core/ProcessUtils.h"
 #include "../../../Urho3D/UI/Text.h"
 #include "../../../Urho3D/UI/UI.h"
+#include "../../../Urho3D/UI/Slider.h"
 #include "../../../Urho3D/Scene/Scene.h"
 #include "../../../Urho3D/Graphics/StaticModel.h"
 #include "../../../Urho3D/Graphics/Octree.h"
@@ -42,6 +43,7 @@
 #include "../../../Urho3D/UI/Button.h"
 #include "../../../Urho3D/UI/LineEdit.h"
 #include "../../../Urho3D/UI/UIElement.h"
+#include "../../../Urho3D/UI/CheckBox.h"
 #include "../../../Urho3D/Math/BoundingBox.h"
 #include "../../../Urho3D/UI/UIEvents.h"
 #include "../../../Urho3D/Graphics/DebugRenderer.h"
@@ -83,6 +85,7 @@
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../GameEconomicComponents/ResourceComponent.h"
 #include "../GameEconomicComponents/ResourceManager.h"
+#include "../GameEconomicComponents/Starbase.h"
 
 #include <string>
 #include <iostream>
@@ -103,6 +106,7 @@
 #include "GameEconomicGameClient.h"
 #include "../Networking.h"
 #include "../Platform.h"
+#include "../Configuration.h"
 
 #include "../../Urho3D/Engine/DebugHud.h"
 
@@ -123,14 +127,12 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
     ThisStarbase(NULL)
 {
     /// Register
-
     GameStateHandlerComponent::RegisterNewSubsystem(context);
     GameStateHandlerComponent::RegisterGameStates(context);
     ResourceManager::RegisterObject(context);
     ResourceComponent::RegisterObject(context);
     ResourceNodeComponent::RegisterObject(context);
-
-
+    Starbase::RegisterObject(context);
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
 
@@ -204,6 +206,11 @@ void GameEconomicGameClient::Start()
 
     /// add resource path to last
     cache -> AddResourceDir(additionresourcePath);
+
+    ///
+    GameConfig = new Configuration();
+
+    LoadConfiguration(*GameConfig);
 
     /// Turn on networking
     if(LoadNetworkConfig(NetConfig)==false)
@@ -612,9 +619,25 @@ void GameEconomicGameClient::HandlerFunctionKeyDown(StringHash eventType, Varian
     /// Get component
     GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
 
-    /// Set component state to current visibility
-    gamestatehandlercomponent_->SetConsoleState(GetSubsystem<Console>()->IsVisible());
+    using namespace KeyDown;
 
+    int key = eventData[P_KEY].GetInt();
+
+    /// parameters for debug related command
+    if(key==KEY_F9)
+    {
+        RenderPath* effectRenderPath = GetSubsystem<Renderer>()->GetViewport(0)->GetRenderPath();
+
+        effectRenderPath->ToggleEnabled("Bloom");
+    }
+
+    /// parameters for debug related command
+    if(key==KEY_F10)
+    {
+        RenderPath* effectRenderPath = GetSubsystem<Renderer>()->GetViewport(0)->GetRenderPath();
+
+        effectRenderPath->ToggleEnabled("FXAA3");
+    }
 
     return;
 }
@@ -895,3 +918,189 @@ Vector<PlayerList> GameEconomicGameClient::LoginGetAccountPlayersFromAuthorizati
 
     return temporaryList;
 }
+
+
+void GameEconomicGameClient::LoadConfiguration(Configuration &configuration)
+{
+    /// Grab resources
+    FileSystem * fileSystem = GetSubsystem<FileSystem>();
+
+    /// Set all defaults
+    bool success=false;
+
+    configuration.GameModeForceTablet=false;
+
+    configuration.VideoBloomParam1=0.9f;
+    configuration.VideoBloomParam2=0.6f;
+
+    /// Create String
+    String configFileName;
+
+    /// Set directory and path for network file
+    configFileName.Append(fileSystem->GetProgramDir().CString());
+    configFileName.Append("");
+    configFileName.Append("Configuration.xml");
+
+    /// If file does not exist exit function with null structure
+    if (!fileSystem->FileExists(configFileName))
+    {
+        cout << "Configuration file not found.. Using defaults.. " << endl;
+
+        return;
+    }
+
+    /// Flag file for loading and load
+    File loadFile(context_, configFileName, FILE_READ);
+
+    XMLFile * configurationXML = new XMLFile(context_);
+
+    configurationXML -> Load(loadFile);
+
+    XMLElement configElem = configurationXML->GetRoot();
+
+    /// If no configuration is set or no root
+    if (configElem.IsNull())
+    {
+        cout << "Configuration file not found.. Using defaults.. " << endl;
+
+        return;
+    }
+
+    /// Basic Config
+    XMLElement GameModeConfigurationElem = configElem.GetChild("GameModeConfiguration");
+
+    /// If no network server element return false;
+    if (!GameModeConfigurationElem.IsNull())
+    {
+        if (GameModeConfigurationElem.HasAttribute("GameModeForceTablet")) configuration.GameModeForceTablet = GameModeConfigurationElem.GetBool("GameModeForceTablet");
+    }
+
+    /// Basic Config
+    XMLElement VideoConfigurationElem = configElem.GetChild("VideoConfiguration");
+
+    /// If no network server element return false;
+    if (!VideoConfigurationElem.IsNull())
+    {
+        if (VideoConfigurationElem.HasAttribute("BloomParam1")) configuration.VideoBloomParam1= VideoConfigurationElem.GetFloat("BloomParam1");
+        if (VideoConfigurationElem.HasAttribute("BloomParam2")) configuration.VideoBloomParam2= VideoConfigurationElem.GetFloat("BloomParam2");
+    }
+
+
+    return;
+}
+
+
+/// Save account information to a file
+void GameEconomicGameClient::SaveConfiguration(Configuration &configuration)
+{
+    /// Get Resource
+    ResourceCache * cache = GetSubsystem<ResourceCache>();
+    FileSystem * fileSystem = GetSubsystem<FileSystem>();
+
+    String configFileName;
+
+    /// Set directory and path for network file
+    configFileName.Append(fileSystem->GetProgramDir().CString());
+    configFileName.Append("");
+    configFileName.Append("Configuration.xml");
+
+
+    /// Check if the account file information exist
+    if(fileSystem->FileExists(configFileName.CString()))
+    {
+        fileSystem->Delete(configFileName.CString());
+    }
+
+    cout << "It got here "<<endl;
+
+    File saveFile(context_, configFileName.CString(), FILE_WRITE);
+
+    XMLFile * preferencefileconfig  = new XMLFile(context_);
+
+    XMLElement configElem = preferencefileconfig   -> CreateRoot("Configuration");
+    XMLElement GameModeConfigurationElement = configElem.CreateChild("GameModeConfiguration");
+    XMLElement VideoConfigurationElement= configElem.CreateChild("VideoConfiguration");
+
+    /// Set true false
+    if(configuration.GameModeForceTablet==true)
+    {
+        GameModeConfigurationElement.SetAttribute("GameModeForceTablet", "true");
+    }
+    else
+    {
+        GameModeConfigurationElement.SetAttribute("GameModeForceTablet", "false");
+    }
+
+    /// Convert video bloom to float
+    String VideoBloomParamValue1String(configuration.VideoBloomParam1);
+    String VideoBloomParamValue2String(configuration.VideoBloomParam2);
+
+    /// Copy values testing
+    VideoConfigurationElement.SetAttribute("BloomParam1",VideoBloomParamValue1String);
+    VideoConfigurationElement.SetAttribute("BloomParam2",VideoBloomParamValue2String);
+
+    preferencefileconfig->Save(saveFile);
+
+    return;
+}
+
+/// Get the button
+void GameEconomicGameClient::HandlerConfigurationWindowButtonPressed(StringHash eventType, VariantMap& eventData)
+{
+    /// Get needed resources
+    Renderer* renderer = GetSubsystem<Renderer>();
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    UI* ui_ = GetSubsystem<UI>();
+
+    UIElement * UIRoot = ui_->GetRoot();
+
+    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
+
+    /// get the button that was clicked
+    Button* clicked = static_cast<Button*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    /// Get TheName
+    String ClickedButton(clicked->GetName().ToLower());
+
+    /// If exit was clicked
+    if (ClickedButton.Contains("apply")==true)
+    {
+        /// Get parameters
+        Slider * VideoBloomParam1= (Slider *)UIRoot->GetChild("VideoBloomParam1Slider",true);
+        Slider * VideoBloomParam2= (Slider *)UIRoot->GetChild("VideoBloomParam2Slider",true);
+
+        float VideoBloomParam1Value = VideoBloomParam1->GetValue();
+        float VideoBloomParam2Value = VideoBloomParam2->GetValue();
+
+        /// Set parameter
+        effectRenderPath->SetShaderParameter("BloomMix", Vector2(VideoBloomParam1Value,VideoBloomParam2Value));
+
+        return;
+    }
+
+    /// If exit was clicked
+    if (ClickedButton.Contains("save")==true)
+    {
+        /// Get parameters
+        Slider * VideoBloomParam1= (Slider *)UIRoot->GetChild("VideoBloomParam1Slider",true);
+        Slider * VideoBloomParam2= (Slider *)UIRoot->GetChild("VideoBloomParam2Slider",true);
+        CheckBox * GameForceTabletModeCheckBox = (CheckBox *) UIRoot->GetChild("GameForceTabletModeCheckBox",true);
+
+        ///Create new config
+        Configuration SaveNewConfig;
+
+        /// Copy info
+        SaveNewConfig.GameModeForceTablet=  GameForceTabletModeCheckBox->IsChecked();
+        SaveNewConfig.VideoBloomParam1 = VideoBloomParam1->GetValue();
+        SaveNewConfig.VideoBloomParam2 = VideoBloomParam2->GetValue();
+
+        /// Save new config
+        SaveConfiguration(SaveNewConfig);
+
+        return;
+    }
+
+
+    return;
+}
+

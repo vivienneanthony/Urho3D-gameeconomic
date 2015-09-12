@@ -312,7 +312,7 @@ void GameStateHandlerComponent::onStateChange( Urho3D::StringHash eventType, Urh
         /// exit out
         if(gameState!=NULL)
         {
-            cout<< "gameState->Exit();" << endl;
+            ///cout<< "gameState->Exit();" << endl;
 
             gameState->Exit();
         };

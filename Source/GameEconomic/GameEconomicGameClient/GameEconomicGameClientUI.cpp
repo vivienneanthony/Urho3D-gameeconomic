@@ -45,6 +45,7 @@
 #include "../../../Urho3D/UI/UIElement.h"
 #include "../../../Urho3D/Math/BoundingBox.h"
 #include "../../../Urho3D/UI/UIEvents.h"
+#include "../../../Urho3D/UI/Slider.h"
 #include "../../../Urho3D/UI/View3D.h"
 #include "../../../Urho3D/Graphics/DebugRenderer.h"
 #include "../../../Urho3D/IO/File.h"
@@ -53,6 +54,7 @@
 #include "../../../Urho3D/Resource/XMLElement.h"
 #include "../../../Urho3D/IO/Deserializer.h"
 #include "../../../Urho3D/UI/Cursor.h"
+#include "../../../Urho3D/UI/CheckBox.h"
 #include "../../../Urho3D/IO/FileSystem.h"
 #include "../../../Urho3D/UI/ListView.h"
 #include "../../../Urho3D/Engine/Console.h"
@@ -176,6 +178,18 @@ bool GameEconomicGameClient::loadUIXML(int windowtype, const int positionx, cons
     {
         filenameHUD.Append("Resources/UI/QuickMenu.xml");
     }
+    if(windowtype==UIABOUTWINDOW)
+    {
+        filenameHUD.Append("Resources/UI/AboutWindow.xml");
+    }
+    else if (windowtype==UIPREFERENCESWINDOW)
+    {
+        filenameHUD.Append("Resources/UI/ConfigurationWindow.xml");
+    }
+    else if (windowtype==UICONFIGURATIONWINDOW)
+    {
+        filenameHUD.Append("Resources/UI/ConfigurationWindow.xml");
+    }
 
     XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
 
@@ -212,13 +226,41 @@ bool GameEconomicGameClient::loadUIXML(int windowtype, const int positionx, cons
 
         /// get buttons assign a event
         Button * exitButton  = (Button *) HUDFileElement -> GetChild("ExitButton",true);
+        Button * aboutButton  = (Button *) HUDFileElement -> GetChild("AboutButton",true);
+        Button * preferencesButton  = (Button *) HUDFileElement -> GetChild("PreferencesButton",true);
+        Button * configurationButton  = (Button *) HUDFileElement -> GetChild("ConfigurationButton",true);
 
+        /// set to enabled
         exitButton->SetEnabled(true);
+        aboutButton->SetEnabled(true);
+        preferencesButton->SetEnabled(true);
+        configurationButton->SetEnabled(true);
 
+        /// Subscribe to events
+        SubscribeToEvent(aboutButton, E_RELEASED, HANDLER(GameEconomicGameClient, QuickMenuPressed));
         SubscribeToEvent(exitButton, E_RELEASED, HANDLER(GameEconomicGameClient, QuickMenuPressed));
+        SubscribeToEvent(configurationButton, E_RELEASED, HANDLER(GameEconomicGameClient, QuickMenuPressed));
+        SubscribeToEvent(preferencesButton, E_RELEASED, HANDLER(GameEconomicGameClient, QuickMenuPressed));
+    }
+    else if(windowtype==UIABOUTWINDOW)
+    {
+        filenameHUD.Append("Resources/UI/AboutWindow.xml");
+    }
+    else if(windowtype==UIPREFERENCESWINDOW||windowtype==UICONFIGURATIONWINDOW)
+    {
+        Button * ConfigurationApplyButton = (Button *) HUDFileElement->GetChild("ConfigurationApplyButton",true);
+        Button * ConfigurationSaveButton = (Button *) HUDFileElement->GetChild("ConfigurationSaveButton",true);
+        SubscribeToEvent(ConfigurationApplyButton, E_RELEASED, HANDLER(GameEconomicGameClient, HandlerConfigurationWindowButtonPressed));
+        SubscribeToEvent(ConfigurationSaveButton, E_RELEASED, HANDLER(GameEconomicGameClient, HandlerConfigurationWindowButtonPressed));
     }
 
+    /// If the close button exist
+    if(closebutton)
+    {
+        /// Assign close function to the button
+        SubscribeToEvent(closebutton, E_RELEASED, HANDLER(GameEconomicGameClient, loadUIXMLClosePressed));
 
+    }
     return true;
 }
 
@@ -263,4 +305,128 @@ void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& 
     }
 
 
+    /// click About window
+    if(clickedtext=="AboutButton")
+    {
+        /// load window
+        UIElement * uiroot = ui_->	GetRoot ();
+
+        Window * AboutWindow = (Window *) uiroot->GetChild("AboutWindow",true);
+
+        if(AboutWindow)
+        {
+            /// Enable About Window
+            AboutWindow -> SetFocus(true);
+        }
+        else
+        {
+            loadUIXML(UIABOUTWINDOW,200,200,0);
+
+
+        }
+    }
+
+
+    /// click Preferences window
+    if(clickedtext=="PreferencesButton")
+    {
+        /// load window
+        UIElement * uiroot = ui_->	GetRoot ();
+
+        Window * PreferencesWindow = (Window *) uiroot->GetChild("PreferencesWindow",true);
+
+        if(PreferencesWindow)
+        {
+            /// Enable Preferences Window
+            PreferencesWindow -> SetFocus(true);
+        }
+        else
+        {
+            loadUIXML(UIPREFERENCESWINDOW,200,200,0);
+
+            /// UpdateConfigruationWindow
+            UpdateConfigurationWindow();
+        }
+    }
+
+    /// click Configuration window
+    if(clickedtext=="ConfigurationButton")
+    {
+        /// load window
+        UIElement * uiroot = ui_->	GetRoot ();
+
+        Window * ConfigurationWindow = (Window *) uiroot->GetChild("ConfigurationWindow",true);
+
+        if(ConfigurationWindow)
+        {
+            /// Enable Configuration Window
+            ConfigurationWindow -> SetFocus (true);
+        }
+        else
+        {
+            /// load window
+            loadUIXML(UICONFIGURATIONWINDOW,200,200,0);
+
+            /// UpdateConfigruationWindow
+            UpdateConfigurationWindow();
+        }
+    }
+
 }
+
+
+/// Load a HUD file in a XML format in the file system
+void GameEconomicGameClient::loadUIXMLClosePressed(StringHash eventType, VariantMap& eventData)
+{
+    /// Get roott
+    UI* ui_ = GetSubsystem<UI>();
+
+    UIElement * RootUIElement= ui_->GetRoot();
+
+
+    /// Get control that was clicked
+    UIElement* clicked = static_cast<UIElement*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    /// Get the parent
+    UIElement* selfparent = clicked -> GetParent();
+
+    /// Disable and hide
+    selfparent -> SetDeepEnabled(false);
+    selfparent -> GetParent() -> Remove();
+
+
+    return;
+}
+
+/// UpdateConfigruationWindow
+void GameEconomicGameClient::UpdateConfigurationWindow()
+{
+    /// Get UI Subsystem
+    UI* ui_ = GetSubsystem<UI>();
+
+    /// GetRoot
+    UIElement * RootUIElement= ui_->GetRoot();
+
+    /// Create a temporary config variable
+    Configuration TempConfig;
+
+    /// Copy configuration to a temp value
+    TempConfig.GameModeForceTablet=GameConfig->GameModeForceTablet;
+    TempConfig.VideoBloomParam1=GameConfig->VideoBloomParam1;
+    TempConfig.VideoBloomParam2=GameConfig->VideoBloomParam2;
+
+    /// Get UI elements
+    CheckBox * GameForceTabletModeCheckBox = (CheckBox *) RootUIElement->GetChild("GameForceTabletModeCheckBox",true);
+    Slider * VideoBloomParam1Slider = (Slider *) RootUIElement->GetChild("VideoBloomParam1Slider",true);
+    Slider * VideoBloomParam2Slider = (Slider *) RootUIElement->GetChild("VideoBloomParam2Slider",true);
+
+    /// Change Settings
+    if(GameForceTabletModeCheckBox) GameForceTabletModeCheckBox->SetChecked(TempConfig.GameModeForceTablet);
+    if(VideoBloomParam1Slider) VideoBloomParam1Slider->SetValue(TempConfig.VideoBloomParam1);
+    if(VideoBloomParam2Slider) VideoBloomParam2Slider->SetValue(TempConfig.VideoBloomParam2);
+
+    return;
+}
+
+
+

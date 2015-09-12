@@ -42,13 +42,15 @@ using namespace Urho3D;
 using namespace std;
 /// Base code
 ResourceNodeComponent::ResourceNodeComponent(Context* context) :
-    LogicComponent(context)
+    LogicComponent(context),
+    ResourceNode_Type(RCType_None)
 {
     /// Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
 
     /// Empty the string
-    ResourceNode_ResourceName.Clear();
+    ResourceNode_Name.Clear();
+    ResourceNode_Type=RCType_None;
 
     return;
 }
@@ -60,7 +62,8 @@ void ResourceNodeComponent::RegisterObject(Context* context)
 
     /// These macros register the class attributes to the Context for automatic load / save handling.
     // We specify the Default attribute mode which means it will be used both for saving into file, and network replication
-    ATTRIBUTE("Resource", String,  ResourceNode_ResourceName, String(""), AM_DEFAULT);
+    ATTRIBUTE("Resource Name", String,  ResourceNode_Name, String(""), AM_DEFAULT);
+    ATTRIBUTE("Resource Type", uint, ResourceNode_Type, RCType_None,AM_DEFAULT);
 
     return;
 }

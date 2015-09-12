@@ -83,11 +83,12 @@
 #include "../GameEconomicComponents/GameStateEvents.h"
 
 #include "../GameEconomicComponents/Accounts.h"
+#include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../ServerResponse.h"
 #include "../Networking.h"
 
-#include "../Starbase.h"
+
 #include "../Player.h"
 
 #include <string>
@@ -777,6 +778,18 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
         dupy = strtoul(results.at(4).c_str(),NULL,0);
     }
 
+    /// Get integer of lookup
+    String ResourceNamed=String("GenericType");
+    ResourceNamed.Append(resourcevalue);
+
+    /// Get Info from DB
+    TranslationTableResourceInformation LookupInfo= Existence->ResourcesManager->GetResourceSymbolLookup(ResourceNamed);
+
+    if(LookupInfo.ResourceID==-1)
+    {
+        LookupInfo.ResourceType=RCType_None;
+    }
+
     /// generate generalfile
     String temporaryfilename;
     String temporarycellfilename;
@@ -795,7 +808,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
     temporaryfilename.Append("Generic_Type");
     temporarycellfilename=temporaryfilename;
-
 
     /// Create a resource filename
     temporaryfilename.Append(String(resourcevalue));
@@ -838,10 +850,13 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     StaticSprite2D * ObjectSpriteComponent;
     Sprite2D * ObjectSprite;
 
-    /// if 3d
-    /// If object not clustedred
 
-    Node * StarbaseNode = StarbaseNode->GetChild("StarBaseNode", true);
+    /// Load StarbaseNode
+    Node * StarbaseNode = Existence->scene_->GetChild("StarBaseNode", true);
+
+    /// Copy node to this componet
+    Starbase * StarbaseNodeComponent = StarbaseNode->GetComponent<Starbase>();
+
 
     if(inputtype==MapData_Clustered)
     {
@@ -864,6 +879,7 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
                     /// Add a resource node
                     ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
+
 
                     if(ResourceType==MapDataElement_StructureFloor)
                     {
@@ -905,6 +921,8 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
                     ObjectSpriteNode->CreateComponent<ResourceNodeComponent>();
 
                 }
+
+             StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
             }
         }
     }
@@ -967,7 +985,10 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
             /// Add a resource node
             ObjectSpriteNode->CreateComponent<ResourceNodeComponent>();
 
+
         }
+
+        StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
     }
 
     /// If touch enabled add physics -- Add Physics
@@ -1140,6 +1161,13 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     Node * StarbaseNode = new Node(context_);
     Existence->scene_->AddChild(StarbaseNode);
 
+    /// Copy node to this componet
+    ///Starbase * StarbaseNodeComponent = StarbaseNode->CreateComponent<Starbase>();
+
+
+    /// Save this starbase to this component
+    Existence->ThisStarbase->ThisComponent = StarbaseNode->CreateComponent<Starbase>();
+
     /// Set Position
     StarbaseNode -> SetName("StarBaseNode");
     StarbaseNode -> SetPosition(Vector3(0.0f,0.0f,0.0f));
@@ -1219,7 +1247,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->Yaw(180);
 
 
-/// first one
+        /// first one
         temporaryfilename.Clear();
 
         temporaryfilename.Append("Resources/Models/");
@@ -1244,7 +1272,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->Yaw(90);
 
     }
-
 
     return 1;
 }

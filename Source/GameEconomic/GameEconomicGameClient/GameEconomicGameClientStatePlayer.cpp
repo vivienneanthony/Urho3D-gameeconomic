@@ -297,21 +297,21 @@ void GameEconomicGameClientStatePlayer::CreatePlayerScreenUI(void)
 
     unsigned int yposition=(height/2)-(600/2);
 
+    /// Load Create Character Menu
     Existence->loadHUDFile("Resources/UI/CreateNewCharacter.xml",32,yposition);
 
     unsigned int xposition=96+800;
 
-    Existence->loadHUDFile("Resources/UI/CreateNewCharacterViewport.xml",xposition,yposition+128);
-
-    /// Resize second window
+    /// Load Player Preview
+    Existence->loadHUDFile("Resources/UI/CreateNewCharacterViewport.xml",xposition,yposition);
 
     /// Get Listview
     Window * CreatePlayerViewportWindow = (Window *) UIRoot->GetChild("CreatePlayerViewportWindow", true);
 
     /// Resize and force to match - no matter the resolution
-    CreatePlayerViewportWindow->SetMinSize(width-xposition, 600-128);
-    CreatePlayerViewportWindow->SetMaxSize(width-xposition, 600-128);
-    CreatePlayerViewportWindow->SetSize(width-xposition, 600-128);
+    CreatePlayerViewportWindow->SetMinSize(width-xposition-32, 600);
+    CreatePlayerViewportWindow->SetMaxSize(width-xposition-32, 600);
+    CreatePlayerViewportWindow->SetSize(width-xposition-32, 600);
 
     return;
 }
@@ -603,6 +603,53 @@ void GameEconomicGameClientStatePlayer::CreatePlayerMainScreenViewport(void)
 
     LetterBoxSprite->SetStyleAuto();
     LetterBoxUIElement->SetStyleAuto();
+
+    /// Create HangarsSymbolSmall Sprite
+    Sprite* HangarsSymbolSmallSprite = new Sprite(context_);
+    HangarsSymbolSmallSprite->SetName("HangarsSymbolSmallSprite");
+
+    /// Get letter box image
+    Texture2D* HangarsSymbolTexture = cache ->GetResource<Texture2D>("Resources/Textures/HangarsSymbolSmall.png");
+
+    /// Set letter box properties
+    HangarsSymbolSmallSprite->SetTexture(HangarsSymbolTexture); // Set texture
+    HangarsSymbolSmallSprite->SetSize(HangarsSymbolTexture->GetWidth()/1.25,HangarsSymbolTexture->GetHeight()/1.25);
+    HangarsSymbolSmallSprite->SetAlignment(HA_LEFT, VA_TOP);
+
+    /// Create letter box image to UIElement
+    UIElement * HangarsSymbolSmallUIElement = new UIElement(context_);
+    HangarsSymbolSmallUIElement->AddChild(HangarsSymbolSmallSprite);
+
+    /// Add letter box UIElement to ui
+    LetterBoxUIElement->AddChild(HangarsSymbolSmallUIElement);
+
+    Font * Mionta = cache ->GetResource<Font>("Resources/Fonts/mionta.ttf");
+
+     /// Create logo text
+    Text * LogoText = new Text(context_);
+    LogoText -> SetTextAlignment(HA_CENTER);
+    LogoText -> SetFont(Mionta,16);
+    LogoText -> SetText("HANGARS");
+    LogoText -> SetColor(Color(.5f,.5f,.5f));
+
+    /// Create LetterBox UI Element
+    UIElement * LogoTextUIElement = new UIElement(context_);
+
+    LogoTextUIElement->AddChild(LogoText);
+
+    /// Add to UI
+    uiRoot_->AddChild(LogoTextUIElement);
+
+    ///TitleText->SetStyleAuto();
+    LogoTextUIElement->SetStyleAuto();
+
+    /// Move text to a position
+    LogoTextUIElement->SetPosition((width/2)-130,64);
+
+    /// Set style of UIElements
+    HangarsSymbolSmallUIElement->SetOpacity(.8);
+    HangarsSymbolSmallUIElement->SetPosition((width/2)-((HangarsSymbolTexture->GetWidth()/1.25)/2),(height-100));
+
 
     return;
 }

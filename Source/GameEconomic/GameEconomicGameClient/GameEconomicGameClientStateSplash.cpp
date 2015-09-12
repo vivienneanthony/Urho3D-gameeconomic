@@ -77,6 +77,7 @@
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../GameEconomicComponents/Accounts.h"
 
+
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -346,7 +347,8 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
             Existence->effectRenderPath->Append(cache_->GetResource<XMLFile>("PostProcess/FXAA2.xml"));
 
             /// Make the bloom mixing parameter more pronounced
-            Existence->effectRenderPath->SetShaderParameter("BloomMix", Vector2(0.9f, 0.6f));
+            Existence->effectRenderPath->SetShaderParameter("BloomMix", Vector2(Existence->GameConfig->VideoBloomParam1,
+                    Existence->GameConfig->VideoBloomParam2));
             Existence->effectRenderPath->SetEnabled("Bloom", false);
             Existence->effectRenderPath->SetEnabled("FXAA2", false);
 
@@ -399,6 +401,32 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         LetterBoxSprite->SetStyleAuto();
         LetterBoxUIElement->SetStyleAuto();
 
+        /// Create HangarsSymbolSmall Sprite
+        Sprite* HangarsSymbolSmallSprite = new Sprite(context_);
+        HangarsSymbolSmallSprite->SetName("HangarsSymbolSmallSprite");
+
+        /// Get letter box image
+        Texture2D* HangarsSymbolTexture = cache_ ->GetResource<Texture2D>("Resources/Textures/HangarsSymbolSmall.png");
+
+        /// Set letter box properties
+        HangarsSymbolSmallSprite->SetTexture(HangarsSymbolTexture); // Set texture
+        HangarsSymbolSmallSprite->SetSize(HangarsSymbolTexture->GetWidth()/2,HangarsSymbolTexture->GetHeight()/2);
+        HangarsSymbolSmallSprite->SetAlignment(HA_LEFT, VA_TOP);
+
+        /// Create letter box image to UIElement
+        UIElement * HangarsSymbolSmallUIElement = new UIElement(context_);
+        HangarsSymbolSmallUIElement->AddChild(HangarsSymbolSmallSprite);
+
+        /// Add letter box UIElement to ui
+        uiRoot_->AddChild(HangarsSymbolSmallUIElement);
+
+        /// Set style of UIElements
+        HangarsSymbolSmallUIElement->SetOpacity(.8);
+        HangarsSymbolSmallUIElement->SetPosition((width/2)-((HangarsSymbolTexture->GetWidth()/2)/2),250);
+
+        HangarsSymbolSmallSprite->SetStyleAuto();
+        HangarsSymbolSmallUIElement->SetStyleAuto();
+
         /// Load fonts
         Font * Mionta = cache_ ->GetResource<Font>("Resources/Fonts/mionta.ttf");
         Font * Neuton = cache_ ->GetResource<Font>("Resources/Fonts/Neuton-SC-Light.ttf");
@@ -408,6 +436,7 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         LogoText -> SetTextAlignment(HA_CENTER);
         LogoText -> SetFont(Mionta,32);
         LogoText -> SetText("HANGARS");
+        LogoText -> SetColor(Color(.9f,.9f,.9f));
 
         /// Create LetterBox UI Element
         UIElement * LogoTextUIElement = new UIElement(context_);
@@ -423,34 +452,8 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         /// Move text to a position
         LogoTextUIElement->SetPosition((width/2)-240,200);
 
-        /// Create Title text
-        Text * TitleText = new Text(context_);
-        TitleText -> SetTextAlignment(HA_CENTER);
-        TitleText -> SetFont(Neuton,24);
-        TitleText -> SetText("ALPHA AGE");
-        TitleText -> SetRowSpacing(3.0);
 
-
-        /// Create LetterBox UI Element
-        UIElement * TitleTextUIElement = new UIElement(context_);
-
-        TitleTextUIElement->AddChild(TitleText);
-
-        /// Add to UI
-        uiRoot_->AddChild(TitleTextUIElement);
-
-        ///TitleText->SetStyleAuto();
-        TitleTextUIElement->SetStyleAuto();
-
-        /// Move text to a position
-        TitleTextUIElement->SetPosition((width/2)-108+32,240);
-
-
-        ///TitleText->SetStyleAuto();
-        TitleTextUIElement->SetStyleAuto();
-
-///        UnsubscribeFromAllEvents();
-
+        cout << "it got here" << endl;
 
         /// Create a event
         VariantMap gamestatechange;
@@ -463,8 +466,10 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
     return ;
 
 }
+
 void GameEconomicGameClientStateSplash::ServerResponseHandler(StringHash eventType, VariantMap& eventData)
 {
 
 }
+
 

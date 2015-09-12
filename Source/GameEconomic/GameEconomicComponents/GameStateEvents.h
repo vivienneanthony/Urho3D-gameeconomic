@@ -17,6 +17,7 @@ enum GameStates
     GAME_STATE_EXIT_SIM
 };
 
+
 /// Key pressed.
 EVENT(G_STATES_CHANGE, GameState)
 {

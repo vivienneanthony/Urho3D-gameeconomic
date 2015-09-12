@@ -20,25 +20,44 @@ using namespace Urho3D;
 #include "../ResourceManager.h"
 #include "ResourceComponent.h"
 
+class ResourceManager;
+
 /// ResourceManager class
 class ResourceManager : public LogicComponent
 {
+
     OBJECT(ResourceManager);
 
 public:
+
+
     /// public functions
     ResourceManager(Context *context);
     virtual ~ResourceManager();
 
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
+    int GetResourceSymbolInt(String InputString);
+
+    /// Build resources
     void BuildBaseResources(void);
+
+    ///  Add a resource to the table
+    void AddResourceToTableLookup(TranslationTableResourceInformation SaveResource);
+    TranslationTableResourceInformation GetResourceSymbolLookup(String InputString);
+
 protected:
 
+
 private:
+    /// Manager info
     ResourceManagerInformation * ThisResourceManager;
 
+    /// This list of oresources
     Vector<ResourceComponent *>  * ThisResources;
+
+    Vector<TranslationTableResourceInformation> TranslationLookup;
+
 };
 
 #endif // ResourceManager_H

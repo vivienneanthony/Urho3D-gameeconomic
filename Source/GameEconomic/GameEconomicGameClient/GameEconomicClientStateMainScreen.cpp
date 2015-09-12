@@ -333,7 +333,7 @@ void GameEconomicGameClientStateMainScreen::MainScreenUI(void)
 
     unsigned int yposition=(height/2)-(400/2);
 
-    Existence->loadHUDFile("Resources/UI/MainMenu.xml",32,yposition);
+    Existence->loadHUDFile("Resources/UI/MainMenu.xml",16,yposition);
 
     return;
 }
@@ -444,6 +444,57 @@ void GameEconomicGameClientStateMainScreen::MainScreenViewport(void)
 
     LetterBoxSprite->SetStyleAuto();
     LetterBoxUIElement->SetStyleAuto();
+
+    /// Create HangarsSymbolSmall Sprite
+    Sprite* HangarsSymbolSmallSprite = new Sprite(context_);
+    HangarsSymbolSmallSprite->SetName("HangarsSymbolSmallSprite");
+
+    /// Get letter box image
+    Texture2D* HangarsSymbolTexture = cache ->GetResource<Texture2D>("Resources/Textures/HangarsSymbolSmall.png");
+
+    /// Set letter box properties
+    HangarsSymbolSmallSprite->SetTexture(HangarsSymbolTexture); // Set texture
+    HangarsSymbolSmallSprite->SetSize(HangarsSymbolTexture->GetWidth()/1.25,HangarsSymbolTexture->GetHeight()/1.25);
+    HangarsSymbolSmallSprite->SetAlignment(HA_LEFT, VA_TOP);
+
+    /// Create letter box image to UIElement
+    UIElement * HangarsSymbolSmallUIElement = new UIElement(context_);
+    HangarsSymbolSmallUIElement->AddChild(HangarsSymbolSmallSprite);
+
+    /// Add letter box UIElement to ui
+    LetterBoxUIElement->AddChild(HangarsSymbolSmallUIElement);
+
+    /// Set style of UIElements
+    HangarsSymbolSmallUIElement->SetOpacity(.8);
+    HangarsSymbolSmallUIElement->SetPosition((width/2)-((HangarsSymbolTexture->GetWidth()/1.25)/2),(height-100));
+
+    HangarsSymbolSmallSprite->SetStyleAuto();
+    HangarsSymbolSmallUIElement->SetStyleAuto();
+
+    /// Load fonts
+    Font * Mionta = cache ->GetResource<Font>("Resources/Fonts/mionta.ttf");
+    Font * Neuton = cache ->GetResource<Font>("Resources/Fonts/Neuton-SC-Light.ttf");
+
+    /// Create logo text
+    Text * LogoText = new Text(context_);
+    LogoText -> SetTextAlignment(HA_CENTER);
+    LogoText -> SetFont(Mionta,16);
+    LogoText -> SetText("HANGARS");
+    LogoText -> SetColor(Color(.5f,.5f,.5f));
+
+    /// Create LetterBox UI Element
+    UIElement * LogoTextUIElement = new UIElement(context_);
+
+    LogoTextUIElement->AddChild(LogoText);
+
+    /// Add to UI
+    uiRoot_->AddChild(LogoTextUIElement);
+
+    ///TitleText->SetStyleAuto();
+    LogoTextUIElement->SetStyleAuto();
+
+    /// Move text to a position
+    LogoTextUIElement->SetPosition((width/2)-130,64);
 
     return;
 }
@@ -625,10 +676,10 @@ void GameEconomicGameClientStateMainScreen::ChangePlayerUI(void)
     float width = (float)graphics_->GetWidth();
     float height = (float)graphics_->GetHeight();
 
-    unsigned int yposition=(height/2)-(600/2);
+    unsigned int yposition=(height/2)-(400/2);
 
     /// Load xml file
-    Existence->loadHUDFile("Resources/UI/CharacterPlayersLoader.xml",833,yposition);
+    Existence->loadHUDFile("Resources/UI/CharacterPlayersLoader.xml",833-16,yposition);
 
     /// Get Listview
     ListView * CharacterPlayerListView = (ListView *) UIRoot ->GetChild("CharacterPlayerLoaderPlayersWindowListView",true);

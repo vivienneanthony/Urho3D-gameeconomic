@@ -110,6 +110,7 @@ class GameEconomicGameClient;
 /// State Login Constructor
 GameEconomicGameClientStateLogin::GameEconomicGameClientStateLogin(Context * context)
     :GameEconomicGameClientStateSingleton(context)
+    ,Existence(NULL)
 {
     /// Debug
     cout << "Debug: State Login Constructor" << endl;
@@ -395,6 +396,7 @@ void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(Stri
 /// Handlers for login screen (Handler) -New Account
 void GameEconomicGameClientStateLogin::LoginScreenUINewAccountHandleClosePressed(StringHash eventType, VariantMap& eventData)
 {
+    ///
 
     return;
 }

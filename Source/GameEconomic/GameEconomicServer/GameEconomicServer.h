@@ -41,16 +41,17 @@
 
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
-
-#include "../Accounts.h"
-#include "../Administrator.h"
-#include "../Starbase.h"
+#include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/Player.h"
 #include "../GameEconomicComponents/Market.h"
 #include "../GameEconomicComponents/Trader.h"
+
 #include "Map.h"
-#include "../Networking.h"
 #include "GameEconomicServerDatabaseGeneral.h"
+
+#include "../Accounts.h"
+#include "../Administrator.h"
+#include "../Networking.h"
 
 using namespace std;
 using namespace Urho3D;
@@ -79,7 +80,7 @@ public:
     /// Setup after engine initialization and before running the main loop.
     virtual void Start();
 
-     /// Shared
+    /// Shared
     SharedPtr<GameEconomicServer> applicationPtr;
 
 

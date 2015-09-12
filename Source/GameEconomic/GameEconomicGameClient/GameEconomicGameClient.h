@@ -38,6 +38,8 @@
 
 #include <vector>
 #include <time.h>
+#include <vector>
+#include <time.h>
 
 #include "../GameEconomicAppHead.h"
 #include "../GameEconomicComponents/Accounts.h"
@@ -50,6 +52,7 @@
 #include "../Platform.h"
 #include "../Accounts.h"
 #include "../Starbase.h"
+#include "../Configuration.h"
 
 
 #include "../GameEconomicServer/GameEconomicServerDatabaseGeneral.h"
@@ -120,8 +123,6 @@ public:
     /// Input Handler - Input
     void HandleInput(const String& input);
 
-
-
     /// Post Updates
     void HandlePostUpdates(StringHash eventType, VariantMap& eventData);
 
@@ -166,10 +167,15 @@ public:
     bool loadHUDFile(const char * filename, const int positionx, const int positiony);
     void QuickMenuPressed(StringHash eventType, VariantMap& eventData);
     bool loadUIXML(int windowtype, const int positionx, const int positiony, int selected);
+    void loadUIXMLClosePressed(StringHash eventType, VariantMap& eventData);
+    void HandlerConfigurationWindowButtonPressed(StringHash eventType, VariantMap& eventData);
 
+    /// Configuration related
+    void LoadConfiguration(Configuration &configuration);
+    void SaveConfiguration(Configuration &configuration);
+    void UpdateConfigurationWindow();
 
-    //FactionInformation * GetFactionsFromAuthorization(String ServerString);
-    //AlienRaceInformation * GetAlienRacesFromAuthorization(String ServerString);
+    /// Data
     Vector<AlienRaceInformation> LoadGetAlienRacesFromAuthorization(String ServerString);
     Vector<FactionInformation> LoadGetFactionsFromAuthorization(String ServerString);
 
@@ -196,6 +202,8 @@ public:
     /// Save the application Pointer
     SharedPtr<GameEconomicGameClient> applicationPtr;
 
+    /// Configuration
+    Configuration * GameConfig;
 
 protected:
 
@@ -279,9 +287,10 @@ public:
     virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
     virtual void SetParameter(String parameters_);
     virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
+protected:
 private:
     void Singleton(void);
-protected:
+
 };
 
 /// Login State
@@ -296,8 +305,10 @@ public:
     virtual void OnUpdate(Urho3D::StringHash eventType, Urho3D::VariantMap& eventData );
     virtual void SetParameter(String parameters_);
     virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
-private:
+
 protected:
+    SharedPtr<GameEconomicGameClient> Existence;
+
     void SplashScreen(void);
     void SplashSetupScreenViewport(void);
     void SplashShowGameLogo(void);
@@ -306,12 +317,12 @@ protected:
     void HandlerSplashUpdate(StringHash eventType, VariantMap& eventData);
 
     Timer SplashTimer;
-    SharedPtr<GameEconomicGameClient> Existence;
+
     /// Open file as a Urho3d Datafile
     SharedPtr<File> dataFile;
     bool splashcompleted;
 
-
+private:
 };
 
 /// Login State
@@ -336,12 +347,11 @@ private:
     AccountInformation * LoginGetPlayerAccountFromAuthorization(String ServerString);
     Vector<PlayerList> LoginGetAccountPlayersFromAuthorization(String ServerString);
     void TerminateCommLink(StringHash eventType, VariantMap& eventData);
-
     void ShowServerStatusUI(void);
-
-
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
+
+
 };
 
 
@@ -432,7 +442,6 @@ public:
     virtual void SetParameter(String parameters_);
     virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 
-
 private:
     PlayerObject * ConvertServerStringtoPlayer(String ServerString);
     StarbaseInformation * ConvertServerStringtoStarbase(String ServerString);
@@ -447,10 +456,9 @@ private:
 
     bool loadScene(void);
 
-
-
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
+
     SharedPtr<Scene> progressScene_;
     SharedPtr<UI> progressUI_;
     SharedPtr<RenderPath> progressrendererPath_;
@@ -482,7 +490,6 @@ protected:
 
 };
 
-
 class GameEconomicGameClientStateGameMode: public GameEconomicGameClientStateSingleton
 {
     OBJECT(GameEconomicGameClientStateGameMode);
@@ -508,8 +515,12 @@ private:
     void GameModeSendEventHandler(StringHash eventType, VariantMap& eventData);
     void GameModeAddUIElements(void);
 
+    bool LoadUIXML(int windowtype, const int positionx, const int positiony);
+    void HandleTopMenuPressed(StringHash eventType, VariantMap& eventData);
+    void HandleUIWindowClosed(StringHash eventType, VariantMap& eventData);
+
 protected:
-/// pointer
+
     SharedPtr<GameEconomicGameClient> Existence;
 };
 

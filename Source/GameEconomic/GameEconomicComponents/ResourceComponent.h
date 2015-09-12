@@ -31,6 +31,7 @@ public:
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
     bool AddProperties(ResourceComponentInformation ComponentInformation);
+    ResourceComponentInformation * GetProperties(void);
 
 protected:
 private:

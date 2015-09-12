@@ -34,6 +34,7 @@ class GameEconomicGameClientStateSingleton;
 
 class URHO3D_API  GameStateHandlerComponent : public LogicComponent
 {
+
     OBJECT(GameStateHandlerComponent);
 public:
     /// Constructor
@@ -72,8 +73,6 @@ public:
 
 private:
     /// Made the gameState a shared to keep in memory
-//    SharedPtr <GameEconomicGameClientStateSingleton>  gameState;
-
     GameEconomicGameClientStateSingleton *  gameState;
 
     /// Made the application pointer shared to keep in memory

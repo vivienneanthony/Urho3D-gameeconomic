@@ -18,4 +18,10 @@ EVENT(G_MODE_CHANGE, GameModeChange)
 }
 ///}
 
+enum GameWindowTypes
+{
+    UIGAME_UINONE,
+    UIGAME_UISTARBASEDISPLAYBRIEF
+};
+
 #endif

@@ -518,6 +518,7 @@ private:
     bool LoadUIXML(int windowtype, const int positionx, const int positiony);
     void HandleTopMenuPressed(StringHash eventType, VariantMap& eventData);
     void HandleUIWindowClosed(StringHash eventType, VariantMap& eventData);
+    void HandleUIStarbaseBriefButtonPressed(StringHash eventType, VariantMap& eventData);
 
 protected:
 

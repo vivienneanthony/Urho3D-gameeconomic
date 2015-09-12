@@ -667,6 +667,14 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
 
     HUDFileElement->BringToFront();
 
+    /// chose based on menu type
+    if(windowtype==UIGAME_UISTARBASEDISPLAYBRIEF)
+    {
+        Button * StarbaseDisplayBriefDiagnosticButton = (Button *) HUDFileElement -> GetChild("StarbaseDisplayBriefDiagnosticButton",true);
+
+        SubscribeToEvent(StarbaseDisplayBriefDiagnosticButton,E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleUIStarbaseBriefButtonPressed));
+    }
+
     /// Get the child and assign a close pressed
     Button * closebutton = (Button *) HUDFileElement -> GetChild("closeButton",true);
 
@@ -676,6 +684,7 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         /// Assign close function to the button
         SubscribeToEvent(closebutton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleUIWindowClosed));
     }
+
 
     return true;
 }
@@ -743,3 +752,31 @@ void GameEconomicGameClientStateGameMode::HandleUIWindowClosed(StringHash eventT
 }
 
 
+
+/// Handler for window created
+void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(StringHash eventType, VariantMap& eventData)
+{
+
+/// Get needed resources
+    Renderer* renderer = GetSubsystem<Renderer>();
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    UI* ui_ = GetSubsystem<UI>();
+    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+
+    /// Get rendering window size as floats
+    float Width = (float)graphics->GetWidth();
+    float Height = (float)graphics->GetHeight();
+
+    /// get the button that was clicked
+    Button* clicked = static_cast<Button*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
+
+    String clickedButtonString(clicked->GetName());
+
+    /// Get the UI Root element
+    UIElement * UIRoot = ui_->GetRoot();
+
+    cout << "output test" << endl;
+
+    return;
+}

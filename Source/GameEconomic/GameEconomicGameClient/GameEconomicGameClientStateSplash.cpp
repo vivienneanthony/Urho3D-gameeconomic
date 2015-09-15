@@ -155,10 +155,8 @@ void GameEconomicGameClientStateSplash::Enter()
 /// State SplashExit
 void GameEconomicGameClientStateSplash::Exit()
 {
-    /// Debug
-    cout << "Debug: State Splash Exit" << endl;
-
-    cout << "Exit called or inaccessible" << endl;
+       /// Debug
+    cout << "Debug: State Login Exit" << endl;
 
     return;
 }
@@ -452,16 +450,13 @@ void GameEconomicGameClientStateSplash::HandlerSplashUpdate(StringHash eventType
         /// Move text to a position
         LogoTextUIElement->SetPosition((width/2)-240,200);
 
-
-        cout << "it got here" << endl;
-
         /// Create a event
         VariantMap gamestatechange;
         gamestatechange[GameState::P_CMD] = GAME_STATE_LOGIN;
 
         cout << "Debug: Attempt to send a state change" << endl;
 
-        this->SendEvent(G_STATES_CHANGE,gamestatechange);
+        SendEvent(G_STATES_CHANGE,gamestatechange);
     }
     return ;
 

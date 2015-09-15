@@ -396,11 +396,13 @@ void GameEconomicGameClientStateMainScreen::MainScreenViewport(void)
     /// Get the root
     UIElement * uiRoot_ = ui->GetRoot();
 
+    /// Create sprite
     Sprite* BackgroundBoxSprite = new Sprite(context_);
     BackgroundBoxSprite->SetName("BackgroundBoxSprite");
 
     /// Get letter box image
-    Texture2D* texture = cache ->GetResource<Texture2D>("Resources/Textures/BrushedMetal.jpg");
+    Texture2D* texture = new Texture2D(context_);
+    texture = cache ->GetResource<Texture2D>(String("Resources/Textures/BrushedMetal.jpg"));
 
     /// Set letter box properties
     BackgroundBoxSprite->SetTexture(texture); // Set texture

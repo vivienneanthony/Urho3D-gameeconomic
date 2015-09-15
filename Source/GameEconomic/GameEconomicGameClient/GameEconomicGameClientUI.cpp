@@ -120,7 +120,7 @@ bool GameEconomicGameClient::loadHUDFile(const char * filename, const int positi
     UIElement * playerInfoHudElement= new UIElement(context_);
 
     /// Force UIFile Load
-    XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
+    XMLFile* style = cache->GetResource<XMLFile>(String("UI/DefaultStyle.xml"));
 
     /// Configure resources
     XMLElement hudElement;

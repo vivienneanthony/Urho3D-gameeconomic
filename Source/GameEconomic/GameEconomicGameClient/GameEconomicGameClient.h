@@ -306,6 +306,9 @@ public:
     virtual void SetParameter(String parameters_);
     virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 
+private:
+    void HandlerSplashUpdate(StringHash eventType, VariantMap& eventData);
+
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
 
@@ -314,7 +317,6 @@ protected:
     void SplashShowGameLogo(void);
 
     void SplashStatInit(void);
-    void HandlerSplashUpdate(StringHash eventType, VariantMap& eventData);
 
     Timer SplashTimer;
 
@@ -322,7 +324,7 @@ protected:
     SharedPtr<File> dataFile;
     bool splashcompleted;
 
-private:
+
 };
 
 /// Login State
@@ -350,8 +352,6 @@ private:
     void ShowServerStatusUI(void);
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
-
-
 };
 
 
@@ -373,14 +373,15 @@ private:
     void MainScreenUI(void);
     void MainScreenViewport(void);
     void TerminateSkynet(void);
-    void   UpdateMainMenuCharacterInfo(void);
+    void UpdateMainMenuCharacterInfo(void);
     void ChangePlayerUI(void);
     void ChangePlayerUIHandleCloseButton(StringHash eventType, VariantMap& eventData);
     void ChangePlayerUIHandleSelection(StringHash eventType, VariantMap& eventData);
+    void HandleMenuPressed(StringHash eventType, VariantMap& eventData);
 
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
-    void HandleMenuPressed(StringHash eventType, VariantMap& eventData);
+
 };
 
 
@@ -459,10 +460,12 @@ private:
 protected:
     SharedPtr<GameEconomicGameClient> Existence;
 
+    WeakPtr<VariantMap> eventDataPtr;
+
     SharedPtr<Scene> progressScene_;
     SharedPtr<UI> progressUI_;
     SharedPtr<RenderPath> progressrendererPath_;
-    /// RenderPath shared
+
     SharedPtr<RenderPath> effectRenderPath;
 
     SharedPtr<Camera> progresscameraNode_;
@@ -480,7 +483,6 @@ protected:
     SharedPtr<File> ProgressDataFile;
 
     bool loadedtransition;
-    WeakPtr<VariantMap> eventDataPtr;
 
     unsigned int progressloadmode_;
     unsigned int progressloadgenerated_;

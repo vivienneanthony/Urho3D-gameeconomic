@@ -850,7 +850,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     StaticSprite2D * ObjectSpriteComponent;
     Sprite2D * ObjectSprite;
 
-
     /// Load StarbaseNode
     Node * StarbaseNode = Existence->scene_->GetChild("StarBaseNode", true);
 
@@ -896,6 +895,8 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
                         ObjectCellStaticNode->SetPosition(Vector3((float)x+(j*2),4.0f,(float)y+(i*2)));
                     }
 
+                    StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
+
                     /// Add Cell
                 }
                 else
@@ -920,9 +921,10 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
                     /// Add a resource node
                     ObjectSpriteNode->CreateComponent<ResourceNodeComponent>();
 
+                    StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
                 }
 
-             StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
+
             }
         }
     }
@@ -961,6 +963,7 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
                 ObjectCellStaticNode->SetPosition(Vector3(x,4.0f,y));
 
+                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
             }
         }
         else
@@ -985,10 +988,10 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
             /// Add a resource node
             ObjectSpriteNode->CreateComponent<ResourceNodeComponent>();
 
-
+  StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
         }
 
-        StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
+
     }
 
     /// If touch enabled add physics -- Add Physics
@@ -1162,11 +1165,11 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     Existence->scene_->AddChild(StarbaseNode);
 
     /// Copy node to this componet
-    ///Starbase * StarbaseNodeComponent = StarbaseNode->CreateComponent<Starbase>();
+    Starbase * StarbaseNodeComponent = StarbaseNode->CreateComponent<Starbase>();
 
 
     /// Save this starbase to this component
-    Existence->ThisStarbase->ThisComponent = StarbaseNode->CreateComponent<Starbase>();
+    StarbaseNode->CreateComponent<Starbase>();
 
     /// Set Position
     StarbaseNode -> SetName("StarBaseNode");

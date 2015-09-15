@@ -193,7 +193,7 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
     if (String(GameEconomicGameClientStateLogin::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create Login Progress Called" << endl;;
+        cout << "Debug: Create Login Called" << endl;
 
         state=GameEconomicGameClientStateLogin::GetTypeNameStatic();
 
@@ -201,14 +201,16 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         GameEconomicGameClientStateSingleton *  newgameState = new GameEconomicGameClientStateLogin(context_);
 
         /// delete old state
-        delete gameState;
+        ///delete gameState;
         gameState=newgameState;
+
+
         gameState->Enter();
     }
     else if (String(GameEconomicGameClientStateSplash::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create Splash Called" << endl;
+        cout << "Debug: Create Splash State Called" << endl;
 
         state=GameEconomicGameClientStateSplash::GetTypeNameStatic();
 
@@ -216,14 +218,15 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
 
         /// delete old state
         delete  gameState;
+
+
         gameState=newgameState;
         gameState->Enter();
-
     }
     else if (String(GameEconomicGameClientStatePlayer::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create Splash Called" << endl;
+        cout << "Debug: Create Player State Called" << endl;
 
         state=GameEconomicGameClientStatePlayer::GetTypeNameStatic();
 
@@ -232,13 +235,15 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         /// delete old state
         delete  gameState;
         gameState=newgameState;
+
+
         gameState->Enter();
 
     }
     else if (String(GameEconomicGameClientStateProgress::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create Splash Called" << endl;
+        cout << "Debug: Create Progres State Called" << endl;
 
         state=GameEconomicGameClientStateProgress::GetTypeNameStatic();
 
@@ -247,13 +252,13 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         /// delete old state
         delete  gameState;
         gameState=newgameState;
-        gameState->Enter();
 
+        gameState->Enter();
     }
     else if (String(GameEconomicGameClientStateMainScreen::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create MainScreen Called" << endl;
+        cout << "Debug: Create MainScreen State Called" << endl;
 
         state=GameEconomicGameClientStateMainScreen::GetTypeNameStatic();
 
@@ -262,19 +267,21 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         /// delete old state
         delete  gameState;
 
-
         String cmdArg = eventData[GameState::P_ARG].GetString();
 
         cout << cmdArg.CString() << endl;
 
         gameState=newgameState;
+
+
         gameState->Enter();
+
 
     }
     else if (String(GameEconomicGameClientStateGameMode::GetTypeNameStatic())==newState)
     {
         /// change to that state
-        cout << "Debug: Create GameMode Called" << endl;
+        cout << "Debug: Create GameMode State Called" << endl;
 
         state=GameEconomicGameClientStateGameMode::GetTypeNameStatic();
 
@@ -283,12 +290,12 @@ void GameStateHandlerComponent::createState(String newState, Urho3D::VariantMap&
         /// delete old state
         delete  gameState;
 
-
         String cmdArg = eventData[GameState::P_ARG].GetString();
 
         cout << cmdArg.CString() << endl;
 
         gameState=newgameState;
+
         gameState->Enter();
 
     }
@@ -309,67 +316,44 @@ void GameStateHandlerComponent::onStateChange( Urho3D::StringHash eventType, Urh
     switch (newState)
     {
     case  GAME_STATE_LOGIN: //called from intro GameIntroSample
-        /// exit out
-        if(gameState!=NULL)
-        {
-            ///cout<< "gameState->Exit();" << endl;
-
-            gameState->Exit();
-        };
         /// create a new state
+    {
         createState(GameEconomicGameClientStateLogin::GetTypeNameStatic(),eventData);
-        break;
-
+    }
+    break;
     case  GAME_STATE_SPLASH: //called from intro GameIntroSample
-        /// exit out
-        if(gameState!=NULL)
-        {
-            gameState->Exit();
-        };
+    {
+
+
         /// create a new state
         createState(GameEconomicGameClientStateSplash::GetTypeNameStatic(),eventData);
-        break;
+    }
+    break;
     case  GAME_STATE_PLAYERCREATE: //called from intro GameIntroSample
-        /// exit out
-        if(gameState!=NULL)
-        {
-            gameState->Exit();
-        };
+    {
         /// create a new state
         createState(GameEconomicGameClientStatePlayer::GetTypeNameStatic(),eventData);
-        break;
-
+    }
+    break;
     case  GAME_STATE_MAINMENU: //called from intro GameIntroSample
-
-        /// exit out
-        if(gameState!=NULL)
-        {
-            gameState->Exit();
-        };
+    {
         /// create a new state
         createState(GameEconomicGameClientStateMainScreen::GetTypeNameStatic(),eventData);
-        break;
-
+    }
+    break;
     case  GAME_STATE_PROGRESS: //called from intro GameIntroSample
-
-        /// exit out
-        if(gameState!=NULL)
-        {
-            gameState->Exit();
-        };
+    {
         /// create a new state
         createState(GameEconomicGameClientStateProgress::GetTypeNameStatic(),eventData);
-        break;
-    case  GAME_STATE_GAMEMODE: //called from intro GameIntroSample
 
-        /// exit out
-        if(gameState!=NULL)
-        {
-            gameState->Exit();
-        };
+    }
+    break;
+    case  GAME_STATE_GAMEMODE: //called from intro GameIntroSample
+    {
         /// create a new state
         createState(GameEconomicGameClientStateGameMode::GetTypeNameStatic(),eventData);
-        break;
+    }
+    break;
     default:
         cout << "Debug: Unkown State " << newState;
         break;
@@ -426,7 +410,7 @@ int GameStateHandlerComponent::GetCameraMode(void)
 
     flag = cameramode;
 
-    return flag;;
+    return flag;
 }
 
 int GameStateHandlerComponent::SetCameraMode(int flag)
@@ -443,7 +427,7 @@ int GameStateHandlerComponent::GetDebugHudMode(void)
 
     flag = debughud;
 
-    return flag;;
+    return flag;
 }
 
 int GameStateHandlerComponent::SetDebugHudMode(int flag)

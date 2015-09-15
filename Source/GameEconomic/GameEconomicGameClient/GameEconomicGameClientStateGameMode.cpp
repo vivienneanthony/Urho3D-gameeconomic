@@ -75,7 +75,8 @@
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../Player.h"
-///#include "../GameEconomicComponents/Starbase.h"
+#include "../GameEconomicComponents/Starbase.h"
+
 
 #include <string>
 #include <iostream>
@@ -776,7 +777,58 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
     /// Get the UI Root element
     UIElement * UIRoot = ui_->GetRoot();
 
-    cout << "output test" << endl;
+    /// If exit was clicked
+    if (clickedButtonString.Contains("StarbaseButton")==true)
+    {
+        /// Get StarbaseNode
+         Node * StarbaseNode = Existence->scene_ ->GetChild("StarbaseNode",true);
+         Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
+
+         ListView * StarbaseDisplayBriefAllNodesListView = (ListView *)UIRoot ->GetChild("StarbaseDisplayBriefAllNodesListView", true);
+
+         unsigned int numberNodes = StarbaseComponent->GetBaseNodes();
+
+         /// Show
+         if(numberNodes>0)
+         {
+             StarbaseDisplayBriefAllNodesListView->RemoveAllItems();
+
+             /// Add new items
+             for(unsigned int i=0; i<numberNodes; i++)
+             {
+                 /// Create new Text
+                 Text * newItem = new Text(context_);
+
+                 newItem->SetEditable(false);
+                 newItem->SetEnabled(true);
+
+                 StarbaseNodeInformation  SceneNode = StarbaseComponent->GetBaseNode(i);
+
+                 /// settext
+                 String CreateString;
+
+                 CreateString.Append(SceneNode.StarbaseNode->GetName());
+                 CreateString.Append(" ");
+                 CreateString.Append(SceneNode.StarbaseNodeType);
+
+                 newItem->SetText(CreateString);
+                 newItem->SetName(String(i));
+
+                 /// Add each selection color
+                 newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+                 newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
+                 /// add to items
+                 StarbaseDisplayBriefAllNodesListView->AddItem(newItem);
+
+                 newItem->SetStyleAuto();
+             }
+
+         }
+
+    }
+
+
 
     return;
 }

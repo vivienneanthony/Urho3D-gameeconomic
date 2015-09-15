@@ -25,8 +25,8 @@ Starbase::Starbase(Context * context):
 {
 
     /// Create a new vector
-    ///StarbaseNodes = new Vector<StarbaseNodeInformation>();
-    StarbaseNodes.Clear();
+    StarbaseNodes = new Vector<StarbaseNodeInformation>();
+ ///   StarbaseNodes.Clear();
 
     return;
 }
@@ -59,13 +59,14 @@ void Starbase::Start(void)
 /// Public Variables
 unsigned int Starbase::GetBaseNodes(void)
 {
-    return StarbaseNodes.Size();
+    return StarbaseNodes->Size();
+
 
 }
 
 StarbaseNodeInformation Starbase::GetBaseNode(unsigned int idx)
 {
-    StarbaseNodeInformation ReturnNode = StarbaseNodes.At(idx);
+    StarbaseNodeInformation ReturnNode = StarbaseNodes->At(idx);
 
     return ReturnNode;
 }
@@ -73,10 +74,12 @@ StarbaseNodeInformation Starbase::GetBaseNode(unsigned int idx)
 void Starbase::PushNode(Node * NewNode, ResourceComponentType NewNodeComponentType)
 {
     /// Create a new node
-    StarbaseNodeInformation SaveNode;
+    StarbaseNodeInformation * SaveNode = new StarbaseNodeInformation();
 
-    SaveNode.StarbaseNode=NewNode;
-    SaveNode.StarbaseNodeType=NewNodeComponentType;
+    SaveNode->StarbaseNode=NewNode;
+    SaveNode->StarbaseNodeType=NewNodeComponentType;
 
-    StarbaseNodes.Push(SaveNode);
+///    StarbaseNodes->Push(SaveNode);
+
+    return;
 }

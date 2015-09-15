@@ -71,6 +71,8 @@ public:
     int GetDebugHudMode(void);
     int SetDebugHudMode(int flag);
 
+
+
 private:
     /// Made the gameState a shared to keep in memory
     GameEconomicGameClientStateSingleton *  gameState;
@@ -85,6 +87,7 @@ private:
     int debughud;
 
     String state;
+
 };
 
 #endif // GAMESTATEHANDLER_H

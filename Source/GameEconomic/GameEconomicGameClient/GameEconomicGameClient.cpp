@@ -85,7 +85,7 @@
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../GameEconomicComponents/ResourceComponent.h"
 #include "../GameEconomicComponents/ResourceManager.h"
-#include "../GameEconomicComponents/Starbase.h"
+///#include "../GameEconomicComponents/Starbase.h"
 
 #include <string>
 #include <iostream>
@@ -132,7 +132,7 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
     ResourceManager::RegisterObject(context);
     ResourceComponent::RegisterObject(context);
     ResourceNodeComponent::RegisterObject(context);
-    Starbase::RegisterObject(context);
+///    Starbase::RegisterObject(context);
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
 
@@ -201,13 +201,14 @@ void GameEconomicGameClient::Start()
     /// create variables (urho3d)
     String additionresourcePath;
 
+    /// Append Resource path
     additionresourcePath.Append(filesystem->GetProgramDir().CString());
     additionresourcePath.Append("Resources/");
 
     /// add resource path to last
     cache -> AddResourceDir(additionresourcePath);
 
-    ///
+    /// Load COnfiguration
     GameConfig = new Configuration();
 
     LoadConfiguration(*GameConfig);
@@ -247,7 +248,7 @@ void GameEconomicGameClient::Start()
     ///LoadAccount();
 
     /// Create test value
-    testvalue=911;
+    testvalue=121;
 
     /// Debug output context and testvalue
     cout << "Debug: ExistenceClient Class Test Value " << testvalue << " context_ " << &context_ << endl;
@@ -263,7 +264,6 @@ void GameEconomicGameClient::Start()
     cout << "Debig: Existence App Existence " << applicationPtr ->GetTestString()<< endl;
 
     /// Create test value
-    testvalue=121;
 
     cout << "Debig: Existence App Existence " << applicationPtr ->GetTestString()<< endl;
 

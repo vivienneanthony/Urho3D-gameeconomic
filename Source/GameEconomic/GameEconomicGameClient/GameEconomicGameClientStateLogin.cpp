@@ -110,6 +110,7 @@ class GameEconomicGameClient;
 /// State Login Constructor
 GameEconomicGameClientStateLogin::GameEconomicGameClientStateLogin(Context * context)
     :GameEconomicGameClientStateSingleton(context)
+    ,Existence(NULL)
 {
     /// Debug
     cout << "Debug: State Login Constructor" << endl;
@@ -117,12 +118,8 @@ GameEconomicGameClientStateLogin::GameEconomicGameClientStateLogin(Context * con
     /// Get component
     GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
 
-    cout << "it got here 1" << endl;
-
     /// Set aApplication
     Existence = gamestatehandlercomponent_->GetApplication();
-
-    cout << "it didnt here 2" << endl;
 
     /// Set UI State
     gamestatehandlercomponent_->SetUIState(UI_LOGININTERFACE);
@@ -152,8 +149,6 @@ void GameEconomicGameClientStateLogin::Enter()
     /// Attach a listen
     SubscribeToEvent(N_SERVER_RESPONSE, HANDLER(GameEconomicGameClientStateLogin, ServerResponseHandler));
 
-    cout << "it got here" << endl;
-
     /// Login function start when entered
     LoginScreenUI();
 
@@ -166,7 +161,7 @@ void GameEconomicGameClientStateLogin::Enter()
 /// State Login Exit
 void GameEconomicGameClientStateLogin::Exit()
 {
-    UnsubscribeFromAllEvents();
+    ///UnsubscribeFromAllEvents();
 
     /// Debug
     cout << "Debug: State Login Exit" << endl;
@@ -380,15 +375,6 @@ void GameEconomicGameClientStateLogin::LoginScreenUILoginHandleClosePressed(Stri
     /// Connect to server with the current network configuration
     Existence->ConnectLogin(Existence->NetConfig);
 
-    /*
-        /// Remove Existence Logo Node if it exist
-        if(Existence->scene_->GetChild("ExistenceLogo",true))
-        {
-            Existence->scene_->GetChild("ExistenceLogo",true)->RemoveAllComponents();
-            Existence->scene_->GetChild("ExistenceLogo",true)->Remove();
-
-        }
-    */
     return;
 }
 

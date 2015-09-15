@@ -13,10 +13,11 @@
 #include "../../../Urho3D/Scene/LogicComponent.h"
 #include "../../../Urho3D/Graphics/Light.h"
 
-#include "../Starbase.h"
-#include "../ResourceComponent.h"
-
 #include "Resource.h"
+#include "../ResourceComponent.h"
+#include "../Starbase.h"
+
+
 
 /// define Player information
 #include <iostream>
@@ -53,9 +54,8 @@ public:
     StarbaseNodeInformation GetBaseNode(unsigned int idx);
 
 protected:
-    Vector <StarbaseNodeInformation> StarbaseNodes;
+    Vector <StarbaseNodeInformation> * StarbaseNodes;
 private:
-
 
 };
 

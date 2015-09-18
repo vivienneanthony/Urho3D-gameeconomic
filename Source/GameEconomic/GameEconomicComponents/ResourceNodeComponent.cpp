@@ -169,7 +169,7 @@ void ResourceNodeComponent::FixedUpdate(float timeStep)
         double currentPower = ThisPower->GetPower();
         double MininiumPowerRequirement = 3200.0f;
 
-        cout << currentPower-MininiumPowerRequirement << endl;
+        ///cout << currentPower-MininiumPowerRequirement << endl;
 
         /// If currentPower less then the minimium requirement
         if(currentPower-MininiumPowerRequirement<0.0f)
@@ -195,7 +195,7 @@ void ResourceNodeComponent::FixedUpdate(float timeStep)
         double currentPower = ThisPower->GetPower();
         double MininiumPowerRequirement = 10.0f;
 
-        cout << currentPower-MininiumPowerRequirement << endl;
+        ///cout << currentPower-MininiumPowerRequirement << endl;
 
         /// If currentPower less then the minimium requirement
         if(currentPower-MininiumPowerRequirement<0.0f)
@@ -222,7 +222,7 @@ void ResourceNodeComponent::FixedUpdate(float timeStep)
         double currentPower = ThisPower->GetPower();
         double MininiumPowerRequirement = 10.0f;
 
-        cout << currentPower-MininiumPowerRequirement << endl;
+        ///cout << currentPower-MininiumPowerRequirement << endl;
 
         /// If currentPower less then the minimium requirement
         if(currentPower-MininiumPowerRequirement<0.0f)

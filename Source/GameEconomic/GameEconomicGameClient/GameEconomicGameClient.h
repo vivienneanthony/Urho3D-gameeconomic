@@ -506,7 +506,7 @@ public:
 
     void HandleUpdate(StringHash eventType, VariantMap& eventData);
     void OnMoveCamera(float timeStep);
-    bool Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode);
+    bool Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode, IntVector2& hitMousePosition);
     void GetTargetPressed(void);
 
 private:

@@ -86,6 +86,7 @@
 #include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/PowerComponent.h"
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
+#include "../GameEconomicComponents/InteractObject.h"
 #include "../ServerResponse.h"
 #include "../Networking.h"
 
@@ -327,7 +328,7 @@ void GameEconomicGameClientStateProgress::ServerResponseHandler(StringHash event
         }
         else
         {
-            cout << "Problem occurred";
+            ///cout << "Problem occurred";
             return;
         }
     }
@@ -335,7 +336,7 @@ void GameEconomicGameClientStateProgress::ServerResponseHandler(StringHash event
     /// if Account Authentication
     if(cmdType==ServerResponse_SentStarbase)
     {
-        cout << cmdArg.CString()<<endl;
+        ///cout << cmdArg.CString()<<endl;
 
         /// If unauthorized
         if(cmdArg==String("|0|0"))
@@ -794,9 +795,9 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     if(LookupInfo.ResourceID==-1)
     {
         LookupInfo.ResourceType=RCType_None;
-        cout << ResourceNamed.CString() << endl;
-        cout << resourcevalue << endl;
-        cout << resourcevalue+'$'+1 << endl;
+        //cout << ResourceNamed.CString() << endl;
+        //cout << resourcevalue << endl;
+        //cout << resourcevalue+'$'+1 << endl;
 
     }
 
@@ -1325,10 +1326,10 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         Printerlight->SetLightType(LIGHT_POINT);
         Printerlight->SetCastShadows(true);
         Printerlight->SetSpecularIntensity(0.0f);
-        Printerlight->SetBrightness(.6);
+        Printerlight->SetBrightness(.8);
         Printerlight->SetColor(Color(1.0f,1.0f,0.0f));
         Printerlight->SetFov(30);
-        Printerlight->SetRange(2);
+        Printerlight->SetRange(3);
 
         PrinterlightNode->SetPosition(Vector3(0.0f,.5f,0.0f));
         PrinterlightNode->SetName("Generic_Light");
@@ -1338,10 +1339,12 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
         PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+        ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
 
         ObjectResourceComponent->SetResourceComponentType(RCType_ReplicationPrinter);
         ObjectResourcePower->Initialize();
 
+        ObjectStaticNode->CreateComponent<InteractObject>();
 
 
         /// first one
@@ -1425,6 +1428,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         ObjectResourceComponent = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
         ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+        ObjectStaticNode->CreateComponent<InteractObject>();
 
         ObjectResourceComponent->SetResourceComponentType(RCType_RefrigerationUnit);
         ObjectResourcePower->Initialize();

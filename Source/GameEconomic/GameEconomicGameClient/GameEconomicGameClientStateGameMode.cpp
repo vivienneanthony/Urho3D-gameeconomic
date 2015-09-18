@@ -77,6 +77,7 @@
 #include "../Player.h"
 #include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/PowerComponent.h"
+#include "../GameEconomicComponents/InteractObject.h"
 
 
 #include <string>
@@ -131,7 +132,7 @@ GameEconomicGameClientStateGameMode::GameEconomicGameClientStateGameMode(Context
     SubscribeToEvent(E_POSTUPDATE,HANDLER(GameEconomicGameClientStateGameMode,HandlerPostUpdates));
 
     /// Subscribe to event (Listen to Load Change)
-    //SubscribeToEvent(INTERACTEVENT, HANDLER(GameEconomicGameClientStateGameMode, InteractListener));
+    SubscribeToEvent(INTERACTEVENT, HANDLER(GameEconomicGameClientStateGameMode, InteractListener));
 
     return;
 }
@@ -321,8 +322,11 @@ void GameEconomicGameClientStateGameMode::HandleUpdate(StringHash eventType, Var
     /// Move the camera, scale movement with time step
     OnMoveCamera(timeStep);
 
-    /// Get TargetPressed
-    GetTargetPressed();
+    // Paint decal with the left mousebutton; cursor must be visible
+    if (GetSubsystem<UI>()->GetCursor()->IsVisible() && input->GetMouseButtonPress(MOUSEB_LEFT))
+    {
+        GetTargetPressed();
+    }
 
     return;
 }
@@ -418,57 +422,61 @@ void GameEconomicGameClientStateGameMode::HandlerPostUpdates(StringHash eventTyp
 /// check if key was pressed
 void GameEconomicGameClientStateGameMode::GetTargetPressed(void)
 {
-    /*/// Data Needed
+    // Data Needed
     Vector3 hitPos;
     Node* hitNode;
-
+    IntVector2 hitMousePosition;
     /// blank Node for now
     hitNode = NULL;
 
     /// Raycast function
-    if (Raycast(250.0f, hitPos, hitNode)==true)
+    if (Raycast(250.0f, hitPos, hitNode,hitMousePosition)==true)
     {
-
         /// Debug
-        cout << "Debug : " << hitNode -> GetName().CString() << endl;
+        //cout << "Debug : " << hitNode -> GetName().CString() << endl;
+        cout <<  hitMousePosition.ToString().CString() << endl;
 
-        /*if(InteractObject * interactable = hitNode->GetComponent<InteractObject>())
+        /// Get object and position
+        if(InteractObject * interactable = hitNode->GetComponent<InteractObject>())
         {
-
             /// setup event data
             VariantMap eventData;
 
             /// Send Load Event
-            eventData[InteractEvent::P_CMD] = 1;
-            eventData[InteractEvent::P_ARG] = hitPos.ToString();
-            eventData[InteractEvent::P_OBJ] = hitNode -> GetName();
+            eventData[InteractEvent::P_NODE] = hitNode;
+            eventData[InteractEvent::P_HITPOSITION] = hitPos;
+            eventData[InteractEvent::P_MOUSEPOSITION] = hitMousePosition;
+            eventData[InteractEvent::P_OBJ] = this;
 
             /// Send event
             SendEvent(INTERACTEVENT, eventData);
+        }
 
-        }*/
-
-
+    }
 
     return;
 }
 
 /// test raycasts
-bool GameEconomicGameClientStateGameMode::Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode)
+bool GameEconomicGameClientStateGameMode::Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode, IntVector2& hitMousePosition)
 {
 
     /// Get subsystems
     UI* ui = GetSubsystem<UI>();
     Graphics* graphics = GetSubsystem<Graphics>();
 
-    IntVector2 pos = ui->GetCursorPosition();
+    /// first get the mouse position
+    hitMousePosition = ui->GetCursorPosition();
+
+
+    IntVector2 pos=hitMousePosition;
 
     /// Check the cursor is visible and there is no UI element in front of the cursor
     if (!ui->GetCursor()->IsVisible() || ui->GetElementAt(pos, true))
         return false;
 
     /// Get the camera position
-    Node * cameraNode_ = Existence -> scene_ -> GetChild("CameraFirstPerson",true);
+    Node * cameraNode_ = Existence -> scene_ -> GetChild("Camera",true);
     Camera* camera = cameraNode_->GetComponent<Camera>();
 
     /// If node doesn't exist
@@ -504,6 +512,22 @@ bool GameEconomicGameClientStateGameMode::Raycast(float maxDistance, Vector3& hi
 /// Handle updates
 void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType, VariantMap& eventData)
 {
+
+UI* ui_ = GetSubsystem<UI>();
+    UIElement * UIRoot_ = ui_ -> GetRoot();
+
+
+    /// intercept state event
+    Node * hitNode=  dynamic_cast<Node *>(eventData[InteractEvent::P_NODE].GetPtr());
+    Vector3 hitPosition = eventData[InteractEvent::P_HITPOSITION].GetVector3();
+    IntVector2 hitMousePosition = eventData[InteractEvent::P_MOUSEPOSITION].GetIntVector2();
+    Node * sender=  dynamic_cast<Node *>(eventData[InteractEvent::P_OBJ].GetPtr());
+
+    LoadUIXML(UIGAME_UIINTERACT,0,0);
+
+    Window * TestingDisplayBriefWindow = (Window *) UIRoot_->GetChild("TestingDisplayBriefWindow", true);
+
+    TestingDisplayBriefWindow->SetPosition(hitMousePosition.x_,hitMousePosition.y_);
 
     return;
 }
@@ -644,6 +668,24 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         /// Append the file
         filenameHUD.Append("Resources/UI/GameStarbaseDisplayBrief.xml");
     }
+
+
+/// chose based on menu type
+    if(windowtype==UIGAME_UIINTERACT)
+    {
+        /// If window exist
+        UIElement * StarbaseDisplayBriefUIElement= GameModeUIElement->GetChild("TestingUIElement",true);
+
+        /// if the window exist exit
+        if(StarbaseDisplayBriefUIElement)
+        {
+            return 0;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/Testing.xml");
+    }
+
 
     XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
 
@@ -1001,3 +1043,5 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
 
     return;
 }
+
+

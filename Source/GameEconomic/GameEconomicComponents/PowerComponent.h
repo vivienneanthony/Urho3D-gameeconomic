@@ -1,5 +1,5 @@
-#ifndef RESOURCEMANAGERNODECOMPONENT_H_INCLUDE
-#define RESOURCEMANAGERNODECOMPONENT_H_INCLUDE
+#ifndef POWERCOMPONENT_H_INCLUDE
+#define POWERCOMPONENT_H_INCLUDE
 //
 // Copyright (c) 2008-2014 the Urho3D project.
 //
@@ -27,46 +27,55 @@
 #include "../../../Urho3D/Core/Context.h"
 #include "../../../Urho3D/Resource/ResourceCache.h"
 #include "../../../Urho3D/Scene/Node.h"
-#include "Resource.h"
-#include "ResourceComponent.h"
+
+//#include "PowerComponent.h"
+#include "ResourceNodeComponent.h"
 
 using namespace Urho3D;
 using namespace std;
 
-/// Character component, responsible for physical movement according to controls, as well as animation.
-class ResourceNodeComponent : public LogicComponent
+enum PowerType
 {
-    OBJECT(ResourceNodeComponent)
+    PT_None,
+    PT_Source,
+    PT_Node
+};
+
+/// Character component, responsible for physical movement according to controls, as well as animation.
+class PowerComponent : public LogicComponent
+{
+    OBJECT(PowerComponent);
+
 public:
     /// Construct.
-    ResourceNodeComponent(Context* context);
+    PowerComponent(Context* context);
+    virtual  ~PowerComponent(void);
 
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
+
 
     /// Handle startup. Called by LogicComponent base class.
     virtual void Start();
     /// Handle update. Called by LogicComponent base class.
     virtual void FixedUpdate(float timeStep);
 
-    /// Get Resource Type;
-    ResourceComponentType GetResourceComponentType(void);
-    void SetResourceComponentType(ResourceComponentType SetType);
+    /// Initialize
+    void Initialize(void);
 
     void SetPower(double SetPowerTo);
-    bool IsOnline(void);
+    double GetPower(void);
 
 private:
-    /// Component information
-    String ResourceNode_Name;
-    ResourceComponentType ResourceNode_Type;
+    /// Input and outpower
+    double InputPower;
+    double OutputPower;
 
-    /// IsOnline
-    bool IsOnlineFlag;
+    /// define the power classification
+    PowerType PowerClassification;
 
-    /// Node Resources
-    Vector<ResourceInformation> NodeResources;
-
+    /// Parent Node
+    ResourceNodeComponent * PowerResources;
 };
 
 #endif // GAMEOBJECT_H_INCLUDED

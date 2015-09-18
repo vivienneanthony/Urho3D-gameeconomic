@@ -32,10 +32,13 @@
 #include "../../../Urho3D/Scene/SceneEvents.h"
 #include "../../../Urho3D/Scene/LogicComponent.h"
 #include "../../../Urho3D/Core/Timer.h"
+#include "../../../Urho3D/Graphics/Light.h"
+#include "../../../Urho3D/Graphics/StaticModel.h"
 
 #include "ResourceNodeComponent.h"
 #include "ResourceComponent.h"
 #include "ResourceManager.h"
+#include "PowerComponent.h"
 
 using namespace Urho3D;
 
@@ -43,7 +46,8 @@ using namespace std;
 /// Base code
 ResourceNodeComponent::ResourceNodeComponent(Context* context) :
     LogicComponent(context),
-    ResourceNode_Type(RCType_None)
+    ResourceNode_Type(RCType_None),
+    IsOnlineFlag(false)
 {
     /// Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
@@ -74,11 +78,166 @@ void ResourceNodeComponent::Start()
     return;
 }
 
+/// Get Resource Type;
+ResourceComponentType ResourceNodeComponent::GetResourceComponentType(void)
+{
+    /// Return the resource type
+    return ResourceNode_Type;
+}
+
+/// Get Resource Type;
+void ResourceNodeComponent::SetResourceComponentType(ResourceComponentType SetType)
+{
+    /// Return the resource type
+    ResourceNode_Type=SetType;
+
+    return;
+}
+
+void ResourceNodeComponent::SetPower(double SetPowerTo)
+{
+    Node * ThisNode = this->GetNode();
+    PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+
+    /// If SetPower Exist
+    if(ThisPower)
+    {
+        ThisPower->SetPower(SetPowerTo);
+    }
+}
+
+bool ResourceNodeComponent::IsOnline(void)
+{
+    return IsOnlineFlag;
+}
+
 /// Fix update
 void ResourceNodeComponent::FixedUpdate(float timeStep)
 {
-    return;
+    /// Iff resource is a light
+    if(ResourceNode_Type==RCType_Light)
+    {
+        /// set Power requirement to 400
+        Node * ThisNode = this->GetNode();
+        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
 
+        /// Set Minimum Requirement
+        double currentPower = ThisPower->GetPower();
+        double MininiumPowerRequirement = 400.0f;
+
+        /// Get Light
+        Node * ThisLightNode = ThisNode->GetChild("Generic_Light");
+        Light * ThisLight = ThisLightNode->GetComponent<Light>();
+
+        /// If currentPower less then the minimium requirement
+        if(currentPower-MininiumPowerRequirement<0.0f)
+        {
+            /// if Online then turn offline
+            if(IsOnlineFlag==true)
+            {
+                /// Set is Onflag to true;
+                IsOnlineFlag=false;
+
+                /// Turn Light Off
+                ThisLight->SetBrightness(0.0f);
+            }
+        }
+        else
+        {
+            /// Compute usablee range
+            double CreatePower= currentPower/MininiumPowerRequirement;
+
+            /// make sure power is 1.0f or below
+            CreatePower = CreatePower>1.0f?1.0f:CreatePower;
+
+            CreatePower*=.37f;  /// Set Resistance
+            ThisLight->SetBrightness(CreatePower);
+
+            IsOnlineFlag=true;
+        }
+    }
+
+
+    /// If resource is a light
+    if(ResourceNode_Type==RCType_Forcefield)
+    {
+        Node * ThisNode = this->GetNode();
+        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+
+
+        /// Set Minimum Requirement
+        double currentPower = ThisPower->GetPower();
+        double MininiumPowerRequirement = 3200.0f;
+
+        cout << currentPower-MininiumPowerRequirement << endl;
+
+        /// If currentPower less then the minimium requirement
+        if(currentPower-MininiumPowerRequirement<0.0f)
+        {
+            ///cout << "Forcefield off " << endl;
+
+        }
+        else
+        {
+            /// cout << "Forcefield on " << endl;
+        }
+    }
+
+
+    /// If resource is a light
+    if(ResourceNode_Type==RCType_RefrigerationUnit)
+    {
+        Node * ThisNode = this->GetNode();
+        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+
+
+        /// Set Minimum Requirement
+        double currentPower = ThisPower->GetPower();
+        double MininiumPowerRequirement = 10.0f;
+
+        cout << currentPower-MininiumPowerRequirement << endl;
+
+        /// If currentPower less then the minimium requirement
+        if(currentPower-MininiumPowerRequirement<0.0f)
+        {
+            ///cout << "Forcefield off " << endl;
+
+        }
+        else
+        {
+            /// cout << "Forcefield on " << endl;
+        }
+    }
+
+
+
+    /// If resource is a light
+    if(ResourceNode_Type==RCType_ReplicationPrinter)
+    {
+        Node * ThisNode = this->GetNode();
+        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+
+
+        /// Set Minimum Requirement
+        double currentPower = ThisPower->GetPower();
+        double MininiumPowerRequirement = 10.0f;
+
+        cout << currentPower-MininiumPowerRequirement << endl;
+
+        /// If currentPower less then the minimium requirement
+        if(currentPower-MininiumPowerRequirement<0.0f)
+        {
+            ///cout << "Forcefield off " << endl;
+
+        }
+        else
+        {
+            /// cout << "Forcefield on " << endl;
+        }
+    }
+
+
+    return;
 }
 
 

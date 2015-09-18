@@ -76,6 +76,7 @@
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../Player.h"
 #include "../GameEconomicComponents/Starbase.h"
+#include "../GameEconomicComponents/PowerComponent.h"
 
 
 #include <string>
@@ -287,6 +288,12 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
 
     /// Attach a listen
     SubscribeToEvent(G_MODE_CHANGE, HANDLER(GameEconomicGameClientStateGameMode, GameModeSendEventHandler));
+
+    /// Get StarbaseNode
+    Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
+    Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
+
+    StarbaseComponent->SetOnline(true);
 
 
 
@@ -674,6 +681,14 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         Button * StarbaseDisplayBriefDiagnosticButton = (Button *) HUDFileElement -> GetChild("StarbaseDisplayBriefDiagnosticButton",true);
 
         SubscribeToEvent(StarbaseDisplayBriefDiagnosticButton,E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleUIStarbaseBriefButtonPressed));
+
+        /// Get StarbaseNode
+        Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
+        Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
+
+        double TotalPower=StarbaseComponent->GetTotalPower();
+        double UsedPower=StarbaseComponent->GetUsedPower();
+
     }
 
     /// Get the child and assign a close pressed
@@ -723,6 +738,30 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
 
         /// If window exist
         BriefWindow->SetPosition((Width/2)-(BriefWindow->GetWidth()/2),(Height/2)-(BriefWindow->GetHeight()/2));
+
+        /// Update Title
+        /// Get StarbaseNode
+        Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
+        Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
+
+        Text * StarbaseNameText = (Text *) BriefWindow->GetChild("StarbaseName",true);
+        StarbaseNameText->SetText(Existence->ThisStarbase->Name);
+
+
+        /// Get poewr
+        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPower",true);
+        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPower",true);
+
+        double TotalPower = StarbaseComponent->GetTotalPower();
+        double UsedPower = StarbaseComponent->GetUsedPower();
+
+        String TotalPowerString = String("Total Power :")+String(TotalPower);
+        String UsedPowerString = String("Used Power :")+String(TotalPower-UsedPower);
+
+        StarbaseTotalPower->SetText(TotalPowerString);
+        StarbaseUsedPower->SetText(UsedPowerString);
+
+
 
     }
 
@@ -778,54 +817,184 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
     UIElement * UIRoot = ui_->GetRoot();
 
     /// If exit was clicked
-    if (clickedButtonString.Contains("StarbaseButton")==true)
+    if (clickedButtonString.Contains("StarbaseDisplayBriefDiagnosticButton")==true)
     {
+
+
         /// Get StarbaseNode
-         Node * StarbaseNode = Existence->scene_ ->GetChild("StarbaseNode",true);
-         Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
+        Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
+        Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
 
-         ListView * StarbaseDisplayBriefAllNodesListView = (ListView *)UIRoot ->GetChild("StarbaseDisplayBriefAllNodesListView", true);
+        ListView * StarbaseDisplayBriefAllNodesListView = (ListView *)UIRoot ->GetChild("StarbaseDisplayBriefAllNodesListView", true);
 
-         unsigned int numberNodes = StarbaseComponent->GetBaseNodes();
+        /// Get the Window
+        Window * BriefWindow = (Window *) UIRoot->GetChild("StarbaseDisplayBriefWindow",true);
 
-         /// Show
-         if(numberNodes>0)
-         {
-             StarbaseDisplayBriefAllNodesListView->RemoveAllItems();
+        /// Get poewr
+        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPower",true);
+        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPower",true);
 
-             /// Add new items
-             for(unsigned int i=0; i<numberNodes; i++)
-             {
-                 /// Create new Text
-                 Text * newItem = new Text(context_);
+        double TotalPower = StarbaseComponent->GetTotalPower();
+        double UsedPower = StarbaseComponent->GetUsedPower();
 
-                 newItem->SetEditable(false);
-                 newItem->SetEnabled(true);
+        String TotalPowerString = String("Total Power :")+String(TotalPower);
+        String UsedPowerString = String("Used Power :")+String(TotalPower-UsedPower);
 
-                 StarbaseNodeInformation  SceneNode = StarbaseComponent->GetBaseNode(i);
+        StarbaseTotalPower->SetText(TotalPowerString);
+        StarbaseUsedPower->SetText(UsedPowerString);
 
-                 /// settext
-                 String CreateString;
 
-                 CreateString.Append(SceneNode.StarbaseNode->GetName());
-                 CreateString.Append(" ");
-                 CreateString.Append(SceneNode.StarbaseNodeType);
+        unsigned int numberNodes = StarbaseComponent->GetBaseNodes();
 
-                 newItem->SetText(CreateString);
-                 newItem->SetName(String(i));
+        /// Show
+        if(numberNodes>0)
+        {
+            StarbaseDisplayBriefAllNodesListView->RemoveAllItems();
 
-                 /// Add each selection color
-                 newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
-                 newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+            /// Add new items
+            for(unsigned int i=0; i<numberNodes; i++)
+            {
+                /// Create new Text
+                Text * newItem = new Text(context_);
 
-                 /// add to items
-                 StarbaseDisplayBriefAllNodesListView->AddItem(newItem);
+                newItem->SetEditable(false);
+                newItem->SetEnabled(true);
 
-                 newItem->SetStyleAuto();
-             }
+                StarbaseNodeInformation  SceneNode = StarbaseComponent->GetBaseNode(i);
 
-         }
+                /// settext
+                String CreateString;
 
+                CreateString.Append(SceneNode.StarbaseNode->GetName());
+                CreateString.Append(" <");
+
+                /// OPen the component to get the power
+                PowerComponent * StarbaseNodePowerComponent = SceneNode.StarbaseNode->GetComponent<PowerComponent>();
+
+                double CurrentPower = StarbaseNodePowerComponent->GetPower();
+
+                switch (SceneNode.StarbaseNodeType)
+                {
+                case RCType_Component:
+                {
+                    CreateString.Append("Component");
+                }
+                break;
+                case RCType_Forcefield:
+                {
+                    CreateString.Append("Forcefield");
+
+                    /// Copy to string
+                    CreateString.Append(" Power:");
+                    CreateString.Append(String(CurrentPower));
+                }
+                break;
+                case RCType_Light:
+                {
+                    CreateString.Append("Light");
+
+                    /// If a lightnode exist
+                    if(Node * LightNode = SceneNode.StarbaseNode -> GetChild("Generic_Light", true))
+                    {
+
+                        /// Get the component
+                        Light * SceneNodeLight = LightNode->GetComponent<Light>();
+
+                        /// If component exist
+                        if(SceneNodeLight)
+                        {
+                            /// Get Brightness
+                            float LightBrightness = SceneNodeLight->GetBrightness();
+                            CreateString.Append(" Power:");
+                            CreateString.Append(String(CurrentPower));
+
+                            /// Copy to string
+                            CreateString.Append(" Brightness:");
+                            CreateString.Append(String(LightBrightness));
+                        }
+                    }
+                }
+                break;
+                case RCType_PeriodicElement:
+                {
+                    CreateString.Append("PeriodicElement");
+                }
+                break;
+                case RCType_PeriodicUnidentified:
+                {
+                    CreateString.Append("PeriodicUnidentifield");
+                }
+                break;
+                case RCType_RawMaterial:
+                {
+                    CreateString.Append("RawMaterial");
+                }
+                break;
+
+                case RCType_Structural:
+                {
+                    CreateString.Append("Structural");
+                }
+                break;
+
+                case RCType_Tool:
+                {
+                    CreateString.Append("Tool");
+                }
+                break;
+                case RCType_ReplicationPrinter:
+                {
+                    CreateString.Append("ReplicationPrinter");
+                    /// Copy to string
+                    CreateString.Append(" Power:");
+                    CreateString.Append(String(CurrentPower));
+                }
+                case RCType_RefrigerationUnit:
+                {
+                    CreateString.Append("RefrigerationUnit");
+                    /// Copy to string
+                    CreateString.Append(" Power:");
+                    CreateString.Append(String(CurrentPower));
+                }
+                break;
+                case RCType_PowerSource:
+                {
+                    CreateString.Append("PowerSource");
+                    /// Copy to string
+                    CreateString.Append(" Power:");
+                    CreateString.Append(String(CurrentPower));
+                }
+                break;
+                case RCType_NotApplicable:
+                {
+                    CreateString.Append("N/A");
+                }
+                break;
+
+                case RCType_None:
+
+                default:
+                {
+                    CreateString.Append("None");
+                }
+                break;
+
+                }
+                CreateString.Append(">");
+
+                newItem->SetText(CreateString);
+                newItem->SetName(String(i));
+
+                /// Add each selection color
+                newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+                newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
+                /// add to items
+                StarbaseDisplayBriefAllNodesListView->AddItem(newItem);
+
+                newItem->SetStyleAuto();
+            }
+        }
     }
 
 

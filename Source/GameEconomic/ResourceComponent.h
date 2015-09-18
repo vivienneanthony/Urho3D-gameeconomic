@@ -13,6 +13,9 @@ enum ResourceComponentType
     RCType_Forcefield,
     RCType_Structural,
     RCType_Light,
+    RCType_PowerSource,
+    RCType_ReplicationPrinter,
+    RCType_RefrigerationUnit,
     RCType_NotApplicable=99999
 };
 

@@ -46,17 +46,29 @@ public:
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
 
+ /// Handle update. Called by LogicComponent base class.
+    virtual void FixedUpdate(float timeStep);
+
     void Start(void);
     void PushNode(Node * NewNode, ResourceComponentType NewNodeComponentType);
+
+    void SetOnline(bool SetOnline);
+
+    double GetUsedPower(void);
+    double GetTotalPower(void);
 
     /// Public Variables
     unsigned int GetBaseNodes(void);
     StarbaseNodeInformation GetBaseNode(unsigned int idx);
-
 protected:
-    Vector <StarbaseNodeInformation> * StarbaseNodes;
-private:
 
+private:
+    Vector <StarbaseNodeInformation> * StarbaseNodes;
+
+    double TotalPower;
+    double UsedPower;
+
+    bool IsOnline;
 };
 
 #endif // Starbase_H

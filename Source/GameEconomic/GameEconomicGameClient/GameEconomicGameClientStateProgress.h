@@ -14,7 +14,7 @@ enum MapDataElementType
     MapDataElement_StructureWall,
     MapDataElement_StructureRoof,
     MapDataElement_StructureCeiling,
-    MapDataElement_StructureForceFieldBayDoor,
+    MapDataElement_ForceFieldBayDoor,
     MapDataElement_ElementCeilingLight,
     MapDataElement_CargoAreaMarker
 };

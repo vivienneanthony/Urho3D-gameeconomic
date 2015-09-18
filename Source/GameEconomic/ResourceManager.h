@@ -110,35 +110,57 @@ static const ResourceComponentType ComponentsToolsTypeIdentifiers[]=
 ///Tier 4
 static const char * PrimaryResourcesNameIdentifiers[] =
 {
-    "Floor","Wall2","Wall3","Wall4","Wall5","Wall6","Wall7","Wall8","Wall9","Wall10","Wall11","Wall12","Wall13","Wall14","Wall15","Wall16","Wall17","Wall18","Ceiling","Forcefield","Forcefield","Forcefield","Forcefield","Light"
+    "Floor","Wall2","Wall3","Wall4","Wall5","Wall6","Wall7","Wall8","Wall9","Wall10","Wall11","Wall12","Wall13","Wall14","Wall15","Wall16","Wall17","Wall18","Ceiling","Structure","Structure","Structure", "Forcefield","Forcefield","Forcefield","Forcefield","Light"
 };
 
 static const char * PrimaryResourcesSymbolIdentifiers[] =
 {
 
-    "GenericType1","GenericType2","GenericType3","GenericType4","GenericType5","GenericType6","GenericType7","GenericType8","GenericType9","GenericType10","GenericType11","GenericType12","GenericType13","GenericType14","GenericType15","GenericType16","GenericType17","GenericType18","GenericType19","GenericType24","GenericType25","GenericType26","GenericType27","GenericType28"
+    "GenericType1","GenericType2","GenericType3","GenericType4","GenericType5","GenericType6","GenericType7","GenericType8","GenericType9","GenericType10","GenericType11","GenericType12","GenericType13","GenericType14","GenericType15","GenericType16","GenericType17","GenericType18","GenericType19","GenericType20","GenericType21","GenericType22","GenericType24","GenericType25","GenericType26","GenericType27","GenericType28"
 };
 
 static const char * PrimaryResourcesCompositeResourceIdentifiers[] =
 {
 
-    "StainlessSteel:100","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:100","","","","","StainlessSteel:2:LedMatrixEmitter:1:AlimuGlass:4"
+    "StainlessSteel:100","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:200","StainlessSteel:100","","","","","","","StainlessSteel:2:LedMatrixEmitter:1:AlimuGlass:4"
 };
 
 static const float PrimaryResourcesDensityIdentifiers[]=
 {
 
-    1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f
+    1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f
 };
 
 static const ResourceComponentState PrimaryResourcesStateIdentifiers[]=
 {
-    RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_NotApplicable,RCState_NotApplicable,RCState_NotApplicable,RCState_NotApplicable,RCState_Solid
+    RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_Solid,RCState_NotApplicable,RCState_NotApplicable,RCState_NotApplicable,RCState_NotApplicable,RCState_Solid
 };
 
 static const ResourceComponentType PrimaryResourcesTypeIdentifiers[]=
 {
-    RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Structural,RCType_Forcefield,RCType_Forcefield,RCType_Forcefield,RCType_Forcefield,RCType_Light
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Structural,
+    RCType_Forcefield,
+    RCType_Structural,RCType_Forcefield,RCType_Forcefield,RCType_Forcefield,RCType_Light
 };
 
 

@@ -84,6 +84,7 @@
 
 #include "../GameEconomicComponents/Accounts.h"
 #include "../GameEconomicComponents/Starbase.h"
+#include "../GameEconomicComponents/PowerComponent.h"
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../ServerResponse.h"
 #include "../Networking.h"
@@ -770,6 +771,11 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     {
         ResourceType = MapDataElement_ElementCeilingLight;
     }
+    else if(resourcevalue==22)
+    {
+        ResourceType = MapDataElement_ForceFieldBayDoor;
+    }
+
 
     /// convert and loop if clustered
     if(inputtype==MapData_Clustered)
@@ -780,7 +786,7 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
     /// Get integer of lookup
     String ResourceNamed=String("GenericType");
-    ResourceNamed.Append(resourcevalue);
+    ResourceNamed.Append(String(resourcevalue));
 
     /// Get Info from DB
     TranslationTableResourceInformation LookupInfo= Existence->ResourcesManager->GetResourceSymbolLookup(ResourceNamed);
@@ -788,7 +794,12 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     if(LookupInfo.ResourceID==-1)
     {
         LookupInfo.ResourceType=RCType_None;
+        cout << ResourceNamed.CString() << endl;
+        cout << resourcevalue << endl;
+        cout << resourcevalue+'$'+1 << endl;
+
     }
+
 
     /// generate generalfile
     String temporaryfilename;
@@ -894,10 +905,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
                         ObjectCellStaticNode->SetPosition(Vector3((float)x+(j*2),4.0f,(float)y+(i*2)));
                     }
-
-                    StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
-
-                    /// Add Cell
                 }
                 else
                 {
@@ -923,8 +930,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
 
                     StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
                 }
-
-
             }
         }
     }
@@ -948,6 +953,18 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
             /// Add a resource node
             ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
 
+
+            /// Add to starbase if it is a power node
+            if(LookupInfo.ResourceType==RCType_Light)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
+            }
+            /// Add to starbase if it is a power node
+            if(LookupInfo.ResourceType==RCType_Forcefield)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
+            }
+
             /// If Resource type was a floor
             if(ResourceType==MapDataElement_StructureFloor)
             {
@@ -962,8 +979,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
                 ObjectCellStaticModel ->SetCastShadows(true);
 
                 ObjectCellStaticNode->SetPosition(Vector3(x,4.0f,y));
-
-                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
             }
         }
         else
@@ -988,7 +1003,16 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
             /// Add a resource node
             ObjectSpriteNode->CreateComponent<ResourceNodeComponent>();
 
-  StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
+            /// Add to starbase if it is a power node
+            if(LookupInfo.ResourceType==RCType_Light)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
+            }
+            /// Add to starbase if it is a power node
+            if(LookupInfo.ResourceType==RCType_Forcefield)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
+            }
         }
 
 
@@ -1027,30 +1051,50 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     if(Existence->touchenabled_==false)
     {
         /// if node was a light
-        if(ResourceType==MapDataElement_ElementCeilingLight)
+        if(LookupInfo.ResourceType==RCType_Light)
         {
             float zposition = strtof(results.at(3).c_str(),NULL);
 
             ObjectStaticNode->SetPosition(Vector3(x,zposition,y));
 
             /// Create a directional light to the world. Enable cascaded shadows on it
-            Node* lightNode = StarbaseNode->CreateChild("Generated_Light");
-            lightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
-            Light* light = lightNode->CreateComponent<Light>();
+            Node * LightNode= ObjectStaticNode -> CreateChild("Generic_Light");
+            LightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
+            Light* light = LightNode ->CreateComponent<Light>();
             light->SetLightType(LIGHT_POINT);
             light->SetCastShadows(true);
             light->SetSpecularIntensity(2.0f);
-            light->SetBrightness(.2);
+            light->SetBrightness(0.0f);
             light->SetColor(Color(0.91f, 0.9f,0.9f));
             light->SetFov(30);
             light->SetRange(10);
 
-            lightNode->SetPosition(Vector3(x,zposition-.5f,y));
-            lightNode->SetName("GeneratedLight_Light1");
+            /// Move light on light node
+            LightNode->SetPosition(Vector3(0,-1,0));
+            LightNode->SetName("Generic_Light");
 
+            /// Create a resource componet
+            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+            /// Set resource type to light
+            ObjectResourceComponent->SetResourceComponentType(RCType_Light);
+            ObjectResourcePower->Initialize();
         }
-    }
 
+        /// if node was a light
+        if(LookupInfo.ResourceType==RCType_Forcefield)
+        {
+            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+            /// Set resource type to light
+            ObjectResourceComponent->SetResourceComponentType(RCType_Forcefield);
+            ObjectResourcePower->Initialize();
+        }
+
+
+    }
 
     return;
 }
@@ -1185,6 +1229,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
     GenerateMapDataToGameMap(Map);
 
+
     /// Add extra temporary this way
     if(Existence->touchenabled_==false)
     {
@@ -1222,7 +1267,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->SetPosition(Vector3(4,1.5f,1));
 
 
-
         /// first one
         temporaryfilename.Clear();
 
@@ -1256,13 +1300,13 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         temporaryfilename.Append("Resources/Models/");
 
         /// Create a resource filename
-        temporaryfilename.Append("ReplicationPrinter");
+        temporaryfilename.Append("GenericReplicationPrinter1");
 
         /// wall or other component
         temporarymodelfilename=temporaryfilename+String(".mdl");
         temporarytexturefilename=temporaryfilename+String(".txt");
 
-        ObjectStaticNode= Existence->scene_ -> CreateChild("ReplicationPrinter");
+        ObjectStaticNode= Existence->scene_ -> CreateChild("GenericReplicationPrinter1");
 
         ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
 
@@ -1273,6 +1317,117 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         ObjectStaticNode->SetPosition(Vector3(2.0f,1.0f,-4.0f));
         ObjectStaticNode->Yaw(90);
+
+        /// Create a directional light to the world. Enable cascaded shadows on it
+        Node* PrinterlightNode = ObjectStaticNode->CreateChild("Generic_Light");
+        PrinterlightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
+        Light* Printerlight = PrinterlightNode->CreateComponent<Light>();
+        Printerlight->SetLightType(LIGHT_POINT);
+        Printerlight->SetCastShadows(true);
+        Printerlight->SetSpecularIntensity(0.0f);
+        Printerlight->SetBrightness(.6);
+        Printerlight->SetColor(Color(1.0f,1.0f,0.0f));
+        Printerlight->SetFov(30);
+        Printerlight->SetRange(2);
+
+        PrinterlightNode->SetPosition(Vector3(0.0f,.5f,0.0f));
+        PrinterlightNode->SetName("Generic_Light");
+
+        /// create components
+        StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_ReplicationPrinter);
+
+        ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
+        PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+        ObjectResourceComponent->SetResourceComponentType(RCType_ReplicationPrinter);
+        ObjectResourcePower->Initialize();
+
+
+
+        /// first one
+        temporaryfilename.Clear();
+
+        temporaryfilename.Append("Resources/Models/");
+
+        /// Create a resource filename
+        temporaryfilename.Append("GenericPowerGenerator1");
+
+        /// wall or other component
+        temporarymodelfilename=temporaryfilename+String(".mdl");
+        temporarytexturefilename=temporaryfilename+String(".txt");
+
+        ObjectStaticNode= Existence->scene_ -> CreateChild("GenericPowerGenerator1");
+
+        ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
+
+        ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
+        ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
+
+        ObjectStaticModel ->SetCastShadows(true);
+
+        ObjectStaticNode->SetPosition(Vector3(5.0f,0.5f,-4.0f));
+        ObjectStaticNode->Yaw(180);
+
+        /// Create a directional light to the world. Enable cascaded shadows on it
+        Node* GeneratorlightNode = ObjectStaticNode->CreateChild("Generic_Light");
+        GeneratorlightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
+        Light* Generatorlight = GeneratorlightNode->CreateComponent<Light>();
+        Generatorlight->SetLightType(LIGHT_POINT);
+        Generatorlight->SetCastShadows(true);
+        Generatorlight->SetSpecularIntensity(0.0f);
+        Generatorlight->SetBrightness(.6);
+        Generatorlight->SetColor(Color(0.3f, 0.3f,0.9f));
+        Generatorlight->SetFov(30);
+        Generatorlight->SetRange(2);
+
+        GeneratorlightNode->SetPosition(Vector3(0.0f,.53f,0.0f));
+        GeneratorlightNode->SetName("Generic_Light");
+
+
+        /// create components
+        StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_PowerSource);
+
+        ObjectResourceComponent = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
+        ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+        ObjectResourceComponent->SetResourceComponentType(RCType_PowerSource);
+        ObjectResourcePower->Initialize();
+        ObjectResourcePower->SetPower(14500);
+
+
+        /// first one
+        temporaryfilename.Clear();
+
+        temporaryfilename.Append("Resources/Models/");
+
+        /// Create a resource filename
+        temporaryfilename.Append("GenericRefrigerationUnit1");
+
+        /// wall or other component
+        temporarymodelfilename=temporaryfilename+String(".mdl");
+        temporarytexturefilename=temporaryfilename+String(".txt");
+
+        ObjectStaticNode= Existence->scene_ -> CreateChild("GenericRefrigerationUnit1");
+
+        ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
+
+        ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
+        ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
+
+        ObjectStaticModel ->SetCastShadows(true);
+
+        ObjectStaticNode->SetPosition(Vector3(-3.0f,1.0f,-4.0f));
+        ObjectStaticNode->Yaw(180);
+
+
+        /// create components
+        StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_RefrigerationUnit);
+
+        ObjectResourceComponent = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
+        ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+        ObjectResourceComponent->SetResourceComponentType(RCType_RefrigerationUnit);
+        ObjectResourcePower->Initialize();
 
     }
 

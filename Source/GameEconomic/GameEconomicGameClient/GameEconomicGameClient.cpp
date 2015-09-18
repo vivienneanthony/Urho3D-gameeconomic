@@ -85,7 +85,8 @@
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../GameEconomicComponents/ResourceComponent.h"
 #include "../GameEconomicComponents/ResourceManager.h"
-///#include "../GameEconomicComponents/Starbase.h"
+#include "../GameEconomicComponents/Starbase.h"
+#include "../GameEconomicComponents/PowerComponent.h"
 
 #include <string>
 #include <iostream>
@@ -132,7 +133,9 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
     ResourceManager::RegisterObject(context);
     ResourceComponent::RegisterObject(context);
     ResourceNodeComponent::RegisterObject(context);
-///    Starbase::RegisterObject(context);
+    Starbase::RegisterObject(context);
+    PowerComponent::RegisterObject(context);
+
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
 

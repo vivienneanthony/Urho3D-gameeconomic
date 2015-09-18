@@ -142,7 +142,7 @@ void ResourceManager::BuildBaseResources(void)
         }
     }
 
-    for(unsigned int idx=0; idx<24; idx++)
+    for(unsigned int idx=0; idx<27; idx++)
     {
         /// Create Resource
         ResourceComponentInformation  AddResource;

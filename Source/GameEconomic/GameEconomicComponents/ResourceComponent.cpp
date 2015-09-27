@@ -75,7 +75,7 @@ bool ResourceComponent::AddProperties(ResourceComponentInformation ComponentInfo
     ThisResourceComponent->ComponentState=ComponentInformation.ComponentState;
     ThisResourceComponent->ComponentType=ComponentInformation.ComponentType;
 
-    cout << ThisResourceComponent->Symbol.CString()<< endl;
+    ///cout << ThisResourceComponent->Symbol.CString()<< endl;
 
     return true;
 }

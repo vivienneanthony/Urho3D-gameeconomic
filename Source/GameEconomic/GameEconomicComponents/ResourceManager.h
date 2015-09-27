@@ -38,12 +38,14 @@ public:
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
     int GetResourceSymbolInt(String InputString);
+    int GetResourceSymbolIdxInt(String InputString);
 
     /// Build resources
     void BuildBaseResources(void);
 
     ///  Add a resource to the table
     void AddResourceToTableLookup(TranslationTableResourceInformation SaveResource);
+    ResourceComponentInformation * GetResourceInfo(unsigned int ResourceIdx);
     TranslationTableResourceInformation GetResourceSymbolLookup(String InputString);
 
 protected:

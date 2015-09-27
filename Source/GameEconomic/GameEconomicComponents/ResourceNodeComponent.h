@@ -29,6 +29,20 @@
 #include "../../../Urho3D/Scene/Node.h"
 #include "Resource.h"
 #include "ResourceComponent.h"
+#include "ResourceManager.h"
+
+enum ResourceIntegration
+{
+    RI_Permament,
+    ///RI_Module,
+    RI_Removable
+};
+
+struct ResourceNodeInformation
+{
+    ResourceInformation   Resource;
+    ResourceIntegration    IntregrationType;
+};
 
 using namespace Urho3D;
 using namespace std;
@@ -51,10 +65,18 @@ public:
 
     /// Get Resource Type;
     ResourceComponentType GetResourceComponentType(void);
+    String GetResourceComponentName(void);
     void SetResourceComponentType(ResourceComponentType SetType);
+    void SetResourceComponentNameType(String ResourceName, ResourceComponentType SetType);
+    void AddNodeResource(ResourceNodeInformation NewResource);
 
     void SetPower(double SetPowerTo);
     bool IsOnline(void);
+    void MapResources(ResourceManager * RefResourceManager);
+
+    unsigned int TotalNodeResources(void);
+
+    ResourceNodeInformation GetNodeResource(unsigned int index);
 
 private:
     /// Component information
@@ -65,7 +87,7 @@ private:
     bool IsOnlineFlag;
 
     /// Node Resources
-    Vector<ResourceInformation> NodeResources;
+    Vector< ResourceNodeInformation> NodeResources;
 
 };
 

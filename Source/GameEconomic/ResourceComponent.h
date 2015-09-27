@@ -16,6 +16,7 @@ enum ResourceComponentType
     RCType_PowerSource,
     RCType_ReplicationPrinter,
     RCType_RefrigerationUnit,
+    RCType_Drone,
     RCType_NotApplicable=99999
 };
 

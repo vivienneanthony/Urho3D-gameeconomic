@@ -44,6 +44,8 @@
 #include "../GameEconomicAppHead.h"
 #include "../GameEconomicComponents/Accounts.h"
 #include "../GameEconomicComponents/Player.h"
+#include "../GameEconomicComponents/Activity.h"
+#include "../GameEconomicComponents/ActivityManager.h"
 
 #include "../GameEconomicComponents/GameStateEvents.h"
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
@@ -269,6 +271,7 @@ protected:
     bool touchenabled_;
 
     ResourceManager * ResourcesManager;
+    ActivityManager * ActivitiesManager;
 
 private:
 
@@ -454,6 +457,7 @@ private:
     void GenerateMapDataConvertIntoGameObject(MapDataType inputtype, string InputString);
     vector<string> Split(const string &s, char delim);
     void HandleContinuePressed(StringHash eventType, VariantMap& eventData);
+    void GenerateSceneNode3D(Node * BaseNode,const float & x, const float &z, const float & y,const String & TempResourceString, const ResourceComponentType &TempResourceType,  const  bool IsSubComponent,  const   String &TempModelFilename, const  String & TempTextureFilename,  bool IsClustered);
 
     bool loadScene(void);
 
@@ -521,6 +525,7 @@ private:
     void HandleTopMenuPressed(StringHash eventType, VariantMap& eventData);
     void HandleUIWindowClosed(StringHash eventType, VariantMap& eventData);
     void HandleUIStarbaseBriefButtonPressed(StringHash eventType, VariantMap& eventData);
+
 
 protected:
 

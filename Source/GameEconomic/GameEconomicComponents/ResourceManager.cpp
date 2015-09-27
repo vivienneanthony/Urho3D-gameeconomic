@@ -76,8 +76,6 @@ void ResourceManager::BuildBaseResources(void)
         AddResource.ComponentType=(ResourceComponentType) PeriodicTypeIdentifiers[idx];
         AddResource.ComponentResource=String(PeriodicSymbolIdentifiers[idx]);
 
-
-
         /// If the component was created
         if(ResourceComponent * AddResourceObject = new ResourceComponent(context_))
         {
@@ -142,7 +140,7 @@ void ResourceManager::BuildBaseResources(void)
         }
     }
 
-    for(unsigned int idx=0; idx<27; idx++)
+    for(unsigned int idx=0; idx<32; idx++)
     {
         /// Create Resource
         ResourceComponentInformation  AddResource;
@@ -153,7 +151,8 @@ void ResourceManager::BuildBaseResources(void)
         AddResource.Density = PrimaryResourcesDensityIdentifiers[idx];
         AddResource.ComponentState= (ResourceComponentState) PrimaryResourcesStateIdentifiers[idx];
         AddResource.ComponentType=(ResourceComponentType) PrimaryResourcesTypeIdentifiers[idx];
-        AddResource.ComponentResource=String(PrimaryResourcesSymbolIdentifiers[idx]);
+        //AddResource.ComponentResource=String(PrimaryResourcesSymbolIdentifiers[idx]);
+        AddResource.ComponentResource=String(PrimaryResourcesCompositeResourceIdentifiers[idx]);
 
         /// If the component was created
         if(ResourceComponent * AddResourceObject = new ResourceComponent(context_))
@@ -170,6 +169,7 @@ void ResourceManager::BuildBaseResources(void)
     unsigned int idx=0;
     unsigned int offset=0;
     unsigned int i=0;
+
 
     /// loop and add
     do
@@ -215,13 +215,46 @@ void ResourceManager::BuildBaseResources(void)
             i=0;
         }
 
+        if(ThisResource->ComponentType==RCType_PowerSource&&offset<7000)
+        {
+            offset=7000;
+            i=0;
+        }
+
+        if(ThisResource->ComponentType==RCType_PowerSource&&offset<8000)
+        {
+            offset=8000;
+            i=0;
+        }
+
+        if(ThisResource->ComponentType==RCType_ReplicationPrinter&&offset<9000)
+        {
+            offset=9000;
+            i=0;
+        }
+
+        if(ThisResource->ComponentType==RCType_RefrigerationUnit&&offset<10000)
+        {
+            offset=10000;
+            i=0;
+        }
+
+        if(ThisResource->ComponentType==RCType_Drone&&offset<11000)
+        {
+            offset=11000;
+            i=0;
+        }
+
+
+
         /// Create a new object
         TranslationTableResourceInformation newObject;
         newObject.ResourceID=offset+i;
+        newObject.ResourceIDX=idx;
         newObject.ResourceString=ThisResource->Symbol;
         newObject.ResourceType=ThisResource->ComponentType;
 
-        cout << "Adding Resource to Resource Manager : " << offset+i << " " <<  ThisResource->Symbol.CString() << endl;
+        cout << "Adding Resource to Resource Manager : " << offset+i << " " <<  ThisResource->Symbol.CString() << " "<< ThisResource->ComponentResource.CString() << endl;
 
         /// Add object
         TranslationLookup.Push(newObject);
@@ -268,6 +301,25 @@ int ResourceManager::GetResourceSymbolInt(String InputString)
 }
 
 
+
+int ResourceManager::GetResourceSymbolIdxInt(String InputString)
+{
+    /// below 1
+    unsigned int result=-1;
+
+    for(unsigned int idx=0; idx<TranslationLookup.Size(); idx++)
+    {
+        if(String(TranslationLookup.At(idx).ResourceString)==String(InputString))
+        {
+            result = TranslationLookup.At(idx).ResourceIDX;
+            break;
+        }
+    }
+    return result;
+}
+
+
+
 TranslationTableResourceInformation ResourceManager::GetResourceSymbolLookup(String InputString)
 {
     /// below 1
@@ -284,9 +336,25 @@ TranslationTableResourceInformation ResourceManager::GetResourceSymbolLookup(Str
         {
             newObject.ResourceID= TranslationLookup.At(idx).ResourceID;
             newObject.ResourceType=TranslationLookup.At(idx).ResourceType;
+            newObject.ResourceString=TranslationLookup.At(idx).ResourceString;
             break;
         }
     }
 
     return newObject;
+}
+
+ResourceComponentInformation * ResourceManager::GetResourceInfo(unsigned int ResourceIdx)
+{
+    ResourceComponentInformation * TempResourceComponent  = new ResourceComponentInformation();
+
+    for(unsigned int idx=0; idx<ThisResources->Size(); idx++)
+    {
+        if(idx == ResourceIdx)
+        {
+            TempResourceComponent = ThisResources->At(idx)->GetProperties();
+        }
+    }
+
+    return TempResourceComponent;
 }

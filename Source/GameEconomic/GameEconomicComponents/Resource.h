@@ -28,10 +28,11 @@ struct ResourceInformation
 
 using namespace std;
 
+/*
 static const string ResourceName[] = {"gold", "silver", "copper", "iron",
                                       "nickel", "cobalt", "silica","diamond","lead","uranium"
                                      };
-
+*/
 static const unsigned int ResourceValue[]= {1000,303,10,39,1000,353,230,39,90,303};
 
 #endif // RESOURCE_H_INCLUDED

@@ -16,21 +16,21 @@ using namespace std;
 using namespace Urho3D;
 
 
-struct ActivityInformation
-{
-    // Idx
-
-};
-
 Activity::Activity(Context * context)
     :LogicComponent(context)
+    ,ThisActivities(NULL)
+    ,ThisActivity(NULL)
 {
-    //ctor
+    /// Clear any vector
+    ThisActivities = new Vector<Activity *>(); //ctor
+    ThisActivity = new ActivityInformation();
 }
 
 Activity::~Activity()
 {
-    //dtor
+    /// Delete Activities from memory
+    delete ThisActivities;
+    delete ThisActivity;
 }
 
 
@@ -50,19 +50,19 @@ void Activity::Start(void )
         return;
 }
 
-/// random minin missoin
-bool Activity::MiningMission(Vector<ResourceGame> &InputResourcelist)
+/// Get total size of vectors
+unsigned int Activity::GetTotalSize(void)
 {
-    /// do a Activity
-    unsigned int planettype=0;
+    /// set total acitivities to zero
+    unsigned int TotalActivities = 0;
 
-    unsigned int material1type= rand()%ResourceName->size();
-    unsigned int material2type = rand()%ResourceName->size();
-    unsigned int material1quant = rand()%1000;
-    unsigned int material2quant = rand()%1000;
+    /// Check vector for amount of activities
+    for(unsigned int i =0;i<ThisActivities->Size();i++)
+    {
+        /// Get total size for each
+        TotalActivities+=ThisActivities->At(i)->GetTotalSize();
+    }
 
-    InputResourcelist.Push( {material1type, material1quant});
-    InputResourcelist.Push( {material2type, material2quant});
-
-    return true;
+    /// Return total size
+    return TotalActivities;
 }

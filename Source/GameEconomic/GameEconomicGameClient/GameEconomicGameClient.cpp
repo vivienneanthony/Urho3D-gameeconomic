@@ -82,12 +82,17 @@
 
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/Accounts.h"
+#include "../GameEconomicComponents/Activity.h"
+#include "../GameEconomicComponents/ActivityManager.h"
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../GameEconomicComponents/ResourceComponent.h"
 #include "../GameEconomicComponents/ResourceManager.h"
 #include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/PowerComponent.h"
+#include "../GameEconomicComponents/Entity.h"
 #include "../GameEconomicComponents/InteractObject.h"
+#include "../GameEconomicComponents/AIController.h"
+#include "../GameEconomicComponents/Drone.h"
 
 #include <string>
 #include <iostream>
@@ -137,6 +142,11 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
     Starbase::RegisterObject(context);
     PowerComponent::RegisterObject(context);
     InteractObject::RegisterObject(context);
+    Activity::RegisterObject(context);
+    ActivityManager::RegisterObject(context);
+    Entity::RegisterObject(context);
+    AIController::RegisterObject(context);
+    Drone::RegisterObject(context);
 
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
@@ -281,6 +291,7 @@ void GameEconomicGameClient::Start()
     SubscribeToEvent(E_CONNECTFAILED, HANDLER(GameEconomicGameClient, HandlerServerConnectionFailed));
 
     ResourcesManager = new ResourceManager(context_);
+    ActivitiesManager = new ActivityManager(context_);
 
     gamestatehandlercomponent_->Start();
 
@@ -316,9 +327,11 @@ void GameEconomicGameClient::SetupScreenViewport(void)
     float height = (float)graphics->GetHeight();
 
 
-    renderer -> SetTextureQuality (QUALITY_HIGH);
-    renderer ->SetMaterialQuality (QUALITY_HIGH);
+    /// Set renderer quality
+    renderer -> SetTextureQuality (QUALITY_MAX);
+    renderer ->SetMaterialQuality (QUALITY_MAX);
     renderer ->SetShadowQuality (SHADOWQUALITY_HIGH_24BIT);
+    renderer ->	SetDynamicInstancing(true);
 
     /// create a new scene
     scene_= new Scene(context_);

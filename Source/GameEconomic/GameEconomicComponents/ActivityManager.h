@@ -1,5 +1,6 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef ActivityManager_H
+#define ActivityManager_H
+
 
 #include <Urho3D/Urho3D.h>
 
@@ -11,39 +12,39 @@
 #include "../../../Urho3D/Container/Vector.h"
 #include "../../../Urho3D/Container/Str.h"
 #include "../../../Urho3D/Scene/LogicComponent.h"
-#include "../../../Urho3D/Input/Controls.h"
 
 /// define Player information
 #include <iostream>
 
+#include "../Activity.h"
 #include "Resource.h"
 
 using namespace std;
 using namespace Urho3D;
 
-class Entity : public LogicComponent
+
+/// Temporary ActivityManager
+class ActivityManager : public LogicComponent
 {
-    OBJECT(Entity);
+    OBJECT (ActivityManager);
 
 public:
-    Entity(Context *context);
-    virtual ~Entity();
+    ActivityManager(Context *context);
+    virtual ~ActivityManager();
 
-     /// Register object factory and attributes.
+    /// Register object factory and attributes.
     static void RegisterObject(Context* context);
-    virtual void Start(void);
+    void Start();
 
-    /// Collision handler
-    virtual void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-    virtual void ObjectCollision(Node* otherObject, VariantMap& eventData);
-
-    float dirChangeTime;
+   void HandleUpdate(StringHash eventType, VariantMap& eventData);
 
 protected:
-
 private:
+    Vector<Activity *> * RootActivities;
 
-
+    ActivityInformation * RootActivity;
 };
 
-#endif // ENTITY_H
+
+
+#endif // ActivityManager_H

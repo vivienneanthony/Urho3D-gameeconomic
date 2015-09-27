@@ -71,6 +71,7 @@
 #include "../../../Urho3D/Math/Random.h"
 #include "../../../Urho3D/Graphics/RenderPath.h"
 #include "../../../Urho3D/Math/Color.h"
+#include "../../../Urho3D/Input/InputEvents.h"
 
 #include "../GameEconomicComponents/GameStateHandlerComponent.h"
 #include "../GameEconomicComponents/GameStateEvents.h"
@@ -286,7 +287,6 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
     /// load hud
     Existence->loadUIXML(UIMINIQUICKMENU,0,0,0);
 
-
     /// Attach a listen
     SubscribeToEvent(G_MODE_CHANGE, HANDLER(GameEconomicGameClientStateGameMode, GameModeSendEventHandler));
 
@@ -338,24 +338,27 @@ void GameEconomicGameClientStateGameMode::OnMoveCamera(float timeStep)
     GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
     Input* input = GetSubsystem<Input>();
 
+    static bool MoveCamera = false;
     /// Movement speed as world units per second
     float MOVE_SPEED=5.0f;
 
     /// Mouse sensitivity as degrees per pixel
     const float MOUSE_SENSITIVITY = 0.2f;
 
-    if(Existence->touchenabled_==false)
+    /// Alt override for Second Life controls
+    if(MoveCamera||input->GetKeyDown(KEY_ALT))
     {
+        if(Existence->touchenabled_==false)
+        {
+            /// Use this frame's mouse motion to adjust camera node yaw and pitch. Clamp the pitch between -90 and 90 degrees
+            IntVector2 mouseMove = input->GetMouseMove();
+            Existence->yaw_ += MOUSE_SENSITIVITY * mouseMove.x_;
+            Existence->pitch_ += MOUSE_SENSITIVITY * mouseMove.y_;
+            Existence->pitch_ = Clamp(Existence->pitch_, -180.0f, 180.0f);
 
-
-        /// Use this frame's mouse motion to adjust camera node yaw and pitch. Clamp the pitch between -90 and 90 degrees
-        IntVector2 mouseMove = input->GetMouseMove();
-        Existence->yaw_ += MOUSE_SENSITIVITY * mouseMove.x_;
-        Existence->pitch_ += MOUSE_SENSITIVITY * mouseMove.y_;
-        Existence->pitch_ = Clamp(Existence->pitch_, -180.0f, 180.0f);
-
-        /// Construct new orientation for the camera scene node from yaw and pitch. Roll is fixed to zero
-        Existence->cameraNode_->SetRotation(Quaternion(Existence->pitch_, Existence->yaw_, 0.0f));
+            /// Construct new orientation for the camera scene node from yaw and pitch. Roll is fixed to zero
+            Existence->cameraNode_->SetRotation(Quaternion(Existence->pitch_, Existence->yaw_, 0.0f));
+        }
     }
 
     /// Read WASD keys and move the camera scene node to the corresponding direction if they are pressed
@@ -403,7 +406,18 @@ void GameEconomicGameClientStateGameMode::OnMoveCamera(float timeStep)
     {
         MOVE_SPEED=20.0f;
     }
+    else if (input->GetKeyDown('\\'))
+    {
+        if(MoveCamera)
+        {
+            MoveCamera=false;
+        }
+        else
+        {
+            MoveCamera=true;
+        }
 
+    }
     return;
 }
 
@@ -512,10 +526,17 @@ bool GameEconomicGameClientStateGameMode::Raycast(float maxDistance, Vector3& hi
 /// Handle updates
 void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType, VariantMap& eventData)
 {
+    /// Get subsystems
+    UI* ui_ = GetSubsystem<UI>();
+    Graphics* graphics = GetSubsystem<Graphics>();
 
-UI* ui_ = GetSubsystem<UI>();
+    /// Get rendering window size as floats
+    float width = (float)graphics->GetWidth();
+    float height = (float)graphics->GetHeight();
+
+    ///  Reaname all UIRoot to UIroot
+
     UIElement * UIRoot_ = ui_ -> GetRoot();
-
 
     /// intercept state event
     Node * hitNode=  dynamic_cast<Node *>(eventData[InteractEvent::P_NODE].GetPtr());
@@ -523,11 +544,90 @@ UI* ui_ = GetSubsystem<UI>();
     IntVector2 hitMousePosition = eventData[InteractEvent::P_MOUSEPOSITION].GetIntVector2();
     Node * sender=  dynamic_cast<Node *>(eventData[InteractEvent::P_OBJ].GetPtr());
 
+    /// Load interact window
     LoadUIXML(UIGAME_UIINTERACT,0,0);
 
+    /// get thw window
     Window * TestingDisplayBriefWindow = (Window *) UIRoot_->GetChild("TestingDisplayBriefWindow", true);
 
+    /// Make sure the window does not overlap
+    if(hitMousePosition.x_>width-TestingDisplayBriefWindow->GetWidth())
+    {
+        hitMousePosition.x_= width-TestingDisplayBriefWindow->GetWidth();
+    }
+
+    if(hitMousePosition.y_>height-TestingDisplayBriefWindow->GetHeight())
+    {
+        hitMousePosition.y_= height-TestingDisplayBriefWindow->GetHeight();
+    }
+
+    /// Set of the window
     TestingDisplayBriefWindow->SetPosition(hitMousePosition.x_,hitMousePosition.y_);
+
+    /// Get ResourceCOmponent
+    ResourceNodeComponent * NodeResources = hitNode->GetComponent<ResourceNodeComponent>();
+
+    /// IF resource node fined
+    if(NodeResources)
+    {
+        /// Get the text window
+        Text * TestingText = (Text *) TestingDisplayBriefWindow->GetChild("TestingText", true);
+
+        /// Get Resource Type
+        if(TestingText)
+        {
+            ResourceComponentType ResourceComponentTYpeInfo=NodeResources->GetResourceComponentType();
+
+            switch (ResourceComponentTYpeInfo)
+            {
+                /// Change text to show replication printer
+            case RCType_ReplicationPrinter:
+                TestingText->SetText(String("Replication Printer Interact"));
+                break;
+                ///  Change title to say refrigeration unit
+            case RCType_RefrigerationUnit:
+                TestingText->SetText(String("Refrigeration Unit Interact"));
+                break;
+            case RCType_PowerSource:
+                TestingText->SetText(String("Power Source Unit Interact"));
+                break;
+            case RCType_Drone:
+                TestingText->SetText(String("Drone Interact"));
+                break;
+            default:
+                break;
+            }
+        }
+
+        /// Check if listview and exist
+        ListView * ResourceListView = (ListView *) TestingDisplayBriefWindow->GetChild("ResourcesListView", true);
+        ListView * StorageListView = (ListView *) TestingDisplayBriefWindow->GetChild("StorageListView", true);
+
+        /// Get resources and add
+        if(ResourceListView&&StorageListView)
+        {
+            ResourceListView->RemoveAllItems();
+            StorageListView->RemoveAllItems();
+
+            for(unsigned int i=0;i<NodeResources->TotalNodeResources();i++)
+            {
+                ResourceNodeInformation ResourceFromNode= NodeResources->GetNodeResource(i);
+
+                /// Create new Text
+                Text * newItem = new Text(context_);
+
+                newItem->SetEditable(false);
+                newItem->SetEnabled(true);
+
+                newItem->SetText(ResourceFromNode.Resource.ResourceName);
+
+                ResourceListView->AddItem(newItem);
+
+                newItem->SetStyleAuto();
+            }
+        }
+
+    }
 
     return;
 }
@@ -595,30 +695,43 @@ void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
     /// Text area
     Text* StarbaseText=new Text(context_);
     Text* GalaxyText=new Text(context_);
+    Text* ActivityText=new Text(context_);
+    Text* CommunicationText=new Text(context_);
+
 
     StarbaseText->SetName("StarbaseText");
     StarbaseText->SetText("| STARBASE |");
     GalaxyText->SetName("GalaxyText");
     GalaxyText->SetText("| GALAXY |");
+    ActivityText->SetName("ActivityText");
+    ActivityText->SetText("| ACTIVITY |");
+
+
+    CommunicationText->SetName("CommunicationText");
+    CommunicationText->SetText("| COMMUNICATION |");
 
     /// addlones
 
     MainTopBarMenuUIElement ->AddChild(StarbaseButton);
     MainTopBarMenuUIElement ->AddChild(StarbaseText);
-
-
-    MainTopBarMenuUIElement->AddChild(GalaxyText);
+    MainTopBarMenuUIElement ->AddChild(GalaxyText);
+    MainTopBarMenuUIElement ->AddChild(ActivityText);
+    MainTopBarMenuUIElement ->AddChild(CommunicationText);
 
     StarbaseText->SetPosition(Width/2+200,2);
 
     StarbaseButton->SetPosition(Width/2+200+2,2);
 
     GalaxyText->SetPosition(Width/2+290,2);
+    ActivityText->SetPosition(Width/2+360,2);
+    CommunicationText->SetPosition(Width/2+437,2);
 
     /// Apply styles
     StarbaseText->SetStyleAuto();
     StarbaseButton->SetStyleAuto();
     GalaxyText->SetStyleAuto();
+    ActivityText->SetStyleAuto();
+    CommunicationText->SetStyleAuto();
 
     /// If button is relesed
     SubscribeToEvent(StarbaseButton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleTopMenuPressed));
@@ -789,7 +902,6 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
         Text * StarbaseNameText = (Text *) BriefWindow->GetChild("StarbaseName",true);
         StarbaseNameText->SetText(Existence->ThisStarbase->Name);
 
-
         /// Get poewr
         Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPower",true);
         Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPower",true);
@@ -861,8 +973,6 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
     /// If exit was clicked
     if (clickedButtonString.Contains("StarbaseDisplayBriefDiagnosticButton")==true)
     {
-
-
         /// Get StarbaseNode
         Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
         Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
@@ -1040,8 +1150,8 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
     }
 
 
-
     return;
 }
+
 
 

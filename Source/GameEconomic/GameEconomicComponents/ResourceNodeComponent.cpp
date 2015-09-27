@@ -40,6 +40,23 @@
 #include "ResourceManager.h"
 #include "PowerComponent.h"
 
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <iterator>
+#include <algorithm>
+#include <locale>
+#include <ctime>
+#include <cmath>
+#include <iomanip>
+#include <fstream>
+#include <cstdlib>
+#include <iostream>
+#include <utility>
+#include <algorithm>
+
+
 using namespace Urho3D;
 
 using namespace std;
@@ -85,6 +102,14 @@ ResourceComponentType ResourceNodeComponent::GetResourceComponentType(void)
     return ResourceNode_Type;
 }
 
+/// Get Resource Name;
+String ResourceNodeComponent::GetResourceComponentName(void)
+{
+    /// Return the resource Name
+    return ResourceNode_Name;
+}
+
+
 /// Get Resource Type;
 void ResourceNodeComponent::SetResourceComponentType(ResourceComponentType SetType)
 {
@@ -92,6 +117,67 @@ void ResourceNodeComponent::SetResourceComponentType(ResourceComponentType SetTy
     ResourceNode_Type=SetType;
 
     return;
+}
+
+/// Get Resource Type;
+void ResourceNodeComponent::SetResourceComponentNameType(String ResourceName, ResourceComponentType SetType)
+{
+    /// Return the resource type
+    ResourceNode_Name=ResourceName;
+    ResourceNode_Type=SetType;
+
+    return;
+}
+
+void ResourceNodeComponent::MapResources(ResourceManager * RefResourceManager)
+{
+/// Add a resource node
+    ResourceNodeComponent * ResourceSet = this->GetNode()->GetComponent<ResourceNodeComponent>();
+
+    /// get type and name
+    String ResourceName=ResourceSet ->GetResourceComponentName();
+    ResourceComponentType ResourceType = ResourceSet->GetResourceComponentType();
+
+    /// Get component information if available works
+    unsigned int ResourceIDX= RefResourceManager->GetResourceSymbolIdxInt(ResourceName);
+    ResourceComponentInformation * ResourceInfo = RefResourceManager -> GetResourceInfo(ResourceIDX);
+
+    /// If ResourceSet
+    if(ResourceInfo&&ResourceSet)
+    {
+
+        cout << ResourceInfo->ComponentResource.CString() << endl;
+
+        /// split inot a string
+        stringstream ss(ResourceInfo->ComponentResource.CString());
+        string item;
+        vector<string> results;
+        while (getline(ss, item, ':'))
+        {
+            results.push_back(item);
+        }
+
+        unsigned int idx=0;
+
+        while(idx<results.size())
+        {
+           String Name=String(results.at(idx).c_str());
+           String Quantity=String(results.at(idx+1).c_str());
+
+            ResourceNodeInformation NewResource;
+
+            NewResource.Resource.ResourceName = Name;
+            NewResource.Resource.Quantity = strtoul(Quantity.CString(),NULL,0);
+            NewResource.IntregrationType=RI_Permament;
+
+
+            NodeResources.Push(NewResource);
+
+            cout << "Adding " << Name.CString() << endl;
+            idx+=2;
+        }
+
+    }
 }
 
 void ResourceNodeComponent::SetPower(double SetPowerTo)
@@ -109,6 +195,14 @@ void ResourceNodeComponent::SetPower(double SetPowerTo)
 bool ResourceNodeComponent::IsOnline(void)
 {
     return IsOnlineFlag;
+}
+
+void ResourceNodeComponent::AddNodeResource(ResourceNodeInformation NewResource)
+{
+    /// Resource
+    NodeResources.Push(NewResource);
+
+    return;
 }
 
 /// Fix update
@@ -241,3 +335,14 @@ void ResourceNodeComponent::FixedUpdate(float timeStep)
 }
 
 
+unsigned int  ResourceNodeComponent::TotalNodeResources(void)
+{
+    return NodeResources.Size();
+
+}
+
+
+ResourceNodeInformation ResourceNodeComponent::GetNodeResource(unsigned int index)
+{
+    return NodeResources.At(index);
+}

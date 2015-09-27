@@ -33,6 +33,8 @@ public:
     bool AddProperties(ResourceComponentInformation ComponentInformation);
     ResourceComponentInformation * GetProperties(void);
 
+    unsigned int TotalNodeResources(void);
+    ResourceComponentInformation GetResource(unsigned int index);
 protected:
 private:
     ResourceComponentInformation * ThisResourceComponent;

@@ -87,6 +87,9 @@
 #include "../GameEconomicComponents/PowerComponent.h"
 #include "../GameEconomicComponents/ResourceNodeComponent.h"
 #include "../GameEconomicComponents/InteractObject.h"
+#include "../GameEconomicComponents/Entity.h"
+#include "../GameEconomicComponents/AIController.h"
+#include "../GameEconomicComponents/Drone.h"
 #include "../ServerResponse.h"
 #include "../Networking.h"
 
@@ -795,10 +798,6 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     if(LookupInfo.ResourceID==-1)
     {
         LookupInfo.ResourceType=RCType_None;
-        //cout << ResourceNamed.CString() << endl;
-        //cout << resourcevalue << endl;
-        //cout << resourcevalue+'$'+1 << endl;
-
     }
 
 
@@ -868,7 +867,20 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
     /// Copy node to this componet
     Starbase * StarbaseNodeComponent = StarbaseNode->GetComponent<Starbase>();
 
+    /// set zposition
+    float zposition=0.0f;
 
+    if(LookupInfo.ResourceType==RCType_Light)
+    {
+        zposition = strtof(results.at(3).c_str(),NULL);
+    }
+
+    if(ResourceType == MapDataElement_StructureCeiling)
+    {
+        zposition=4.0f;
+    }
+
+    /// If clustered
     if(inputtype==MapData_Clustered)
     {
         for(unsigned int i=0; i<dupy; i++)
@@ -877,35 +889,7 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
             {
                 if(Existence->touchenabled_==false)
                 {
-                    ObjectStaticNode= StarbaseNode -> CreateChild("Generic_Type");
-
-                    ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
-
-                    ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
-                    ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
-
-                    ObjectStaticModel ->SetCastShadows(true);
-
-                    ObjectStaticNode->SetPosition(Vector3((float)x+(j*2),0.0f,(float)y+(i*2)));
-
-                    /// Add a resource node
-                    ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
-
-
-                    if(ResourceType==MapDataElement_StructureFloor)
-                    {
-
-                        ObjectCellStaticNode= StarbaseNode -> CreateChild("Generic_Type2");
-
-                        ObjectCellStaticModel = ObjectCellStaticNode->CreateComponent<StaticModel>();
-
-                        ObjectCellStaticModel ->SetModel(cache->GetResource<Model>(temporarycellmodelfilename));
-                        ObjectCellStaticModel ->ApplyMaterialList(temporarycelltexturefilename);
-
-                        ObjectCellStaticModel ->SetCastShadows(true);
-
-                        ObjectCellStaticNode->SetPosition(Vector3((float)x+(j*2),4.0f,(float)y+(i*2)));
-                    }
+                    GenerateSceneNode3D(StarbaseNode ,(float)x+(j*2),zposition,(float)y+(i*2),LookupInfo.ResourceString, LookupInfo.ResourceType, false, temporarymodelfilename, temporarytexturefilename,false);
                 }
                 else
                 {
@@ -935,52 +919,12 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
         }
     }
 
+    /// If non-clustered
     if(inputtype==MapData_NonClustered)
     {
         if(Existence->touchenabled_==false)
         {
-
-            ObjectStaticNode= StarbaseNode -> CreateChild("Generic_Type");
-
-            ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
-
-            ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
-            ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
-
-            ObjectStaticModel ->SetCastShadows(true);
-
-            ObjectStaticNode->SetPosition(Vector3(x,0.0f,y));
-
-            /// Add a resource node
-            ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
-
-
-            /// Add to starbase if it is a power node
-            if(LookupInfo.ResourceType==RCType_Light)
-            {
-                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
-            }
-            /// Add to starbase if it is a power node
-            if(LookupInfo.ResourceType==RCType_Forcefield)
-            {
-                StarbaseNodeComponent -> PushNode(ObjectStaticNode, LookupInfo.ResourceType);
-            }
-
-            /// If Resource type was a floor
-            if(ResourceType==MapDataElement_StructureFloor)
-            {
-
-                ObjectCellStaticNode= StarbaseNode -> CreateChild("Generic_Type");
-
-                ObjectCellStaticModel = ObjectCellStaticNode->CreateComponent<StaticModel>();
-
-                ObjectCellStaticModel ->SetModel(cache->GetResource<Model>(temporarycellmodelfilename));
-                ObjectCellStaticModel ->ApplyMaterialList(temporarycelltexturefilename);
-
-                ObjectCellStaticModel ->SetCastShadows(true);
-
-                ObjectCellStaticNode->SetPosition(Vector3(x,4.0f,y));
-            }
+            GenerateSceneNode3D(StarbaseNode ,(float)x, zposition, (float)y,LookupInfo.ResourceString, LookupInfo.ResourceType, false, temporarymodelfilename, temporarytexturefilename,false);
         }
         else
         {
@@ -1015,85 +959,54 @@ void GameEconomicGameClientStateProgress::GenerateMapDataConvertIntoGameObject(M
                 StarbaseNodeComponent -> PushNode(ObjectSpriteNode, LookupInfo.ResourceType);
             }
         }
-
-
-    }
-
-    /// If touch enabled add physics -- Add Physics
-    if(Existence->touchenabled_==false)
-    {
-        /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
-        RigidBody* ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
-        ObjectRigidBody->SetCollisionLayer(1);
-
-        /// Turn off Gravity
-        ObjectRigidBody->SetMass(0.0f);
-        ObjectRigidBody->SetUseGravity(false);
-
-        /// Set zero angular factor so that physics doesn't turn the character on its own.
-        /// Instead we will control the character yaw manually
-        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
-
-        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
-        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
-
-        /// Get static model and bounding box, calculate offset
-        Model * ReferenceModel=ObjectStaticModel->GetModel();
-
-        /// Set a capsule shape for collision
-        CollisionShape* ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
-
-        /// Set shape collision
-        ObjectShape->SetBox(Vector3::ONE);
-        ObjectShape->SetLodLevel(1);
     }
 
     /// if touch enabled add additional elements
     if(Existence->touchenabled_==false)
     {
         /// if node was a light
-        if(LookupInfo.ResourceType==RCType_Light)
-        {
-            float zposition = strtof(results.at(3).c_str(),NULL);
+        /*   if(LookupInfo.ResourceType==RCType_Light)
+           {
+               float zposition = strtof(results.at(3).c_str(),NULL);
 
-            ObjectStaticNode->SetPosition(Vector3(x,zposition,y));
+               ObjectStaticNode->SetPosition(Vector3(x,zposition,y));
 
-            /// Create a directional light to the world. Enable cascaded shadows on it
-            Node * LightNode= ObjectStaticNode -> CreateChild("Generic_Light");
-            LightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
-            Light* light = LightNode ->CreateComponent<Light>();
-            light->SetLightType(LIGHT_POINT);
-            light->SetCastShadows(true);
-            light->SetSpecularIntensity(2.0f);
-            light->SetBrightness(0.0f);
-            light->SetColor(Color(0.91f, 0.9f,0.9f));
-            light->SetFov(30);
-            light->SetRange(10);
+               /// Create a directional light to the world. Enable cascaded shadows on it
+               Node * LightNode= ObjectStaticNode -> CreateChild("Generic_Light");
+               LightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
+               Light* light = LightNode ->CreateComponent<Light>();
+               light->SetLightType(LIGHT_POINT);
+               light->SetCastShadows(true);
+               light->SetSpecularIntensity(2.0f);
+               light->SetBrightness(0.0f);
+               light->SetColor(Color(0.91f, 0.9f,0.9f));
+               light->SetFov(30);
+               light->SetRange(10);
 
-            /// Move light on light node
-            LightNode->SetPosition(Vector3(0,-1,0));
-            LightNode->SetName("Generic_Light");
+               /// Move light on light node
+               LightNode->SetPosition(Vector3(0,-1,0));
+               LightNode->SetName("Generic_Light");
 
-            /// Create a resource componet
-            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
-            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+               /// Create a resource componet
+               ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+               PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
 
-            /// Set resource type to light
-            ObjectResourceComponent->SetResourceComponentType(RCType_Light);
-            ObjectResourcePower->Initialize();
-        }
+               /// Set resource type to light
+               ObjectResourceComponent->SetResourceComponentType(RCType_Light);
+               ObjectResourcePower->Initialize();
+           }
 
-        /// if node was a light
-        if(LookupInfo.ResourceType==RCType_Forcefield)
-        {
-            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
-            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+           /// if node was a light
+           if(LookupInfo.ResourceType==RCType_Forcefield)
+           {
+               ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+               PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
 
-            /// Set resource type to light
-            ObjectResourceComponent->SetResourceComponentType(RCType_Forcefield);
-            ObjectResourcePower->Initialize();
-        }
-
+               /// Set resource type to light
+               ObjectResourceComponent->SetResourceComponentType(RCType_Forcefield);
+               ObjectResourcePower->Initialize();
+           }
+        */
 
     }
 
@@ -1225,25 +1138,23 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     string Map;
 
     /// Add ResourceComponents Base Structure
-    Map.append("!-6:-4:$:3:4!2:-4:$:3:4!-6:-6:(:7:1!-6:4:&:7:1!-8:-4:':1:4!8:-2:2:1:2");
-    Map.append("#0:-2:$#0:0:$#0:-4:-#0:2:/#8:-4:%#8:2:%#4:0:?:3.95#4:-2:?:3.95#-4:0:?:3.95#-4:-2:?:3.95#8:2:7#8:-4:8#8:-2:9");
+    Map.append("!-6:-4:$:3:4!2:-4:$:3:4!-6:-6:(:7:1!-6:4:&:7:1!-8:-4:':1:4!8:-2:2:1:2!-6:-4:6:3:4!2:-4:6:3:4");
+    Map.append("#0:-2:6#0:0:6#0:-2:$#0:0:$#0:-4:-#0:2:/#8:-4:%#8:2:%#4:0:?:3.95#4:-2:?:3.95#-4:0:?:3.95#-4:-2:?:3.95#8:2:7#8:-4:8#8:-2:9");
 
+    /// Generate Map
     GenerateMapDataToGameMap(Map);
-
 
     /// Add extra temporary this way
     if(Existence->touchenabled_==false)
     {
-
         /// generate generalfile
         String temporaryfilename;
+
         /// Create needed filenames
         String temporarymodelfilename;
         String temporarytexturefilename;
         Node * ObjectStaticNode;
         StaticModel * ObjectStaticModel;
-
-
         /// first one
         temporaryfilename.Clear();
 
@@ -1267,6 +1178,48 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         ObjectStaticNode->SetPosition(Vector3(4,1.5f,1));
 
+        /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
+        RigidBody * ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(1.0f);
+        ObjectRigidBody->SetUseGravity(true);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        Model * ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        CollisionShape* ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetBox(Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
+        Drone * CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
+
+        /// Create Drone information
+        DroneInformation SetDrone;
+        SetDrone.AlienAllianceAligned=0;
+        SetDrone.AlienRace=0;
+        SetDrone.DroneType=Drone100Beta;
+        SetDrone.Name = String("test");
+
+        CreatedDrone->SetParameters(SetDrone);
+
+
+        ResourceNodeComponent * DroneResourceComponent2=ObjectStaticNode -> CreateComponent<ResourceNodeComponent>();
+        DroneResourceComponent2->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
+        DroneResourceComponent2->MapResources(Existence->ResourcesManager);
+
+        ObjectStaticNode->CreateComponent<InteractObject>();
 
         /// first one
         temporaryfilename.Clear();
@@ -1294,6 +1247,48 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         ObjectStaticNode->Yaw(180);
 
+        /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
+        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(1.0f);
+        ObjectRigidBody->SetUseGravity(true);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetBox(Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
+
+        CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
+
+        /// Create Drone information
+        SetDrone.AlienAllianceAligned=0;
+        SetDrone.AlienRace=0;
+        SetDrone.DroneType=Drone200Alpha;
+        SetDrone.Name = String("test");
+
+        CreatedDrone->SetParameters(SetDrone);
+
+        ResourceNodeComponent * DroneResourceComponent=ObjectStaticNode -> CreateComponent<ResourceNodeComponent>();
+        DroneResourceComponent->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
+        DroneResourceComponent->MapResources(Existence->ResourcesManager);
+
+        ObjectStaticNode->CreateComponent<InteractObject>();
+
 
         /// first one
         temporaryfilename.Clear();
@@ -1319,6 +1314,30 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->SetPosition(Vector3(2.0f,1.0f,-4.0f));
         ObjectStaticNode->Yaw(90);
 
+        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(0.0f);
+        ObjectRigidBody->SetUseGravity(false);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetConvexHull(ReferenceModel,1,Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
         /// Create a directional light to the world. Enable cascaded shadows on it
         Node* PrinterlightNode = ObjectStaticNode->CreateChild("Generic_Light");
         PrinterlightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
@@ -1341,11 +1360,38 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
         ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
 
-        ObjectResourceComponent->SetResourceComponentType(RCType_ReplicationPrinter);
+        ObjectResourceComponent->SetResourceComponentNameType(String("GenericReplicationPrinter1"), RCType_ReplicationPrinter);
         ObjectResourcePower->Initialize();
 
         ObjectStaticNode->CreateComponent<InteractObject>();
 
+        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(0.0f);
+        ObjectRigidBody->SetUseGravity(false);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetConvexHull(ReferenceModel,1,Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
+
+        ObjectResourceComponent->SetResourceComponentNameType(String("GenericReplicationPrinter1"), RCType_ReplicationPrinter);
+        ObjectResourceComponent->MapResources(Existence->ResourcesManager);
 
         /// first one
         temporaryfilename.Clear();
@@ -1371,6 +1417,30 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->SetPosition(Vector3(5.0f,0.5f,-4.0f));
         ObjectStaticNode->Yaw(180);
 
+        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(0.0f);
+        ObjectRigidBody->SetUseGravity(false);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetConvexHull(ReferenceModel,1,Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
         /// Create a directional light to the world. Enable cascaded shadows on it
         Node* GeneratorlightNode = ObjectStaticNode->CreateChild("Generic_Light");
         GeneratorlightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
@@ -1386,7 +1456,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         GeneratorlightNode->SetPosition(Vector3(0.0f,.53f,0.0f));
         GeneratorlightNode->SetName("Generic_Light");
 
-
         /// create components
         StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_PowerSource);
 
@@ -1396,6 +1465,9 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectResourceComponent->SetResourceComponentType(RCType_PowerSource);
         ObjectResourcePower->Initialize();
         ObjectResourcePower->SetPower(14500);
+
+        ObjectResourceComponent->SetResourceComponentNameType(String("GenericPowerGenerator1"), RCType_PowerSource);
+        ObjectResourceComponent->MapResources(Existence->ResourcesManager);
 
 
         /// first one
@@ -1422,7 +1494,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->SetPosition(Vector3(-3.0f,1.0f,-4.0f));
         ObjectStaticNode->Yaw(180);
 
-
         /// create components
         StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_RefrigerationUnit);
 
@@ -1430,26 +1501,173 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
         ObjectStaticNode->CreateComponent<InteractObject>();
 
-        ObjectResourceComponent->SetResourceComponentType(RCType_RefrigerationUnit);
+        ObjectResourceComponent->SetResourceComponentNameType(String("GenericRefrigerationUnit1"), RCType_RefrigerationUnit);
         ObjectResourcePower->Initialize();
+
+         ObjectResourceComponent->MapResources(Existence->ResourcesManager);
 
     }
 
     return 1;
 }
 
+/// Create a node
+void GameEconomicGameClientStateProgress::GenerateSceneNode3D(Node * BaseNode,const float & x, const float &z, const float & y,const String & TempResourceString, const ResourceComponentType &TempResourceType,  const  bool IsSubComponent,  const   String &TempModelFilename, const  String & TempTextureFilename,  bool  IsClustered=false)
+{
+    /// Get resources and clear everything
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
+    Renderer* renderer = GetSubsystem<Renderer>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+    UI* ui = GetSubsystem<UI>();
+    FileSystem * filesystem = GetSubsystem<FileSystem>();
+
+    /// Load StarbaseNode
+    Node * StarbaseNode = Existence->scene_->GetChild("StarBaseNode", true);
+
+    /// Copy node to this componet
+    Starbase * StarbaseNodeComponent = StarbaseNode->GetComponent<Starbase>();
+
+    /// Add node type
+    Node * ObjectStaticNode= BaseNode -> CreateChild("Generic_Type");
+
+    unsigned int i=0;
+
+    StaticModel * ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
+
+    /// Use filename information
+    ObjectStaticModel ->SetModel(cache->GetResource<Model>(TempModelFilename));
+    ObjectStaticModel ->ApplyMaterialList(TempTextureFilename);
+
+    ObjectStaticModel ->SetCastShadows(true);
+
+    ObjectStaticNode->SetPosition(Vector3((float)x,z,(float)y));
+
+    /// Add a resource node
+    ResourceNodeComponent * ResourceSet = ObjectStaticNode->CreateComponent<ResourceNodeComponent>();
+    ResourceSet -> SetResourceComponentNameType(TempResourceString, TempResourceType);
+
+    /// If nod is not a subcomponent
+    if(IsSubComponent==false)
+    {
+        /// If the element is a structural element
+        if(TempResourceType==RCType_Structural||TempResourceType==RCType_Forcefield)
+        {
+            /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
+            RigidBody* ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+            ObjectRigidBody->SetCollisionLayer(1);
+
+            /// Turn off Gravity
+            ObjectRigidBody->SetMass(0.0f);
+            ObjectRigidBody->SetUseGravity(false);
+
+            /// Set zero angular factor so that physics doesn't turn the character on its own.
+            /// Instead we will control the character yaw manually
+            ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+            /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+            ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+            /// Get static model and bounding box, calculate offset
+            Model * ReferenceModel=ObjectStaticModel->GetModel();
+
+            /// Set a capsule shape for collision
+            CollisionShape* ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+            /// Set shape collision
+            ObjectShape->SetConvexHull(ReferenceModel,1,Vector3::ONE);
+            ObjectShape->SetLodLevel(1);
+        }
+
+        /// If the node component exist - If poart of the starbase
+        if(StarbaseNodeComponent)
+        {
+            /// Add to starbase if it is a power node
+            if(TempResourceType==RCType_Light)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectStaticNode, TempResourceType);
+            }
+            /// Add to starbase if it is a power node
+            if(TempResourceType==RCType_Forcefield)
+            {
+                StarbaseNodeComponent -> PushNode(ObjectStaticNode, TempResourceType);
+            }
+        }
+
+        /// if node was a light
+        if(TempResourceType==RCType_Light)
+        {
+            /// Set Position
+            ObjectStaticNode->SetPosition(Vector3(x,z,y));
+
+            /// Create a directional light to the world. Enable cascaded shadows on it
+            Node * LightNode= ObjectStaticNode -> CreateChild("Generic_Light");
+            LightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
+            Light* light = LightNode ->CreateComponent<Light>();
+            light->SetLightType(LIGHT_POINT);
+            light->SetCastShadows(true);
+            light->SetSpecularIntensity(2.0f);
+            light->SetBrightness(0.0f);
+            light->SetColor(Color(0.91f, 0.9f,0.9f));
+            light->SetFov(30);
+            light->SetRange(10);
+
+            /// Move light on light node
+            LightNode->SetPosition(Vector3(0,-1,0));
+            LightNode->SetName("Generic_Light");
+
+            /// Create a resource componet
+            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+            /// Set resource type to light
+            ObjectResourceComponent->SetResourceComponentType(RCType_Light);
+            ObjectResourcePower->Initialize();
+        }
+
+        /// if node was a light
+        if(TempResourceType==RCType_Forcefield)
+        {
+            ResourceNodeComponent * ObjectResourceComponent = ObjectStaticNode->GetComponent<ResourceNodeComponent>();
+            PowerComponent * ObjectResourcePower  = ObjectStaticNode->CreateComponent<PowerComponent>();
+
+            /// Set resource type to light
+            ObjectResourceComponent->SetResourceComponentType(RCType_Forcefield);
+            ObjectResourcePower->Initialize();
+        }
+    }
+
+    /*
+
+    /// Get component information if available works
+    unsigned int a = Existence->ResourcesManager->GetResourceSymbolIdxInt(TempResourceString);
+    ResourceComponentInformation * ResourceInfo = Existence->ResourcesManager -> GetResourceInfo(a);
+
+    //unsigned int a = Existence->ResourcesManager->GetResourceSymbolIdxInt(TempResourceString);
+    //ResourceComponentInformation * ResourceInfo = Existence->ResourcesManager -> GetResourceInfo(a);
+
+    /// If ResourceSet
+    if(ResourceInfo&&ResourceSet)
+    {
+        /// split inot a string
+        vector<string> results = Split(ResourceInfo->ComponentResource.CString(),':');
+
+        for(unsigned int i=0;i<results.size();i+2)
+        {
+            String Name=String(results.at(i).c_str());
+            String Quantity=String(results.at(i+1).c_str());
+
+            ResourceNodeInformation NewResource;
+
+            NewResource.Resource.ResourceName = Name;
+            NewResource.Resource.Quantity = strtoul(Quantity.CString(),NULL,0);
+            NewResource.IntregrationType=RI_Permament;
+
+            ResourceSet->AddNodeResource(NewResource);
+        }
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+    */
+    return;
+}
 

@@ -38,7 +38,20 @@ void Entity::RegisterObject(Context* context)
     return;
 }
 
+/// Entity Start
 void Entity::Start(void)
 {
+    return;
+}
 
+/// Entity Handle Collision
+void Entity::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
+{
+    return;
+}
+
+/// ENtity Object Collision
+void Entity::ObjectCollision(Node* otherObject, VariantMap& eventData)
+{
+    return;
 }

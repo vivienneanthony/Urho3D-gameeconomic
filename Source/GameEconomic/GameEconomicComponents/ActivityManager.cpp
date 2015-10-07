@@ -73,3 +73,19 @@ void ActivityManager::HandleUpdate(StringHash eventType, VariantMap& eventData)
     //cout << TotalActivities << endl;
     return;
 }
+
+unsigned int ActivityManager::GetTotal(void)
+{
+     /// set total acitivities to zero
+    unsigned int TotalActivities = 0;
+
+    /// Check vector for amount of activities
+    for(unsigned int i =0;i<RootActivities->Size();i++)
+    {
+        /// Get total size for each
+        TotalActivities+=RootActivities->At(i)->GetTotalSize();
+    }
+
+    /// Return total size
+    return TotalActivities;
+}

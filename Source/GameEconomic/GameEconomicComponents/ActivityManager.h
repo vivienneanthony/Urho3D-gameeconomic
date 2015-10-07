@@ -36,7 +36,8 @@ public:
     static void RegisterObject(Context* context);
     void Start();
 
-   void HandleUpdate(StringHash eventType, VariantMap& eventData);
+    void HandleUpdate(StringHash eventType, VariantMap& eventData);
+    unsigned int GetTotal(void);
 
 protected:
 private:

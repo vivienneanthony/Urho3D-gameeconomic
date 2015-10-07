@@ -233,26 +233,7 @@ void GameEconomicGameClientStateProgress::Intro(void)
     /// Create dialog
     loadScene();
 
-    if(Existence->touchenabled_==false)
-    {
-        /// Create a directional light to the world. Enable cascaded shadows on it
-        Node* lightNode = Existence->scene_->CreateChild("DirectionalLight1");
-        lightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
-        Light* light = lightNode->CreateComponent<Light>();
-        light->SetLightType(LIGHT_POINT);
-        light->SetCastShadows(true);
-        light->SetSpecularIntensity(2.0f);
-        light->SetBrightness(.6);
-        light->SetColor(Color(0.91f, 0.9f,0.9f));
-        light->SetFov(30);
-        light->SetRange(10);
-
-
-        lightNode->SetPosition(Vector3(0.0f,3.0f,0.0f));
-        lightNode->SetName("GeneratedLight_Light1");
-
-
-    }
+    /// Subscribe to events
     SubscribeToEvent(DialogWindowContinueButton,E_RELEASED,HANDLER(GameEconomicGameClientStateProgress,HandleContinuePressed));
 
     return;
@@ -276,7 +257,6 @@ void GameEconomicGameClientStateProgress::HandleContinuePressed(StringHash event
     if(ContinueGame)
     {
         Existence->EraseUI();
-
 
         /// Create a event
         VariantMap gamestatechange;
@@ -1052,49 +1032,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     {
         Existence->scene_-> CreateComponent<PhysicsWorld>();
     }
-    /// Create skybox. The Skybox component is used like StaticModel, but it will be always located at the camera, giving the
-    /// illusion of the box planes being far away. Use just the ordinary Box model and a suitable material, whose shader will
-    /// generate the necessary 3D texture coordinates for cube mapping
-
-    /// Create a directional light to the world. Enable cascaded shadows on it
-    /*  Node* lightNode = Existence->scene_->CreateChild("DirectionalLight1");
-      lightNode->SetDirection(Vector3(0.6f, -1.0f, 0.8f));
-      Light* light = lightNode->CreateComponent<Light>();
-      light->SetLightType(LIGHT_DIRECTIONAL);
-      light->SetCastShadows(true);
-      light->SetSpecularIntensity(0.8f);
-      light->SetBrightness(.8);
-      light->SetColor(Color(0.891f, 0.892f, 1.0f));
-
-      lightNode->SetPosition(Vector3(0.0f,3.0f,0.0f));
-      lightNode->SetName("GeneratedLight_Light1");
-
-      /// Create a directional light to the world. Enable cascaded shadows on it
-      Node* lightNode2 = Existence->scene_->CreateChild("DirectionalLight2");
-      Light* light2 = lightNode2->CreateComponent<Light>();
-      light2->SetLightType(LIGHT_DIRECTIONAL);
-      light2->SetCastShadows(true);
-      light2->SetSpecularIntensity(.3f);
-      light2->SetBrightness(.2);
-      light2->SetColor(Color(1.0f, 1.0f,.95f));
-
-      lightNode2->SetRotation(Quaternion(55.7392,0,0));
-      lightNode2->SetPosition(Vector3(0.0f,3.0f,0.0f));
-      lightNode2->SetName("GeneratedLight_Light2");
-
-      /// Create a directional light to the world. Enable cascaded shadows on it
-      Node* lightNode3 = Existence->scene_->CreateChild("DirectionalLight3");
-      Light* light3 = lightNode3->CreateComponent<Light>();
-      light3->SetLightType(LIGHT_DIRECTIONAL);
-      light3->SetCastShadows(true);
-      light3->SetSpecularIntensity(0.2f);
-      light3->SetBrightness(.2);
-      light3->SetColor(Color(1.0f, 1.0f,.95f));
-      light3->SetLayer(2);
-
-      lightNode3->SetRotation(Quaternion(39.1376,-180,-180));
-      lightNode3->SetPosition(Vector3(0.0f,3.0f,0.0f));*/
-
+ \
     /// Position character
     Node * characternode_ = Existence->scene_->CreateChild("Character");
     characternode_->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
@@ -1636,12 +1574,14 @@ void GameEconomicGameClientStateProgress::GenerateSceneNode3D(Node * BaseNode,co
             LightNode->SetDirection(Vector3(0.0f, 0.0f, 0.0f));
             Light* light = LightNode ->CreateComponent<Light>();
             light->SetLightType(LIGHT_POINT);
-            light->SetCastShadows(true);
+            light->SetCastShadows(false);
             light->SetSpecularIntensity(2.0f);
-            light->SetBrightness(0.0f);
+            light->SetBrightness(1.0f);
             light->SetColor(Color(0.91f, 0.9f,0.9f));
-            light->SetFov(30);
-            light->SetRange(10);
+            light->SetFov(60);
+            light->SetRange(6);
+            light->SetFadeDistance(6);
+            light->SetShadowResolution(1.0f);
 
             /// Move light on light node
             LightNode->SetPosition(Vector3(0,-1,0));

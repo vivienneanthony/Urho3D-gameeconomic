@@ -113,7 +113,6 @@ GameEconomicGameClientStateGameMode::GameEconomicGameClientStateGameMode(Context
     GameEconomicGameClientStateSingleton (context)
     ,Existence(NULL)
 {
-
     /// Debug
     cout << "Debug: State Game Mode Constructor" << endl;
 
@@ -712,6 +711,7 @@ void GameEconomicGameClientStateGameMode::GameModeSendEventHandler(StringHash ev
     }
 }
 
+/// Add Game Mode UI Elements
 void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
 {
 /// Get all Revelant resources
@@ -807,108 +807,117 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     float width = (float)graphics->GetWidth();
     float height = (float)graphics->GetHeight();
 
-    /// get current root
-    UIElement * RootUIElement = ui_->GetRoot();
-    UIElement * GameModeUIElement= RootUIElement->GetChild("GameUI",true);
-    UIElement * HUDFileElement= new UIElement(context_);
+    /// Get game root UI
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
 
-    /// if no GameUI return false
-    if(GameModeUIElement==NULL)
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
     {
-        return 0;
+
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return false;
     }
+
+    /// Create UI Element
+    UIElement * HUDFileElement= new UIElement(context_);
 
     /// Filename Hud
     String filenameHUD;
 
     /// chose based on menu type
-    if(windowtype==UIGAME_UISTARBASEDISPLAYBRIEF)
+    switch(windowtype)
+    {
+    case UIGAME_UISTARBASEDISPLAYBRIEF:
     {
         /// If window exist
-        UIElement * StarbaseDisplayBriefUIElement= GameModeUIElement->GetChild("StarbaseDisplayBriefUIElement",true);
+        UIElement * StarbaseDisplayBriefUIElement= GameUIElement->GetChild("StarbaseDisplayBriefUIElement",true);
 
         /// if the window exist exit
         if(StarbaseDisplayBriefUIElement)
         {
             StarbaseDisplayBriefUIElement->SetFocus(true);
 
-            return 0;
+            return false;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/GameStarbaseDisplayBrief.xml");
     }
-
-
-    /// chose based on menu type
-    if(windowtype==UIGAME_UICOMMUNICATIONS)
+    break;
+    case UIGAME_UICOMMUNICATIONS:
     {
         /// If window exist
-        UIElement * CommunicationsUIElement= GameModeUIElement->GetChild("CommunicationsLogsUIElement",true);
+        UIElement * CommunicationsUIElement= GameUIElement->GetChild("CommunicationsLogsUIElement",true);
 
         /// if the window exist exit
         if(CommunicationsUIElement)
         {
             CommunicationsUIElement->SetFocus(true);
 
-            return 0;
+            return false;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/CommunicationsLogs.xml");
     }
-
-
-    /// chose based on menu type
-    if(windowtype==UIGAME_UIINTERACT)
+    break;
+    case UIGAME_UIINTERACT:
     {
-        /// If window exist
-        UIElement * StarbaseDisplayBriefUIElement= GameModeUIElement->GetChild("TestingUIElement",true);
+        UIElement * StarbaseDisplayBriefUIElement= GameUIElement->GetChild("TestingUIElement",true);
 
         /// if the window exist exit
         if(StarbaseDisplayBriefUIElement)
         {
             StarbaseDisplayBriefUIElement->SetFocus(true);
 
-            return 0;
+            return false;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/Testing.xml");
     }
-
-    if(windowtype==UIGAME_HUDCLAUDIUS)
+    break;
+    case UIGAME_HUDCLAUDIUS:
     {
         /// If window exist
-        UIElement * ReadOutsHudUIElement= GameModeUIElement->GetChild("ReadOutsHudUIElement",true);
+        UIElement * ReadOutsHudUIElement= GameUIElement->GetChild("ReadOutsHudUIElement",true);
 
         /// if the window exist exit
         if(ReadOutsHudUIElement)
         {
-            return 0;
+            return false;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/HudClaudius.xml");
     }
-
-
-    if(windowtype==UIGAME_UIACTIVITIES)
+    break;
+    case UIGAME_UIACTIVITIES:
     {
         /// If window exist
-        UIElement * ReadOutsHudUIElement= GameModeUIElement->GetChild("ActivitiesHolderUIElement",true);
+        UIElement * ReadOutsHudUIElement= GameUIElement->GetChild("ActivitiesHolderUIElement",true);
 
         /// if the window exist exit
         if(ReadOutsHudUIElement)
         {
-            return 0;
+            return false;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/Activity.xml");
     }
+    break;
+    default:
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI not set " << endl;
+    }
+    return false;
+    }
 
-
+    /// Set Default style
     XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
 
     /// Configure resources
@@ -920,7 +929,8 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     /// if filename can't be find exit
     if(hudFile==NULL)
     {
-        return 0;
+        /// Problem occured - Exit displaying error
+        return false;
     }
 
     /// Get root element XML
@@ -930,7 +940,7 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     HUDFileElement-> LoadXML(hudElement, style);
 
     /// Add a uielement for the bar
-    GameModeUIElement -> AddChild(HUDFileElement);
+    GameUIElement -> AddChild(HUDFileElement);
 
     /// Position the window
     HUDFileElement -> SetPosition(positionx,positiony);
@@ -942,8 +952,11 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     HUDFileElement->SetSize(1440,900);
     HUDFileElement->SetFocusMode(FM_FOCUSABLE_DEFOCUSABLE);
 
-    /// chose based on menu type
-    if(windowtype==UIGAME_UISTARBASEDISPLAYBRIEF)
+    /// Choose menu and update
+    switch(windowtype)
+    {
+    case UIGAME_UISTARBASEDISPLAYBRIEF:
+
     {
         Button * StarbaseDisplayBriefDiagnosticButton = (Button *) HUDFileElement -> GetChild("StarbaseDisplayBriefDiagnosticButton",true);
 
@@ -967,14 +980,16 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
                 OxygenText->SetText("Nominal");
             }
         }
-
-
     }
-
-    /// Set Position
-    if(windowtype==UIGAME_HUDCLAUDIUS)
+    break;
+    case UIGAME_HUDCLAUDIUS:
     {
         HUDFileElement -> SetPosition(0,64);
+    }
+    break;
+    default:
+        /// do nothing
+        break;
     }
 
     /// Get the child and assign a close pressed
@@ -1008,19 +1023,29 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
     /// get the button that was clicked
     Button* clicked = static_cast<Button*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
 
-    String clickedButtonString(clicked->GetName());
+    /// get button name from string
+    String clickedButtonString(clicked->GetName().ToLower());
 
-    /// Get the UI Root element
-    UIElement * UIRoot = ui_->GetRoot();
+    /// Get game root UI
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
+
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
 
     /// If exit was clicked
-    if (clickedButtonString.Contains("StarbaseButton")==true)
+    if (clickedButtonString.Contains("starbasebutton")==true)
     {
         /// Load UI
         LoadUIXML(UIGAME_UISTARBASEDISPLAYBRIEF,0,0);
 
         /// Get the Window
-        Window * BriefWindow = (Window *) UIRoot->GetChild("StarbaseDisplayBriefWindow",true);
+        Window * BriefWindow = (Window *) GameUIElement->GetChild("StarbaseDisplayBriefWindow",true);
 
         /// If window exist
         BriefWindow->SetPosition((Width/2)-(BriefWindow->GetWidth()/2),(Height/2)-(BriefWindow->GetHeight()/2));
@@ -1034,35 +1059,39 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
         StarbaseNameText->SetText(Existence->ThisStarbase->Name);
 
         /// Get poewr
-        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPower",true);
-        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPower",true);
+        /// Get poewr
+        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPowerText",true);
+        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPowerText",true);
 
         double TotalPower = StarbaseComponent->GetTotalPower();
         double UsedPower = StarbaseComponent->GetUsedPower();
 
-        String TotalPowerString = String("Total Power :")+String(TotalPower);
-        String UsedPowerString = String("Used Power :")+String(TotalPower-UsedPower);
+        String TotalPowerString = String(TotalPower);
+        String UsedPowerString = String(TotalPower-UsedPower);
 
-        StarbaseTotalPower->SetText(TotalPowerString);
-        StarbaseUsedPower->SetText(UsedPowerString);
+        if(StarbaseTotalPower&&StarbaseUsedPower)
+        {
+            StarbaseTotalPower->SetText(TotalPowerString);
+            StarbaseUsedPower->SetText(UsedPowerString);
+        }
+
 
     }
-
-    /// If exit was clicked
-    if (clickedButtonString.Contains("CommunicationsButton")==true)
+    else if (clickedButtonString.Contains("communicationsbutton")==true)
     {
+        /// If exit was clicked
         /// Load UI
         LoadUIXML(UIGAME_UICOMMUNICATIONS,0,0);
 
         /// Get the Window
-        Window * CommunicationLogsWindow = (Window *) UIRoot->GetChild("CommunicationsLogsWindow",true);
+        Window * CommunicationLogsWindow = (Window *) GameUIElement->GetChild("CommunicationsLogsWindow",true);
 
         CommunicationLogsWindow->SetPosition((Width/2)-(CommunicationLogsWindow->GetWidth()/2),(Height/2)-(CommunicationLogsWindow->GetHeight()/2));
 
         /// Populate
         TempLogs = new Vector<CommunicationLog>();
 
-        ListView * CommunicationsLogListView = (ListView *) UIRoot->GetChild("CommunicationsLogListView",true);
+        ListView * CommunicationsLogListView = (ListView *) CommunicationLogsWindow->GetChild("CommunicationsLogListView",true);
 
         Existence->LoadCommunicationLogs(LogFormat_Personal, TempLogs);
 
@@ -1102,19 +1131,35 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
             SubscribeToEvent(CommunicationsLogListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleCommunicationsLogView));
         }
     }
-
-
-    /// If exit was clicked
-    if (clickedButtonString.Contains("ActivitiesButton")==true)
+    else if (clickedButtonString.Contains("activitiesbutton")==true)
     {
+        /// If exit was clicked
+
         /// Load UI
         LoadUIXML(UIGAME_UIACTIVITIES,0,0);
 
         /// Get the Window
-        Window * ActivitiesWindow = (Window *) UIRoot->GetChild("ActivitiesWindow",true);
+        Window * ActivitiesWindow = (Window *) GameUIElement->GetChild("ActivitiesWindow",true);
 
         ActivitiesWindow->SetPosition((Width/2)-(ActivitiesWindow->GetWidth()/2),(Height/2)-(ActivitiesWindow->GetHeight()/2));
 
+
+
+        /// Get poewr
+        Text * InProgressText = (Text *) ActivitiesWindow ->GetChild("InProgressText",true);
+        Text * CompletedText = (Text *) ActivitiesWindow ->GetChild("CompletedText",true);
+
+        unsigned int InProgress = Existence->ActivitiesManager->GetTotal();
+        unsigned int Completed = Existence->ActivitiesManager->GetTotal();
+
+        String InProgressString = String(InProgress);
+        String CompletedString = String(Completed);
+
+        if(InProgressText&&Completed)
+        {
+            InProgressText->SetText(InProgressString);
+            CompletedText->SetText(CompletedString);
+        }
 
     }
 
@@ -1122,26 +1167,34 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
 }
 
 
+/// Handle Log view of specific ones
 void GameEconomicGameClientStateGameMode::HandleCommunicationsLogView(StringHash eventType, VariantMap& eventData)
 {
-
-    /// Resource
-    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
-
+    /// Resource subsystems
     UI * ui_ = GetSubsystem<UI>();
 
-    UIElement * UIRoot =  ui_ -> GetRoot();
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
 
-    /// Get rendering window size as floats
-    UIElement* CommunicationsLogsUIElement = (UIElement *) UIRoot ->GetChild("CommunicationsLogsUIElement",true);
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
 
     /// Get needed info
     Text* selectedItem = (Text*)(eventData[ItemDoubleClicked::P_ELEMENT].GetPtr());
 
     unsigned int selection= strtoul(selectedItem->GetName().CString(),NULL,0);
 
+    /// Get rendering window size as floats
+    UIElement* CommunicationsLogsUIElement = (UIElement *) GameUIElement ->GetChild("CommunicationsLogsUIElement",true);
+
     Text * CommunicationsLogText = (Text *)CommunicationsLogsUIElement->GetChild("CommunicationsLogText", true);
 
+    /// Update log text if Text Element exist
     if(CommunicationsLogText)
     {
         CommunicationsLogText->SetText(TempLogs->At(selection).Text);
@@ -1195,8 +1248,16 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
 
     String clickedButtonString(clicked->GetName());
 
-    /// Get the UI Root element
-    UIElement * UIRoot = ui_->GetRoot();
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
+
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
 
     /// If exit was clicked
     if (clickedButtonString.Contains("StarbaseDisplayBriefDiagnosticButton")==true)
@@ -1205,24 +1266,31 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
         Node * StarbaseNode = Existence->scene_ ->GetChild("StarBaseNode",true);
         Starbase * StarbaseComponent = StarbaseNode->GetComponent<Starbase>();
 
-        ListView * StarbaseDisplayBriefAllNodesListView = (ListView *)UIRoot ->GetChild("StarbaseDisplayBriefAllNodesListView", true);
+        if(!StarbaseComponent||StarbaseComponent==false)
+        {
+            return;
+        }
+
+        ListView * StarbaseDisplayBriefAllNodesListView = (ListView *)GameUIElement ->GetChild("StarbaseDisplayBriefAllNodesListView", true);
 
         /// Get the Window
-        Window * BriefWindow = (Window *) UIRoot->GetChild("StarbaseDisplayBriefWindow",true);
+        Window * BriefWindow = (Window *) GameUIElement->GetChild("StarbaseDisplayBriefWindow",true);
 
         /// Get poewr
-        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPower",true);
-        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPower",true);
+        Text * StarbaseTotalPower = (Text *) BriefWindow->GetChild("StarbaseTotalPowerText",true);
+        Text * StarbaseUsedPower = (Text *) BriefWindow->GetChild("StarbaseUsedPowerText",true);
 
         double TotalPower = StarbaseComponent->GetTotalPower();
         double UsedPower = StarbaseComponent->GetUsedPower();
 
-        String TotalPowerString = String("Total Power :")+String(TotalPower);
-        String UsedPowerString = String("Used Power :")+String(TotalPower-UsedPower);
+        String TotalPowerString = String(TotalPower);
+        String UsedPowerString = String(TotalPower-UsedPower);
 
-        StarbaseTotalPower->SetText(TotalPowerString);
-        StarbaseUsedPower->SetText(UsedPowerString);
-
+        if(StarbaseTotalPower&&StarbaseUsedPower)
+        {
+            StarbaseTotalPower->SetText(TotalPowerString);
+            StarbaseUsedPower->SetText(UsedPowerString);
+        }
 
         unsigned int numberNodes = StarbaseComponent->GetBaseNodes();
 
@@ -1230,14 +1298,13 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
         float Oxygen = StarbaseComponent->GetOxygen();
 
         /// Get Oxygen Level
-        if(Text * OxygenText=(Text *)UIRoot->GetChild("OxygenBriefText",true))
+        if(Text * OxygenText=(Text *)BriefWindow ->GetChild("OxygenBriefText",true))
         {
             if(Oxygen>(2048.0f*0.75f))
             {
                 OxygenText->SetText("Nominal");
             }
         }
-
 
         /// Show
         if(numberNodes>0)
@@ -1389,13 +1456,7 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                 newItem->SetStyleAuto();
             }
         }
-
-
-
     }
-
-
-
 
     return;
 }

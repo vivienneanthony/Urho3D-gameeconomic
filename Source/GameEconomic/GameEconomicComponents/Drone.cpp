@@ -13,7 +13,7 @@
 #include "../../../Urho3D/Physics/PhysicsEvents.h"
 #include "../../../Urho3D/Input/Controls.h"
 #include "../../../Urho3D/Scene/Node.h"
-
+#include "../../../Urho3D/Scene/Scene.h"
 
 #define CLOSEDMARKET    0
 #define OPENMARKET      1
@@ -22,20 +22,28 @@
 #include <iostream>
 #include <vector>
 
-
 #include "Entity.h"
 #include "Drone.h"
+#include "AIFuzzyControl.h"
+#include "AIFuzzyStateMachine.h"
+#include "AIFuzzyStateMachineState.h"
+#include "DroneAIController.h"
 #include "ResourceNodeComponent.h"
 
 using namespace std;
 using namespace Urho3D;
+
 
 ///Drone Constructor
 Drone::Drone(Context * context):
     Entity(context)
     ,ThisDrone(NULL)
     ,ThisBody(NULL)
-    ,TargetNode(NULL)
+    ,ThisNode(NULL)
+    ,IsColliding(false)
+    ,IsCollidingNode(NULL)
+    ,M_AIFuzzyControl(NULL)
+    ,DroneController(NULL)
     ,TargetVector(Vector3(0.0f,0.0f,0.0f))
 {
     /// Create a new Drone
@@ -44,17 +52,23 @@ Drone::Drone(Context * context):
     /// Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
 
+
 }
 
 /// Destructor
 Drone::~Drone()
 {
-    //dtor
+    /// Delete
+    delete M_AIFuzzyControl;
+    delete ThisDrone;
+
+    return;
 }
 
 /// Entity Register Object
 void Drone::RegisterObject(Context* context)
 {
+    /// Register Drone
     context->RegisterFactory<Drone>();
 
     return;
@@ -63,12 +77,46 @@ void Drone::RegisterObject(Context* context)
 /// Start Drone or reset
 void Drone::Start(void)
 {
+    /// Do nothing
+    return;
+}
+
+/// Set Node
+void Drone::SetNode(Node * SetNode)
+{
+    /// Set node
+    ThisNode = SetNode;
 
     return;
 }
 
+/// Initialize
 void Drone::Initialize(void)
 {
+    /// If no node do nothing
+    if(!ThisNode)
+    {
+        return;
+    }
+
+    /// New Drone AI Controller
+    DroneController =  ThisNode->CreateComponent<DroneAIController>();
+
+    /// Add AIFuzzyControl
+    M_AIFuzzyControl = ThisNode->CreateComponent<AIFuzzyControl>();
+
+    /// Set Fuzzy Control
+    DroneController->Set(FUSH_MACHINE_DRONE100,M_AIFuzzyControl);
+
+    /// Add dron
+    DroneController->AddDrone(ThisNode->GetComponent<Drone>());
+
+    /// Add States
+    DroneController->AddStates();
+
+    /// Choose
+    SubscribeToEvent(node_, E_NODECOLLISION, HANDLER(Drone, HandleNodeCollision));
+
     return;
 }
 
@@ -84,93 +132,83 @@ void Drone::SetParameters(DroneInformation &DBDrone)
     /// Set node global so it's not looked up twice
     ThisBody = this->GetNode()->GetComponent<RigidBody>();
 
-    /// Set node global so it's not looked up twice
-    //ThisBody = this->GetNode()->GetComponent<ResourceNodeComponent>();
-
     return;
 }
 
 /// Set Controls
 void Drone::SetControls(const Controls& newControls)
 {
+    /// Set Controls
     controls = newControls;
+
+    return;
 }
 
 /// Drone Fix Update
 void Drone::FixedUpdate(float timeStep)
 {
-    /// Force the physics rotation
-    Quaternion rotationq= ThisBody->GetRotation();
+    /// Do nothing
 
-    /// ControlDrone
-    controller->ControlDrone(this, this->GetNode(), timeStep);
-
-    /// move force
-    Vector3 moveForce = Vector3::ZERO;
-
-    Quaternion newrotation;
-
-    /// If a rigid body is assigned;
-    if(ThisBody)
+    ///ApplyImpulseTargetVector.Normalize();
+    if(ThisNode&&ThisBody)
     {
-        /// apply left and right and foward and backwards
-        if (controls.IsDown(CTRL_UP | CTRL_DOWN))
+        if(IsColliding)
         {
-            if (controls.IsDown(CTRL_UP))
-                moveForce += rotationq * Vector3(0, 0, 1);
-            if (controls.IsDown(CTRL_DOWN))
-                moveForce += rotationq * Vector3(0, 0, -1);
+            /// Get the current angular velocity on collision
+            Vector3 ThisAngularVelocity = ThisBody->GetAngularVelocity();
+            Vector3 ThisLinearVelocity = ThisBody->GetLinearVelocity();
 
-            /// Normalize so that diagonal strafing isn't faster
-            moveForce.Normalize();
-            moveForce *= .02;
-            ThisBody->ApplyImpulse(moveForce);
+            /// Simply reverse the velocity for now
+            ThisBody->SetAngularVelocity(-ThisAngularVelocity);
+            ThisBody->SetLinearVelocity(-ThisLinearVelocity);
+
+            /// Set false for Idle can move on
+            IsColliding=false;
+            IsCollidingNode=NULL;
         }
 
-        /// turn right or left based on rotationq
-        if (controls.IsDown(CTRL_RIGHT)||controls.IsDown(CTRL_LEFT))
+        /// Apply Impulse
+        Vector3 BaseImpulse=Vector3::ZERO;
+
+        ///  Position is lower then 1.5
+        if(ThisNode->GetWorldPosition().y_<=2.0f)
         {
-            if (controls.IsDown(CTRL_LEFT))
-            {
-                newrotation = rotationq * Quaternion(-(rotationInertia), Vector3(0.0f, 1.0f, 0.0f)); // Pitch
-            }
-
-            if (controls.IsDown(CTRL_RIGHT))
-            {
-                newrotation = rotationq * Quaternion(rotationInertia, Vector3(0.0f, 1.0f, 0.0f)); // Pitch
-            }
-
-            ThisBody->SetRotation(newrotation);
+            BaseImpulse+=Vector3(0.0f,0.2f,0.0f);
         }
 
-        /// Apply vertical force
-        if(controls.IsDown(CTRL_ELEVATE))
+        /// If not colliding add more impulse
+        if(!IsColliding)
         {
-            moveForce += moveForce * Vector3(0, 1, 0);
-
-            /// Normalize so that diagonal strafing isn't faster
-            moveForce.Normalize();
-            moveForce *= .2;
-            ThisBody->ApplyImpulse(moveForce);
+            BaseImpulse+=ApplyImpulseTargetVector;
         }
+
+        /// Apply impulse
+        ThisBody->ApplyImpulse(BaseImpulse);
+
     }
 
-       HittingObject=false;
+    return;
 }
 
 /// Hail Drone
 bool Drone::Hail(void)
 {
+    /// Do nothing
     return false;
 }
 
 /// Handle Collision
 void Drone::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 {
+    /// Node Collision
     using namespace NodeCollision;
 
     /// Get Collision Node
     Node* otherNode = (Node*)eventData[P_OTHERNODE].GetPtr();
+
+    /// Set Collision
+    IsColliding=true;
+    IsCollidingNode=NULL;
 
     /// If there is a another node then it must be a object collision
     if (otherNode != NULL)
@@ -184,33 +222,8 @@ void Drone::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 /// Other drone Object Collision
 void Drone::ObjectCollision(Node* otherObject, VariantMap& eventData)
 {
-    /// Get node info
-    ResourceNodeComponent * OtherObjectResource = otherObject->GetComponent<ResourceNodeComponent>();
-
-    /// Get resource node
-    if(OtherObjectResource)
-    {
-        /// Get node information
-        ResourceComponentType ResourceHit=OtherObjectResource->GetResourceComponentType();
-        String ResourceName=OtherObjectResource->GetResourceComponentName();
-
-        /// Set hitting floor to zero
-        HittingFloor=false;
-        HittingObject=false;
-
-        /// Change type
-        if(ResourceName==String("Generic_Type1"))
-        {
-            HittingFloor=true;
-            cout << ResourceName.CString()<< endl;
-        }
-        else
-        {
-            HittingObject=true;
-        }
-
-    }
+    /// Is colliding last collision;
+    IsCollidingNode = otherObject;
 
     return;
 }
-

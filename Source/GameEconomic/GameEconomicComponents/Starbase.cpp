@@ -26,12 +26,15 @@ using namespace Urho3D;
 
 
 
-
 /// couple of functions needed
 /// getcurrent list of items
 Starbase::Starbase(Context * context):
     LogicComponent(context)
     ,TotalPower(0.0f)
+    ,UsedPower(0.0f)
+    ,Oxygen(0.0f)
+    ,Name(NULL)
+    ,StarbaseNodes(NULL)
     ,IsOnline(false)
 {
 
@@ -47,7 +50,10 @@ Starbase::Starbase(Context * context):
 /// Starbase destructor
 Starbase::~Starbase()
 {
-    //dtor
+
+    delete StarbaseNodes;
+
+    /// Do nothing
 
     return;
 }
@@ -55,6 +61,7 @@ Starbase::~Starbase()
 /// Register Starbase
 void Starbase::RegisterObject(Context* context)
 {
+    /// Register Starbase
     context->RegisterFactory<Starbase>();
 
     return;
@@ -63,6 +70,9 @@ void Starbase::RegisterObject(Context* context)
 /// Starbase initialization
 void Starbase::Start(void)
 {
+
+    /// Do nothing
+
     return;
 }
 
@@ -79,15 +89,19 @@ StarbaseNodeInformation Starbase::GetBaseNode(unsigned int idx)
 
     return ReturnNode;
 }
+
+/// Get total power
 double Starbase::GetTotalPower(void)
 {
     return TotalPower;
 }
 
+/// Get used power
 double Starbase::GetUsedPower(void)
 {
     return UsedPower;
 }
+
 /// Add node to the starbase
 void Starbase::PushNode(Node * NewNode, ResourceComponentType NewNodeComponentType)
 {
@@ -102,6 +116,7 @@ void Starbase::PushNode(Node * NewNode, ResourceComponentType NewNodeComponentTy
     return;
 }
 
+/// Set online status
 void Starbase::SetOnline(bool SetFlag)
 {
     IsOnline=SetFlag;
@@ -220,7 +235,14 @@ void Starbase::FixedUpdate(float timeStep)
         UsedPower=RemainingPower;
     }
 
+    /// air levels
+    Oxygen=2048.0f;
+
     return;
 }
 
-
+/// void
+float Starbase::GetOxygen(void)
+{
+    return Oxygen;
+}

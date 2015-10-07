@@ -1,5 +1,5 @@
-#ifndef AIController_H
-#define AIController_H
+#ifndef AICONTROLLER_H
+#define AICONTROLLER_H
 
 #include <Urho3D/Urho3D.h>
 
@@ -12,15 +12,12 @@
 #include "../../../Urho3D/Container/Str.h"
 #include "../../../Urho3D/Scene/LogicComponent.h"
 
-/// define Player information
+
 #include <iostream>
 
 
-using namespace std;
-using namespace Urho3D;
-
-#include "Drone.h"
 #include "Entity.h"
+
 
 const int CTRL_UP = 1;
 const int CTRL_DOWN = 2;
@@ -32,29 +29,28 @@ const int CTRL_ELEVATE = 64;
 const int CTRL_DELEVATE = 128;
 const int CTRL_ALL = 255;
 
+using namespace std;
+using namespace Urho3D;
+
 class Drone;
 
-class AIController : public Entity
+/// Main class
+class AIController : public LogicComponent
 {
-	OBJECT(AIController);
+    OBJECT(AIController);
+
 public:
-    //-------------------------------------------------------------------------
-    // Constructors & Destructors
-    //-------------------------------------------------------------------------
-	AIController(Context* context);
-	~AIController();
-	/// Register object factory.
-	static void RegisterObject(Context* context);
 
-	/// Called when the component is added to a scene node. Other components may not yet exist.
-	virtual void Start();
+    /// Constructors & Destructors
+    AIController(Context* context);
+    virtual ~AIController();
 
-	virtual void ObjectCollision(Node* otherObject, VariantMap& eventData);
+    /// Register object factory.
+    static void RegisterObject(Context* context);
 
-	void ControlDrone(Drone* ownDrone, Node* ownNode, float timeStep);
-
-	static void ResetAI();
-
+    /// Called when the component is added to a scene node. Other components may not yet exist.
+    virtual void Start();
+    virtual void ResetAI();
 
 protected:
 
@@ -62,6 +58,5 @@ private:
     float colliding;
 
 };
-
 
 #endif

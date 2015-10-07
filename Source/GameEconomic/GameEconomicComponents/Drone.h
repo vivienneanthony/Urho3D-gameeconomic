@@ -15,34 +15,29 @@
 #include "../../../Urho3D/Physics/CollisionShape.h"
 #include "../../../Urho3D/Input/Controls.h"
 
-/// define Player information
 #include <iostream>
 
-#include "Resource.h"
+#include "DroneAIController.h"
+
+#include "Entity.h"
+#include "../Drone.h"
+
+#include "AIFuzzyStateMachineStates.h"
+#include "AIFuzzyStateMachine.h"
+#include "AIFuzzyControl.h"
+
 
 using namespace std;
 using namespace Urho3D;
 
-#include "../Drone.h"
-#include "Entity.h"
-#include "AIController.h"
-
-#define Drone_ENTITY           0
-
-
-
-using namespace std;
-
-class AIController;
-
-class Drone :  public Entity
+/// Drone class
+class Drone : public Entity
 {
-
-    OBJECT (Drone);
+    OBJECT(Drone);
 
 public:
     Drone(Context * context);
-    virtual ~Drone();
+    virtual  ~Drone();
 
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
@@ -50,7 +45,7 @@ public:
 
     virtual void Start(void);
 
-    virtual void FixedUpdate(float timeStep);
+    /// Fixed Update
     virtual void SetControls(const Controls& newControls);
 
     virtual void Initialize(void);
@@ -58,28 +53,42 @@ public:
     /// Other functions
     virtual bool Hail(void);
 
-    virtual void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-    virtual void ObjectCollision(Node* otherObject, VariantMap& eventData);
+    virtual void HandleNodeCollision(StringHash eventType, Urho3D::VariantMap& eventData);
+    virtual void ObjectCollision(Node* otherObject, Urho3D::VariantMap& eventData);
+    virtual void SetNode(Node * SetNode);
+    virtual void FixedUpdate(float timeStep);
 
     /// Movement controls. Assigned by the main program each frame.
     Controls controls;
     Controls prevControls;
 
+    /// Hitting Floor
     bool HittingFloor;
     bool HittingObject;
+    bool IsColliding;
+    Node * IsCollidingNode;
 
     /// Target spot and vector
     Vector3 TargetVector;
-    Node * TargetNode;
+    Vector3 ApplyImpulseTargetVector;
 
+    /// Root Positions
+    Vector3 RootVector;
+    Quaternion RootRotation;
+
+    /// Information
     float rotationInertia;
+
+protected:
+    /// Fuzzy Control
+    SharedPtr<AIFuzzyControl> M_AIFuzzyControl;
+    SharedPtr<DroneAIController> DroneController;
+    SharedPtr<Node> ThisNode;
 
 private:
     /// Drone Information
     DroneInformation * ThisDrone;
     RigidBody * ThisBody;
-
-    SharedPtr<AIController> controller;
 
 };
 

@@ -1126,6 +1126,8 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     Starbase * StarbaseNodeComponent = StarbaseNode->CreateComponent<Starbase>();
 
 
+    Existence->ThisStarbase->ThisComponent = StarbaseNodeComponent;
+
     /// Save this starbase to this component
     StarbaseNode->CreateComponent<Starbase>();
 
@@ -1143,6 +1145,10 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
     /// Generate Map
     GenerateMapDataToGameMap(Map);
+
+    Node * EmptyNode = Existence->scene_->CreateChild("EmptyNode");
+    EmptyNode->SetPosition(Vector3(2.0f,2.0f,2.0f));
+    EmptyNode->SetName("EmptyNode");
 
     /// Add extra temporary this way
     if(Existence->touchenabled_==false)
@@ -1183,26 +1189,29 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectRigidBody->SetCollisionLayer(1);
 
         /// Turn off Gravity
-        ObjectRigidBody->SetMass(1.0f);
+        ObjectRigidBody->SetMass(1.2f);
         ObjectRigidBody->SetUseGravity(true);
+        ObjectRigidBody->SetAngularDamping(0.6f);
+        ObjectRigidBody->SetLinearDamping(0.6f);
 
         /// Set zero angular factor so that physics doesn't turn the character on its own.
         /// Instead we will control the character yaw manually
-        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+        ObjectRigidBody->SetAngularFactor(Vector3::ONE);
 
         /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
         ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
 
-        /// Get static model and bounding box, calculate offset
-        Model * ReferenceModel=ObjectStaticModel->GetModel();
+        Model * ExoComp2Collision = cache->GetResource<Model>(String("Resources/Models/ExoComp2Collision.mdl"));
 
         /// Set a capsule shape for collision
         CollisionShape* ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
 
         /// Set shape collision
-        ObjectShape->SetBox(Vector3::ONE);
+        ObjectShape->SetConvexHull(ExoComp2Collision);
         ObjectShape->SetLodLevel(1);
+        ObjectShape->SetMargin(0.1f);
 
+        /// Created Drone
         Drone * CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
 
         /// Create Drone information
@@ -1212,15 +1221,16 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         SetDrone.DroneType=Drone100Beta;
         SetDrone.Name = String("test");
 
+        CreatedDrone->SetNode(ObjectStaticNode);
         CreatedDrone->SetParameters(SetDrone);
-
+        CreatedDrone->Initialize();
 
         ResourceNodeComponent * DroneResourceComponent2=ObjectStaticNode -> CreateComponent<ResourceNodeComponent>();
         DroneResourceComponent2->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
         DroneResourceComponent2->MapResources(Existence->ResourcesManager);
 
         ObjectStaticNode->CreateComponent<InteractObject>();
-
+/*
         /// first one
         temporaryfilename.Clear();
 
@@ -1243,9 +1253,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticModel ->SetCastShadows(true);
 
         ObjectStaticNode->SetPosition(Vector3(4,2.0f,-1));
-        ObjectStaticNode->LookAt(Vector3(4,1.5f,1));
-
-        ObjectStaticNode->Yaw(180);
 
         /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
         ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
@@ -1257,7 +1264,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         /// Set zero angular factor so that physics doesn't turn the character on its own.
         /// Instead we will control the character yaw manually
-        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+        ObjectRigidBody->SetAngularFactor(Vector3::ONE);
 
         /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
         ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
@@ -1271,7 +1278,6 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         /// Set shape collision
         ObjectShape->SetBox(Vector3::ONE);
         ObjectShape->SetLodLevel(1);
-
 
         CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
 
@@ -1287,8 +1293,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         DroneResourceComponent->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
         DroneResourceComponent->MapResources(Existence->ResourcesManager);
 
-        ObjectStaticNode->CreateComponent<InteractObject>();
-
+        ObjectStaticNode->CreateComponent<InteractObject>();*/
 
         /// first one
         temporaryfilename.Clear();
@@ -1329,7 +1334,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
 
         /// Get static model and bounding box, calculate offset
-        ReferenceModel=ObjectStaticModel->GetModel();
+        Model * ReferenceModel=ObjectStaticModel->GetModel();
 
         /// Set a capsule shape for collision
         ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
@@ -1426,7 +1431,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
 
         /// Set zero angular factor so that physics doesn't turn the character on its own.
         /// Instead we will control the character yaw manually
-        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+        ObjectRigidBody->SetAngularFactor(Vector3::ONE);
 
         /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
         ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
@@ -1494,6 +1499,32 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectStaticNode->SetPosition(Vector3(-3.0f,1.0f,-4.0f));
         ObjectStaticNode->Yaw(180);
 
+
+        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+        ObjectRigidBody->SetCollisionLayer(1);
+
+        /// Turn off Gravity
+        ObjectRigidBody->SetMass(0.0f);
+        ObjectRigidBody->SetUseGravity(false);
+
+        /// Set zero angular factor so that physics doesn't turn the character on its own.
+        /// Instead we will control the character yaw manually
+        ObjectRigidBody->SetAngularFactor(Vector3::ZERO);
+
+        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+
+        /// Get static model and bounding box, calculate offset
+        ReferenceModel=ObjectStaticModel->GetModel();
+
+        /// Set a capsule shape for collision
+        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+
+        /// Set shape collision
+        ObjectShape->SetConvexHull(ReferenceModel,1,Vector3::ONE);
+        ObjectShape->SetLodLevel(1);
+
+
         /// create components
         StarbaseNodeComponent->PushNode(ObjectStaticNode, RCType_RefrigerationUnit);
 
@@ -1504,7 +1535,8 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         ObjectResourceComponent->SetResourceComponentNameType(String("GenericRefrigerationUnit1"), RCType_RefrigerationUnit);
         ObjectResourcePower->Initialize();
 
-         ObjectResourceComponent->MapResources(Existence->ResourcesManager);
+        ObjectResourceComponent->MapResources(Existence->ResourcesManager);
+
 
     }
 

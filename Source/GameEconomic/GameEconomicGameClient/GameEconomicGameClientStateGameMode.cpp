@@ -79,7 +79,7 @@
 #include "../GameEconomicComponents/Starbase.h"
 #include "../GameEconomicComponents/PowerComponent.h"
 #include "../GameEconomicComponents/InteractObject.h"
-
+#include "../CommunicationLogs.h"
 
 #include <string>
 #include <iostream>
@@ -284,8 +284,11 @@ void GameEconomicGameClientStateGameMode::GameMode(void)
     GameModeAddUIElements();
 
 
+
     /// load hud
     Existence->loadUIXML(UIMINIQUICKMENU,0,0,0);
+
+    LoadUIXML(UIGAME_HUDCLAUDIUS,0,0);
 
     /// Attach a listen
     SubscribeToEvent(G_MODE_CHANGE, HANDLER(GameEconomicGameClientStateGameMode, GameModeSendEventHandler));
@@ -322,15 +325,49 @@ void GameEconomicGameClientStateGameMode::HandleUpdate(StringHash eventType, Var
     /// Move the camera, scale movement with time step
     OnMoveCamera(timeStep);
 
-    // Paint decal with the left mousebutton; cursor must be visible
+    /// Paint decal with the left mousebutton; cursor must be visible
     if (GetSubsystem<UI>()->GetCursor()->IsVisible() && input->GetMouseButtonPress(MOUSEB_LEFT))
     {
         GetTargetPressed();
     }
 
+    /// Handle that update
+    HandleUIUpdate(timeStep);
+
+    /// Update hud
     return;
 }
 
+void GameEconomicGameClientStateGameMode::HandleUIUpdate(float timeStep)
+{
+    /// Get subsystems
+    UI* ui_ = GetSubsystem<UI>();
+
+    UIElement * RootUIElement = ui_->GetRoot();
+
+    /// Variables
+    float Oxygen;
+
+    /// Get Oxygen levels
+    if(Existence->ThisStarbase->ThisComponent)
+    {
+        Starbase * TempStarbase = (Starbase *)Existence->ThisStarbase->ThisComponent;
+
+        Oxygen=TempStarbase->GetOxygen();
+
+    }
+
+    /// Get Oxygen Level
+    if(Text * OxygenText=(Text *)RootUIElement->GetChild("OxygenText",true))
+    {
+        if(Oxygen>(2048*.75))
+        {
+            OxygenText->SetText("Nominal");
+        }
+    }
+
+    return;
+}
 /// On any camera movement
 void GameEconomicGameClientStateGameMode::OnMoveCamera(float timeStep)
 {
@@ -609,7 +646,7 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
             ResourceListView->RemoveAllItems();
             StorageListView->RemoveAllItems();
 
-            for(unsigned int i=0;i<NodeResources->TotalNodeResources();i++)
+            for(unsigned int i=0; i<NodeResources->TotalNodeResources(); i++)
             {
                 ResourceNodeInformation ResourceFromNode= NodeResources->GetNodeResource(i);
 
@@ -627,7 +664,10 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
             }
         }
 
+
     }
+
+
 
     return;
 }
@@ -692,12 +732,21 @@ void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
     StarbaseButton->SetFixedSize(90,16);
     StarbaseButton->SetOpacity(.7);
 
+    Button* CommunicationsButton = new Button(context_);
+    CommunicationsButton->SetName("CommunicationsButton");
+    CommunicationsButton->SetFixedSize(128,16);
+    CommunicationsButton->SetOpacity(.7);
+
+    Button* ActivitiesButton = new Button(context_);
+    ActivitiesButton->SetName("ActivitiesButton");
+    ActivitiesButton->SetFixedSize(90,16);
+    ActivitiesButton->SetOpacity(.7);
+
     /// Text area
     Text* StarbaseText=new Text(context_);
     Text* GalaxyText=new Text(context_);
     Text* ActivityText=new Text(context_);
     Text* CommunicationText=new Text(context_);
-
 
     StarbaseText->SetName("StarbaseText");
     StarbaseText->SetText("| STARBASE |");
@@ -705,36 +754,42 @@ void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
     GalaxyText->SetText("| GALAXY |");
     ActivityText->SetName("ActivityText");
     ActivityText->SetText("| ACTIVITY |");
-
-
     CommunicationText->SetName("CommunicationText");
     CommunicationText->SetText("| COMMUNICATION |");
 
     /// addlones
-
     MainTopBarMenuUIElement ->AddChild(StarbaseButton);
     MainTopBarMenuUIElement ->AddChild(StarbaseText);
     MainTopBarMenuUIElement ->AddChild(GalaxyText);
+    MainTopBarMenuUIElement ->AddChild(ActivitiesButton);
     MainTopBarMenuUIElement ->AddChild(ActivityText);
+    MainTopBarMenuUIElement ->AddChild(CommunicationsButton);
     MainTopBarMenuUIElement ->AddChild(CommunicationText);
 
-    StarbaseText->SetPosition(Width/2+200,2);
+    StarbaseText->SetPosition(Width/2+336-8,2);
+    StarbaseButton->SetPosition(Width/2+336+2-8,2);
 
-    StarbaseButton->SetPosition(Width/2+200+2,2);
+    GalaxyText->SetPosition(Width/2+426-8,2);
 
-    GalaxyText->SetPosition(Width/2+290,2);
-    ActivityText->SetPosition(Width/2+360,2);
-    CommunicationText->SetPosition(Width/2+437,2);
+    ActivityText->SetPosition(Width/2+496-8,2);
+    ActivitiesButton->SetPosition(Width/2+498-8,2);
+
+    CommunicationText->SetPosition(Width/2+587-8,2);
+    CommunicationsButton->SetPosition(Width/2+591-8,2);
 
     /// Apply styles
     StarbaseText->SetStyleAuto();
     StarbaseButton->SetStyleAuto();
     GalaxyText->SetStyleAuto();
     ActivityText->SetStyleAuto();
+    ActivitiesButton->SetStyleAuto();
     CommunicationText->SetStyleAuto();
+    CommunicationsButton->SetStyleAuto();
 
     /// If button is relesed
     SubscribeToEvent(StarbaseButton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleTopMenuPressed));
+    SubscribeToEvent(CommunicationsButton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleTopMenuPressed));
+    SubscribeToEvent(ActivitiesButton, E_RELEASED, HANDLER(GameEconomicGameClientStateGameMode, HandleTopMenuPressed));
 
     return;
 }
@@ -775,6 +830,8 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         /// if the window exist exit
         if(StarbaseDisplayBriefUIElement)
         {
+            StarbaseDisplayBriefUIElement->SetFocus(true);
+
             return 0;
         }
 
@@ -783,7 +840,26 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     }
 
 
-/// chose based on menu type
+    /// chose based on menu type
+    if(windowtype==UIGAME_UICOMMUNICATIONS)
+    {
+        /// If window exist
+        UIElement * CommunicationsUIElement= GameModeUIElement->GetChild("CommunicationsLogsUIElement",true);
+
+        /// if the window exist exit
+        if(CommunicationsUIElement)
+        {
+            CommunicationsUIElement->SetFocus(true);
+
+            return 0;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/CommunicationsLogs.xml");
+    }
+
+
+    /// chose based on menu type
     if(windowtype==UIGAME_UIINTERACT)
     {
         /// If window exist
@@ -792,11 +868,44 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         /// if the window exist exit
         if(StarbaseDisplayBriefUIElement)
         {
+            StarbaseDisplayBriefUIElement->SetFocus(true);
+
             return 0;
         }
 
         /// Append the file
         filenameHUD.Append("Resources/UI/Testing.xml");
+    }
+
+    if(windowtype==UIGAME_HUDCLAUDIUS)
+    {
+        /// If window exist
+        UIElement * ReadOutsHudUIElement= GameModeUIElement->GetChild("ReadOutsHudUIElement",true);
+
+        /// if the window exist exit
+        if(ReadOutsHudUIElement)
+        {
+            return 0;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/HudClaudius.xml");
+    }
+
+
+    if(windowtype==UIGAME_UIACTIVITIES)
+    {
+        /// If window exist
+        UIElement * ReadOutsHudUIElement= GameModeUIElement->GetChild("ActivitiesHolderUIElement",true);
+
+        /// if the window exist exit
+        if(ReadOutsHudUIElement)
+        {
+            return 0;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/Activity.xml");
     }
 
 
@@ -821,14 +930,17 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     HUDFileElement-> LoadXML(hudElement, style);
 
     /// Add a uielement for the bar
-    RootUIElement -> AddChild(HUDFileElement);
+    GameModeUIElement -> AddChild(HUDFileElement);
 
     /// Position the window
     HUDFileElement -> SetPosition(positionx,positiony);
 
+    /// SetStyleAUto
     HUDFileElement->SetStyleAuto();
 
-    HUDFileElement->BringToFront();
+    /// Set Parameters
+    HUDFileElement->SetSize(1440,900);
+    HUDFileElement->SetFocusMode(FM_FOCUSABLE_DEFOCUSABLE);
 
     /// chose based on menu type
     if(windowtype==UIGAME_UISTARBASEDISPLAYBRIEF)
@@ -844,6 +956,25 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         double TotalPower=StarbaseComponent->GetTotalPower();
         double UsedPower=StarbaseComponent->GetUsedPower();
 
+        /// Get oxygen
+        float Oxygen = StarbaseComponent->GetOxygen();
+
+        /// Get Oxygen Level
+        if(Text * OxygenText=(Text *)HUDFileElement->GetChild("OxygenBriefText",true))
+        {
+            if(Oxygen>(2048.0f*0.75f))
+            {
+                OxygenText->SetText("Nominal");
+            }
+        }
+
+
+    }
+
+    /// Set Position
+    if(windowtype==UIGAME_HUDCLAUDIUS)
+    {
+        HUDFileElement -> SetPosition(0,64);
     }
 
     /// Get the child and assign a close pressed
@@ -915,8 +1046,105 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
         StarbaseTotalPower->SetText(TotalPowerString);
         StarbaseUsedPower->SetText(UsedPowerString);
 
+    }
+
+    /// If exit was clicked
+    if (clickedButtonString.Contains("CommunicationsButton")==true)
+    {
+        /// Load UI
+        LoadUIXML(UIGAME_UICOMMUNICATIONS,0,0);
+
+        /// Get the Window
+        Window * CommunicationLogsWindow = (Window *) UIRoot->GetChild("CommunicationsLogsWindow",true);
+
+        CommunicationLogsWindow->SetPosition((Width/2)-(CommunicationLogsWindow->GetWidth()/2),(Height/2)-(CommunicationLogsWindow->GetHeight()/2));
+
+        /// Populate
+        TempLogs = new Vector<CommunicationLog>();
+
+        ListView * CommunicationsLogListView = (ListView *) UIRoot->GetChild("CommunicationsLogListView",true);
+
+        Existence->LoadCommunicationLogs(LogFormat_Personal, TempLogs);
+
+        /// loop
+        if(TempLogs->Size()>0&&CommunicationsLogListView)
+        {
+            /// loop through the size
+            for(unsigned int i=0; i<TempLogs->Size(); i++)
+            {
+                Text * NewLogItem = new Text(context_);
+
+                NewLogItem->SetText(TempLogs->At(i).Title);
+                NewLogItem->SetName(String(i));
+
+                /// AddLogItem
+                CommunicationsLogListView->AddItem(NewLogItem);
+                /// Set Style
+                NewLogItem->SetStyleAuto();
 
 
+                /// Add each selection color
+                NewLogItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+                NewLogItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
+
+                /// Set Enabled
+                NewLogItem->SetEnabled(true);
+                NewLogItem->SetEditable(false);
+                NewLogItem->SetVisible(true);
+            }
+
+            /// Set windows settings
+            CommunicationsLogListView->SetStyleAuto();
+            CommunicationsLogListView->SetMultiselect(false);
+            CommunicationsLogListView->SetSelection(0);
+
+            SubscribeToEvent(CommunicationsLogListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleCommunicationsLogView));
+        }
+    }
+
+
+    /// If exit was clicked
+    if (clickedButtonString.Contains("ActivitiesButton")==true)
+    {
+        /// Load UI
+        LoadUIXML(UIGAME_UIACTIVITIES,0,0);
+
+        /// Get the Window
+        Window * ActivitiesWindow = (Window *) UIRoot->GetChild("ActivitiesWindow",true);
+
+        ActivitiesWindow->SetPosition((Width/2)-(ActivitiesWindow->GetWidth()/2),(Height/2)-(ActivitiesWindow->GetHeight()/2));
+
+
+    }
+
+    return;
+}
+
+
+void GameEconomicGameClientStateGameMode::HandleCommunicationsLogView(StringHash eventType, VariantMap& eventData)
+{
+
+    /// Resource
+    GameStateHandlerComponent * gamestatehandlercomponent_ = GetSubsystem<GameStateHandlerComponent>();
+
+    UI * ui_ = GetSubsystem<UI>();
+
+    UIElement * UIRoot =  ui_ -> GetRoot();
+
+    /// Get rendering window size as floats
+    UIElement* CommunicationsLogsUIElement = (UIElement *) UIRoot ->GetChild("CommunicationsLogsUIElement",true);
+
+    /// Get needed info
+    Text* selectedItem = (Text*)(eventData[ItemDoubleClicked::P_ELEMENT].GetPtr());
+
+    unsigned int selection= strtoul(selectedItem->GetName().CString(),NULL,0);
+
+    Text * CommunicationsLogText = (Text *)CommunicationsLogsUIElement->GetChild("CommunicationsLogText", true);
+
+    if(CommunicationsLogText)
+    {
+        CommunicationsLogText->SetText(TempLogs->At(selection).Text);
     }
 
     return;
@@ -997,6 +1225,19 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
 
 
         unsigned int numberNodes = StarbaseComponent->GetBaseNodes();
+
+        /// Get oxygen
+        float Oxygen = StarbaseComponent->GetOxygen();
+
+        /// Get Oxygen Level
+        if(Text * OxygenText=(Text *)UIRoot->GetChild("OxygenBriefText",true))
+        {
+            if(Oxygen>(2048.0f*0.75f))
+            {
+                OxygenText->SetText("Nominal");
+            }
+        }
+
 
         /// Show
         if(numberNodes>0)
@@ -1101,6 +1342,7 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                     CreateString.Append(" Power:");
                     CreateString.Append(String(CurrentPower));
                 }
+                break;
                 case RCType_RefrigerationUnit:
                 {
                     CreateString.Append("RefrigerationUnit");
@@ -1147,7 +1389,12 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                 newItem->SetStyleAuto();
             }
         }
+
+
+
     }
+
+
 
 
     return;

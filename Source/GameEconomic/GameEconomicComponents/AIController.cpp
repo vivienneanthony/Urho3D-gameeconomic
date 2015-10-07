@@ -17,88 +17,109 @@
 #include <Urho3D/Graphics/ParticleEffect.h>
 
 
-#include "AIController.h"
-#include "Drone.h"
 #include "Entity.h"
+#include "Drone.h"
+#include "AIController.h"
 #include "ResourceNodeComponent.h"
 
 #include <Urho3D/DebugNew.h>
 
 
+using namespace std;
+using namespace Urho3D;
 
-class Drone;
-
-AIController::AIController(Context* context) : Entity(context)
+/// Constructor
+AIController::AIController(Context* context)
+    : LogicComponent(context)
 {
     colliding=0;
+
+    return;
 }
 
-
+/// Destructor
 AIController::~AIController()
 {
+    return;
 }
 
+/// star
 void AIController::Start()
 {
+///    SubscribeToEvent(node_, E_NODECOLLISION, HANDLER(AIController, HandleNodeCollision));
 
-    SubscribeToEvent(node_, E_NODECOLLISION, HANDLER(AIController, HandleNodeCollision));
+    return;
 }
 
-void AIController::ObjectCollision(Node* otherObject, VariantMap& eventData)
-{
-
-
-}
-
+/// Register
 void AIController::RegisterObject(Context* context)
 {
     context->RegisterFactory<AIController>();
+
+    return;
+}
+
+
+/// star
+void AIController::ResetAI(void)
+{
+
+    return;
+}
+
+
+/*
+/// Object Collision
+void AIController::ObjectCollision(Urho3D::Node* otherObject, Urho3D::VariantMap& eventData)
+{
+    return;
 }
 
 
 /// Drone control
-void AIController::ControlDrone(Drone* ownDrone, Node* ownNode, float timeStep)
+void AIController::ControlDrone(Drone* ownDrone, Urho3D::Node* ownNode, float timeStep)
 {
-        /// if ownnull and node is node return
-    if (!ownDrone || !ownNode)
-    {
-        return;
-    }
+    /// return;
+    /*  /// if ownnull and node is node return
+      if (!ownDrone || !ownNode)
+      {
+          return;
+      }
 
-    /// If no target, walk idly
-    ownDrone->controls.Set(CTRL_ALL, false);
+      /// If no target, walk idly
+      ownDrone->controls.Set(CTRL_ALL, false);
 
-    ownDrone->controls.Set(CTRL_UP, true); /// Set forward direction
+      ownDrone->controls.Set(CTRL_UP, true); /// Set forward direction
 
-    /// Hitting floor
-    if(ownDrone->HittingFloor==true)
-    {
-        ownDrone->controls.Set(CTRL_ELEVATE,true);
-    }
+      /// Hitting floor
+      if(ownDrone->HittingFloor==true)
+      {
+          ownDrone->controls.Set(CTRL_ELEVATE,true);
+      }
 
-    /// Get TimeStep
-    ownDrone->dirChangeTime -= timeStep;
+      /// Get TimeStep
+      ownDrone->dirChangeTime -= timeStep;
 
-    /// if time below change time
-    if (ownDrone->dirChangeTime <= 0.0f)
-    {
-        ownDrone->dirChangeTime = 1.0f + Random(2.0f);
+      /// if time below change time
+      if (ownDrone->dirChangeTime <= 0.0f)
+      {
+          ownDrone->dirChangeTime = 1.0f + Random(2.0f);
 
-        /// choose a random direction
-        float directionangle =  0.2f * (Random(600.0f) - 300.0f);
+          /// choose a random direction
+          float directionangle =  0.2f * (Random(600.0f) - 300.0f);
 
-        ownDrone->rotationInertia= directionangle;
+          ownDrone->rotationInertia= directionangle;
 
-        /// Set left and right based on inertia
-        if(directionangle<0.0f)
-        {
-            ownDrone->controls.Set(CTRL_LEFT,true);
-        }
-        else
-        {
-            ownDrone->controls.Set(CTRL_RIGHT,true);
-        }
-    }
+          /// Set left and right based on inertia
+          if(directionangle<0.0f)
+          {
+              ownDrone->controls.Set(CTRL_LEFT,true);
+          }
+          else
+          {
+              ownDrone->controls.Set(CTRL_RIGHT,true);
+          }
+      }
 
     return;
 }
@@ -108,10 +129,4 @@ void AIController::ControlDrone(Drone* ownDrone, Node* ownNode, float timeStep)
 
 
 
-
-
-
-
-
-
-
+*/

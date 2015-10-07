@@ -17,15 +17,11 @@
 #include "../ResourceComponent.h"
 #include "../Starbase.h"
 
-
-
 /// define Player information
 #include <iostream>
 
-
 using namespace Urho3D;
 using namespace std;
-
 
 /// node information
 struct StarbaseNodeInformation
@@ -33,7 +29,6 @@ struct StarbaseNodeInformation
     Node * StarbaseNode;
     ResourceComponentType StarbaseNodeType;
 };
-
 
 class Starbase :  public LogicComponent
 {
@@ -46,29 +41,47 @@ public:
     /// Register object factory and attributes.
     static void RegisterObject(Context* context);
 
- /// Handle update. Called by LogicComponent base class.
+    /// Handle update. Called by LogicComponent base class.
     virtual void FixedUpdate(float timeStep);
 
-    void Start(void);
-    void PushNode(Node * NewNode, ResourceComponentType NewNodeComponentType);
+    /// Start node
+    virtual void Start(void);
 
-    void SetOnline(bool SetOnline);
+    /// Add additional node
+    virtual void PushNode(Node * NewNode, ResourceComponentType NewNodeComponentType);
 
-    double GetUsedPower(void);
-    double GetTotalPower(void);
+    /// Set Online status
+    virtual void SetOnline(bool SetOnline);
 
-    /// Public Variables
+    /// Get used power and total power
+    virtual double GetUsedPower(void);
+    virtual double GetTotalPower(void);
+
+    /// Oxysgen
+    virtual float GetOxygen(void);
+
+    /// Public Variables - This never changes
     unsigned int GetBaseNodes(void);
     StarbaseNodeInformation GetBaseNode(unsigned int idx);
+
 protected:
 
 private:
+    /// All nodes
     Vector <StarbaseNodeInformation> * StarbaseNodes;
 
+    /// Power related functions
     double TotalPower;
     double UsedPower;
 
+    /// is Online
     bool IsOnline;
+
+    /// Not used right now - Not Used
+    double Oxygen;
+
+    /// Starbase name - Not used
+    String * Name;
 };
 
 #endif // Starbase_H

@@ -55,6 +55,7 @@
 #include "../Accounts.h"
 #include "../Starbase.h"
 #include "../Configuration.h"
+#include "../CommunicationLogs.h"
 
 
 #include "../GameEconomicServer/GameEconomicServerDatabaseGeneral.h"
@@ -180,6 +181,9 @@ public:
     /// Data
     Vector<AlienRaceInformation> LoadGetAlienRacesFromAuthorization(String ServerString);
     Vector<FactionInformation> LoadGetFactionsFromAuthorization(String ServerString);
+
+    /// Communication Logs
+    bool LoadCommunicationLogs(LogFormatType LogType, Vector<CommunicationLog> *TargetLog);
 
     /// Get subsubsystems
     Renderer * GetRenderSubsystems(void) const;
@@ -509,6 +513,7 @@ public:
     virtual void ServerResponseHandler(StringHash eventType, VariantMap& eventData);
 
     void HandleUpdate(StringHash eventType, VariantMap& eventData);
+    void HandleUIUpdate(float timeStep);
     void OnMoveCamera(float timeStep);
     bool Raycast(float maxDistance, Vector3& hitPos, Node*& hitNode, IntVector2& hitMousePosition);
     void GetTargetPressed(void);
@@ -525,11 +530,14 @@ private:
     void HandleTopMenuPressed(StringHash eventType, VariantMap& eventData);
     void HandleUIWindowClosed(StringHash eventType, VariantMap& eventData);
     void HandleUIStarbaseBriefButtonPressed(StringHash eventType, VariantMap& eventData);
+    void HandleCommunicationsLogView(StringHash eventType, VariantMap& eventData);
 
 
 protected:
 
     SharedPtr<GameEconomicGameClient> Existence;
+    Vector <CommunicationLog> * TempLogs;
+
 };
 
 /// Miscellanous functions

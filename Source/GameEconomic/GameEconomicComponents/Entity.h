@@ -13,14 +13,13 @@
 #include "../../../Urho3D/Scene/LogicComponent.h"
 #include "../../../Urho3D/Input/Controls.h"
 
-/// define Player information
 #include <iostream>
 
-#include "Resource.h"
 
 using namespace std;
 using namespace Urho3D;
 
+/// Entity class
 class Entity : public LogicComponent
 {
     OBJECT(Entity);
@@ -29,21 +28,21 @@ public:
     Entity(Context *context);
     virtual ~Entity();
 
-     /// Register object factory and attributes.
+    /// Register object factory and attributes.
     static void RegisterObject(Context* context);
     virtual void Start(void);
 
     /// Collision handler
-    virtual void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-    virtual void ObjectCollision(Node* otherObject, VariantMap& eventData);
+    virtual void HandleNodeCollision(StringHash eventType, Urho3D::VariantMap& eventData);
+    virtual void ObjectCollision(Node* otherObject, Urho3D::VariantMap& eventData);
 
+    virtual void FixedUpdate(StringHash eventType, Urho3D::VariantMap& eventData);
+
+    /// Direction time
     float dirChangeTime;
 
 protected:
-
 private:
-
-
 };
 
 #endif // ENTITY_H

@@ -55,3 +55,9 @@ void Entity::ObjectCollision(Node* otherObject, VariantMap& eventData)
 {
     return;
 }
+
+
+void Entity::FixedUpdate(StringHash eventType, Urho3D::VariantMap& eventData)
+{
+    return;
+}

@@ -184,7 +184,8 @@ bool GameEconomicGameClient::loadUIXML(int windowtype, const int positionx, cons
     }
     else if (windowtype==UIPREFERENCESWINDOW)
     {
-        filenameHUD.Append("Resources/UI/ConfigurationWindow.xml");
+
+        filenameHUD.Append("Resources/UI/PreferencesWindow.xml");
     }
     else if (windowtype==UICONFIGURATIONWINDOW)
     {
@@ -311,7 +312,7 @@ void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& 
         /// load window
         UIElement * uiroot = ui_->	GetRoot ();
 
-        Window * AboutWindow = (Window *) uiroot->GetChild("AboutWindow",true);
+        UIElement * AboutWindow = (UIElement *) uiroot->GetChild("AboutHolderUIElement",true);
 
         if(AboutWindow)
         {
@@ -326,14 +327,13 @@ void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& 
         }
     }
 
-
     /// click Preferences window
     if(clickedtext=="PreferencesButton")
     {
         /// load window
         UIElement * uiroot = ui_->	GetRoot ();
 
-        Window * PreferencesWindow = (Window *) uiroot->GetChild("PreferencesWindow",true);
+        UIElement * PreferencesWindow = (UIElement*) uiroot->GetChild("PreferencesHolderUIElement",true);
 
         if(PreferencesWindow)
         {
@@ -343,9 +343,6 @@ void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& 
         else
         {
             loadUIXML(UIPREFERENCESWINDOW,200,200,0);
-
-            /// UpdateConfigruationWindow
-            UpdateConfigurationWindow();
         }
     }
 
@@ -355,7 +352,7 @@ void GameEconomicGameClient::QuickMenuPressed(StringHash eventType, VariantMap& 
         /// load window
         UIElement * uiroot = ui_->	GetRoot ();
 
-        Window * ConfigurationWindow = (Window *) uiroot->GetChild("ConfigurationWindow",true);
+        UIElement * ConfigurationWindow = (UIElement *) uiroot->GetChild("ConfigurationHolderUIElement",true);
 
         if(ConfigurationWindow)
         {

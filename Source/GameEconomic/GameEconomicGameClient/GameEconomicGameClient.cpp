@@ -92,7 +92,13 @@
 #include "../GameEconomicComponents/Entity.h"
 #include "../GameEconomicComponents/InteractObject.h"
 #include "../GameEconomicComponents/AIController.h"
+#include "../GameEconomicComponents/DroneAIController.h"
+#include "../GameEconomicComponents/AIFuzzyControl.h"
+#include "../GameEconomicComponents/AIFuzzyStateMachine.h"
+#include "../GameEconomicComponents/AIFuzzyStateMachineState.h"
+
 #include "../GameEconomicComponents/Drone.h"
+#include "../CommunicationLogs.h"
 
 #include <string>
 #include <iostream>
@@ -147,7 +153,10 @@ GameEconomicGameClient::GameEconomicGameClient(Context* context) :
     Entity::RegisterObject(context);
     AIController::RegisterObject(context);
     Drone::RegisterObject(context);
-
+    AIFuzzyStateMachine::RegisterObject(context);
+    AIFuzzyStateMachineState::RegisterObject(context);
+    AIFuzzyControl::RegisterObject(context);
+    DroneAIController::RegisterObject(context);
 
     cout << "Debig: Existence App Existence " << &applicationPtr << endl;
 
@@ -374,6 +383,9 @@ void GameEconomicGameClient::SetupScreenViewport(void)
     lightObject3->SetLightType(LIGHT_DIRECTIONAL);
     lightObject3->SetBrightness(.1);
     lightObject3->SetSpecularIntensity(1);
+
+    Node* emptyNode = scene_->CreateChild("EmptyNode");
+    emptyNode->SetPosition(Vector3(2.0f,2.0f,2.0f));
 
     /// Create a scene node for the camera, which we will move around
     /// The camera will use default settings (1000 far clip distance, 45 degrees FOV, set aspect ratio automatically)
@@ -1118,7 +1130,79 @@ void GameEconomicGameClient::HandlerConfigurationWindowButtonPressed(StringHash 
         return;
     }
 
-
     return;
 }
 
+/// Load Communication Logs
+bool GameEconomicGameClient::LoadCommunicationLogs(LogFormatType LogType, Vector<CommunicationLog> * TargetLogs)
+{
+    /// Grab resources
+    FileSystem * fileSystem = GetSubsystem<FileSystem>();
+
+    bool success=false;
+
+    /// Create String
+    String configFileName;
+
+    /// Set directory and path for network file
+    configFileName.Append(fileSystem->GetProgramDir().CString());
+    configFileName.Append("CommunicationLogs/DefaultLogs.xml");
+
+    /// If file does not exist exit function with null structure
+    if (!fileSystem->FileExists(configFileName))
+    {
+        cout << "No file found communication log" << endl;
+        return false;
+    }
+
+    /// Flag file for loading and load
+    File loadFile(context_, configFileName, FILE_READ);
+
+    XMLFile * communicationXML = new XMLFile(context_);
+
+    communicationXML -> Load(loadFile);
+
+    XMLElement communicationRootElement =  communicationXML->GetRoot();
+
+    /// If no configuration is set or no root
+    if (communicationRootElement.IsNull())
+    {
+        return false;
+    }
+
+    /// Setupload data
+    XMLElement TempLogElement;
+    String FormatText;
+
+    /// Log log format Personal
+    if(LogType == LogFormat_Personal)
+    {
+        FormatText.Append(String("PersonalLog"));
+
+        TempLogElement = communicationRootElement.GetChild(FormatText);
+    }
+    else
+    {
+        return false;
+    }
+
+    /// If no network server element return false;
+    while(!TempLogElement.IsNull())
+    {
+        /// Create a temporary log
+        CommunicationLog TempLog;
+
+        if (TempLogElement.HasAttribute("LogCreation")) TempLog.Creation= TempLogElement.GetInt("LogCreation");
+        if (TempLogElement.HasAttribute("LogTitle")) TempLog.Title = TempLogElement.GetAttribute("LogTitle");
+        if (TempLogElement.HasAttribute("LogText")) TempLog.Text = TempLogElement.GetAttribute("LogText");
+
+        TargetLogs->Push(TempLog);
+
+        cout << "Adding" << TempLog.Title.CString()<<endl;
+
+        /// Get next
+        TempLogElement=communicationRootElement.GetNext(FormatText);
+    }
+
+    return success;
+}

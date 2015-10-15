@@ -92,7 +92,7 @@
 #include "../GameEconomicComponents/Drone.h"
 #include "../ServerResponse.h"
 #include "../Networking.h"
-
+#include "../UniqueGenerator.h"
 
 #include "../Player.h"
 
@@ -639,6 +639,9 @@ void GameEconomicGameClientStateProgress::GenerateMapDataToGameMap(string MapDat
     FindFirstCluster= MapData.find("!");
     FindFirstNonCluster= MapData.find("#");
 
+    /// random timer
+    srand (time(NULL));
+
     /// primary loop going through clusters
     do
     {
@@ -1032,7 +1035,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
     {
         Existence->scene_-> CreateComponent<PhysicsWorld>();
     }
- \
+    \
     /// Position character
     Node * characternode_ = Existence->scene_->CreateChild("Character");
     characternode_->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
@@ -1168,70 +1171,70 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         DroneResourceComponent2->MapResources(Existence->ResourcesManager);
 
         ObjectStaticNode->CreateComponent<InteractObject>();
-/*
-        /// first one
-        temporaryfilename.Clear();
+        /*
+                /// first one
+                temporaryfilename.Clear();
 
-        temporaryfilename.Append("Resources/Models/");
+                temporaryfilename.Append("Resources/Models/");
 
-        /// Create a resource filename
-        temporaryfilename.Append("ExoComp1");
+                /// Create a resource filename
+                temporaryfilename.Append("ExoComp1");
 
-        /// wall or other component
-        temporarymodelfilename=temporaryfilename+String(".mdl");
-        temporarytexturefilename=temporaryfilename+String(".txt");
+                /// wall or other component
+                temporarymodelfilename=temporaryfilename+String(".mdl");
+                temporarytexturefilename=temporaryfilename+String(".txt");
 
-        ObjectStaticNode= Existence->scene_ -> CreateChild("ExoComp1");
+                ObjectStaticNode= Existence->scene_ -> CreateChild("ExoComp1");
 
-        ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
+                ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
 
-        ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
-        ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
+                ObjectStaticModel ->SetModel(cache->GetResource<Model>(temporarymodelfilename));
+                ObjectStaticModel ->ApplyMaterialList(temporarytexturefilename);
 
-        ObjectStaticModel ->SetCastShadows(true);
+                ObjectStaticModel ->SetCastShadows(true);
 
-        ObjectStaticNode->SetPosition(Vector3(4,2.0f,-1));
+                ObjectStaticNode->SetPosition(Vector3(4,2.0f,-1));
 
-        /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
-        ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
-        ObjectRigidBody->SetCollisionLayer(1);
+                /// Create rigidbody, and set non-zero mass so that the body becomes dynamic
+                ObjectRigidBody = ObjectStaticNode->CreateComponent<RigidBody>();
+                ObjectRigidBody->SetCollisionLayer(1);
 
-        /// Turn off Gravity
-        ObjectRigidBody->SetMass(1.0f);
-        ObjectRigidBody->SetUseGravity(true);
+                /// Turn off Gravity
+                ObjectRigidBody->SetMass(1.0f);
+                ObjectRigidBody->SetUseGravity(true);
 
-        /// Set zero angular factor so that physics doesn't turn the character on its own.
-        /// Instead we will control the character yaw manually
-        ObjectRigidBody->SetAngularFactor(Vector3::ONE);
+                /// Set zero angular factor so that physics doesn't turn the character on its own.
+                /// Instead we will control the character yaw manually
+                ObjectRigidBody->SetAngularFactor(Vector3::ONE);
 
-        /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
-        ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
+                /// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
+                ObjectRigidBody->SetCollisionEventMode(COLLISION_ALWAYS);
 
-        /// Get static model and bounding box, calculate offset
-        ReferenceModel=ObjectStaticModel->GetModel();
+                /// Get static model and bounding box, calculate offset
+                ReferenceModel=ObjectStaticModel->GetModel();
 
-        /// Set a capsule shape for collision
-        ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
+                /// Set a capsule shape for collision
+                ObjectShape = ObjectStaticNode->CreateComponent<CollisionShape>();
 
-        /// Set shape collision
-        ObjectShape->SetBox(Vector3::ONE);
-        ObjectShape->SetLodLevel(1);
+                /// Set shape collision
+                ObjectShape->SetBox(Vector3::ONE);
+                ObjectShape->SetLodLevel(1);
 
-        CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
+                CreatedDrone = ObjectStaticNode->CreateComponent<Drone>();
 
-        /// Create Drone information
-        SetDrone.AlienAllianceAligned=0;
-        SetDrone.AlienRace=0;
-        SetDrone.DroneType=Drone200Alpha;
-        SetDrone.Name = String("test");
+                /// Create Drone information
+                SetDrone.AlienAllianceAligned=0;
+                SetDrone.AlienRace=0;
+                SetDrone.DroneType=Drone200Alpha;
+                SetDrone.Name = String("test");
 
-        CreatedDrone->SetParameters(SetDrone);
+                CreatedDrone->SetParameters(SetDrone);
 
-        ResourceNodeComponent * DroneResourceComponent=ObjectStaticNode -> CreateComponent<ResourceNodeComponent>();
-        DroneResourceComponent->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
-        DroneResourceComponent->MapResources(Existence->ResourcesManager);
+                ResourceNodeComponent * DroneResourceComponent=ObjectStaticNode -> CreateComponent<ResourceNodeComponent>();
+                DroneResourceComponent->SetResourceComponentNameType(String("ExoComp1"), RCType_Drone);
+                DroneResourceComponent->MapResources(Existence->ResourcesManager);
 
-        ObjectStaticNode->CreateComponent<InteractObject>();*/
+                ObjectStaticNode->CreateComponent<InteractObject>();*/
 
         /// first one
         temporaryfilename.Clear();
@@ -1246,6 +1249,8 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         temporarytexturefilename=temporaryfilename+String(".txt");
 
         ObjectStaticNode= Existence->scene_ -> CreateChild("GenericReplicationPrinter1");
+
+        ///ObjectStaticNode->SetName(String("ReplicationPrinter1"));
 
         ObjectStaticModel = ObjectStaticNode->CreateComponent<StaticModel>();
 
@@ -1288,7 +1293,7 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         Printerlight->SetLightType(LIGHT_POINT);
         Printerlight->SetCastShadows(true);
         Printerlight->SetSpecularIntensity(0.0f);
-        Printerlight->SetBrightness(.8);
+        Printerlight->SetBrightness(0.0f);
         Printerlight->SetColor(Color(1.0f,1.0f,0.0f));
         Printerlight->SetFov(30);
         Printerlight->SetRange(3);
@@ -1390,8 +1395,8 @@ bool GameEconomicGameClientStateProgress::loadScene(void)
         Light* Generatorlight = GeneratorlightNode->CreateComponent<Light>();
         Generatorlight->SetLightType(LIGHT_POINT);
         Generatorlight->SetCastShadows(true);
-        Generatorlight->SetSpecularIntensity(0.0f);
-        Generatorlight->SetBrightness(.6);
+        Generatorlight->SetSpecularIntensity(0.1f);
+        Generatorlight->SetBrightness(0);
         Generatorlight->SetColor(Color(0.3f, 0.3f,0.9f));
         Generatorlight->SetFov(30);
         Generatorlight->SetRange(2);
@@ -1498,7 +1503,12 @@ void GameEconomicGameClientStateProgress::GenerateSceneNode3D(Node * BaseNode,co
     Starbase * StarbaseNodeComponent = StarbaseNode->GetComponent<Starbase>();
 
     /// Add node type
-    Node * ObjectStaticNode= BaseNode -> CreateChild("Generic_Type");
+    string * UniqueID = UniqueGenerator::GenerateUniqueID(4);
+
+    String UniqueIDString=String("Generic_Type:")+String(UniqueID->c_str());
+
+    Node * ObjectStaticNode= BaseNode -> CreateChild(UniqueIDString);
+
 
     unsigned int i=0;
 
@@ -1576,7 +1586,7 @@ void GameEconomicGameClientStateProgress::GenerateSceneNode3D(Node * BaseNode,co
             light->SetLightType(LIGHT_POINT);
             light->SetCastShadows(false);
             light->SetSpecularIntensity(2.0f);
-            light->SetBrightness(1.0f);
+            light->SetBrightness(0.0f);
             light->SetColor(Color(0.91f, 0.9f,0.9f));
             light->SetFov(60);
             light->SetRange(6);
@@ -1594,6 +1604,9 @@ void GameEconomicGameClientStateProgress::GenerateSceneNode3D(Node * BaseNode,co
             /// Set resource type to light
             ObjectResourceComponent->SetResourceComponentType(RCType_Light);
             ObjectResourcePower->Initialize();
+
+            ObjectStaticNode->CreateComponent<InteractObject>();
+
         }
 
         /// if node was a light

@@ -64,7 +64,9 @@ using namespace std;
 ResourceNodeComponent::ResourceNodeComponent(Context* context) :
     LogicComponent(context),
     ResourceNode_Type(RCType_None),
-    IsOnlineFlag(false)
+    IsOnlineFlag(false),
+    ChangePowerSourceLightChange(0.0f),
+    ChangePowerSourceLightTime(0.0f)
 {
     /// Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
@@ -161,8 +163,8 @@ void ResourceNodeComponent::MapResources(ResourceManager * RefResourceManager)
 
         while(idx<results.size())
         {
-           String Name=String(results.at(idx).c_str());
-           String Quantity=String(results.at(idx+1).c_str());
+            String Name=String(results.at(idx).c_str());
+            String Quantity=String(results.at(idx+1).c_str());
 
             ResourceNodeInformation NewResource;
 
@@ -208,26 +210,40 @@ void ResourceNodeComponent::AddNodeResource(ResourceNodeInformation NewResource)
 /// Fix update
 void ResourceNodeComponent::FixedUpdate(float timeStep)
 {
+    /// set Power requirement to 400
+    Node * ThisNode = this->GetNode();
+    PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+
+    bool IsOnCurrently = false;
+    double CurrentInputPower = 0.0f;
+    double CurrentOutputPower = 0.0f;
+    double MininiumPowerRequirement = 0.0f;
+
+    if(ThisPower)
+    {
+        /// Set Minimum Requirement
+        CurrentInputPower = ThisPower->GetInputPower();
+
+        CurrentOutputPower = ThisPower->GetPower();
+
+        IsOnCurrently = ThisPower->GetPowerOn();
+    }
+
+
     /// Iff resource is a light
     if(ResourceNode_Type==RCType_Light)
     {
-        /// set Power requirement to 400
-        Node * ThisNode = this->GetNode();
-        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
-
-        /// Set Minimum Requirement
-        double currentPower = ThisPower->GetPower();
-        double MininiumPowerRequirement = 400.0f;
+        MininiumPowerRequirement = 400.0f;
 
         /// Get Light
         Node * ThisLightNode = ThisNode->GetChild("Generic_Light");
         Light * ThisLight = ThisLightNode->GetComponent<Light>();
 
-        /// If currentPower less then the minimium requirement
-        if(currentPower-MininiumPowerRequirement<0.0f)
+        /// If CurrentInputPower less then the minimium requirement
+        if(CurrentInputPower<MininiumPowerRequirement)
         {
             /// if Online then turn offline
-            if(IsOnlineFlag==true)
+            if(IsOnlineFlag==true||IsOnCurrently==true)
             {
                 /// Set is Onflag to true;
                 IsOnlineFlag=false;
@@ -235,107 +251,150 @@ void ResourceNodeComponent::FixedUpdate(float timeStep)
                 /// Turn Light Off
                 ThisLight->SetBrightness(0.0f);
             }
+
+            /// set off
+            ThisPower->SetPowerOn(false);
         }
         else
         {
-            /// Compute usablee range
-            double CreatePower= currentPower/MininiumPowerRequirement;
+            /// If there is a change between the online flag and on currently
+            if(IsOnCurrently!=IsOnlineFlag)
+            {
+                /// If Online
+                if(IsOnCurrently)
+                {
+                    /// Compute usablee range for light
+                    double CreatePower= CurrentInputPower/MininiumPowerRequirement;
 
-            /// make sure power is 1.0f or below
-            CreatePower = CreatePower>1.0f?1.0f:CreatePower;
+                    /// make sure power is 1.0f or below
+                    CreatePower = CreatePower>1.0f?1.0f:CreatePower;
 
-            CreatePower*=.37f;  /// Set Resistance
-            ThisLight->SetBrightness(CreatePower);
+                    CreatePower*=.37f;  /// Set Resistance
 
-            IsOnlineFlag=true;
+                    ThisLight->SetBrightness(CreatePower);
+
+                    IsOnlineFlag=true;
+                }
+                else
+                {
+                    ThisLight->SetBrightness(0.0f);
+
+                    IsOnlineFlag=false;
+                }
+            }
         }
     }
-
 
     /// If resource is a light
     if(ResourceNode_Type==RCType_Forcefield)
     {
-        Node * ThisNode = this->GetNode();
-        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
-
-
         /// Set Minimum Requirement
-        double currentPower = ThisPower->GetPower();
-        double MininiumPowerRequirement = 3200.0f;
+        MininiumPowerRequirement = 3200.0f;
 
-        ///cout << currentPower-MininiumPowerRequirement << endl;
-
-        /// If currentPower less then the minimium requirement
-        if(currentPower-MininiumPowerRequirement<0.0f)
+        /// If CurrentInputPower less then the minimium requirement
+        if(CurrentInputPower<MininiumPowerRequirement)
         {
-            ///cout << "Forcefield off " << endl;
-
-        }
-        else
-        {
-            /// cout << "Forcefield on " << endl;
+            if(IsOnCurrently==true)
+            {
+                /// set off
+                ThisPower->SetPowerOn(false);
+            }
         }
     }
-
 
     /// If resource is a light
     if(ResourceNode_Type==RCType_RefrigerationUnit)
     {
-        Node * ThisNode = this->GetNode();
-        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
-
-
         /// Set Minimum Requirement
-        double currentPower = ThisPower->GetPower();
-        double MininiumPowerRequirement = 10.0f;
+        MininiumPowerRequirement = 10.0f;
 
-        ///cout << currentPower-MininiumPowerRequirement << endl;
-
-        /// If currentPower less then the minimium requirement
-        if(currentPower-MininiumPowerRequirement<0.0f)
+        /// If CurrentInputPower less then the minimium requirement
+        if(CurrentInputPower<MininiumPowerRequirement)
         {
-            ///cout << "Forcefield off " << endl;
-
-        }
-        else
-        {
-            /// cout << "Forcefield on " << endl;
+            if(IsOnCurrently==true)
+            {
+                /// set off
+                ThisPower->SetPowerOn(false);
+            }
         }
     }
-
-
 
     /// If resource is a light
     if(ResourceNode_Type==RCType_ReplicationPrinter)
     {
-        Node * ThisNode = this->GetNode();
-        PowerComponent * ThisPower = ThisNode->GetComponent<PowerComponent>();
+        MininiumPowerRequirement = 10.0f;
+
+        /// Get Light
+        Node * ThisLightNode = ThisNode->GetChild("Generic_Light");
+        Light * ThisLight = ThisLightNode->GetComponent<Light>();
 
 
-        /// Set Minimum Requirement
-        double currentPower = ThisPower->GetPower();
-        double MininiumPowerRequirement = 10.0f;
-
-        ///cout << currentPower-MininiumPowerRequirement << endl;
-
-        /// If currentPower less then the minimium requirement
-        if(currentPower-MininiumPowerRequirement<0.0f)
+        /// If CurrentInputPower less then the minimium requirement
+        if(CurrentInputPower<MininiumPowerRequirement)
         {
-            ///cout << "Forcefield off " << endl;
+            if(IsOnCurrently==true)
+            {
+                ThisLight->SetBrightness(0.0f);
+
+                /// Set is Onflag to true;
+                IsOnlineFlag=false;
+
+            }
+
+            /// set off
+            ThisPower->SetPowerOn(false);
 
         }
         else
         {
-            /// cout << "Forcefield on " << endl;
+
+            /// If there is a change between the online flag and on currently
+            if(IsOnCurrently!=IsOnlineFlag)
+            {
+                /// If Online
+                if(IsOnCurrently)
+                {
+                    ThisLight->SetBrightness(1.0f);
+
+                    IsOnlineFlag=true;
+                }
+                else
+                {
+                    ThisLight->SetBrightness(0.0f);
+
+                    IsOnlineFlag=false;
+                }
+            }
         }
     }
 
+    /// If resource is a light
+    if(ResourceNode_Type==RCType_PowerSource)
+    {
+        if(ChangePowerSourceLightChange<=0.0f)
+        {
+            /// if no vector time then set a timeframe
+            ChangePowerSourceLightTime=Random(1.0f)+1.0f;
+
+            ChangePowerSourceLightChange=ChangePowerSourceLightTime;
+
+            /// Get Light
+            Node * ThisLightNode = ThisNode->GetChild("Generic_Light");
+            Light * ThisLight = ThisLightNode->GetComponent<Light>();
+
+            ThisLight->SetBrightness(Random(0.3f)+0.6f);
+        }
+        else
+        {
+            /// Decrease focus time
+            ChangePowerSourceLightChange-=timeStep;
+        }
+    }
 
     return;
 }
 
-
-unsigned int  ResourceNodeComponent::TotalNodeResources(void)
+unsigned int ResourceNodeComponent::TotalNodeResources(void)
 {
     return NodeResources.Size();
 

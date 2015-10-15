@@ -187,6 +187,13 @@ void Drone::FixedUpdate(float timeStep)
 
     }
 
+
+    Vector3 Target(Vector3(3.0f,3.0f,3.0f));
+
+    Quaternion q = getRotationQuat(ThisBody->GetPosition(), Target, Vector3::ONE);
+
+    ThisBody->SetRotation(q);
+
     return;
 }
 
@@ -226,4 +233,20 @@ void Drone::ObjectCollision(Node* otherObject, VariantMap& eventData)
     IsCollidingNode = otherObject;
 
     return;
+}
+
+
+Quaternion Drone::getRotationQuat(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis = Vector3::ZERO)
+{
+    Quaternion result;
+
+    Vector3 H = from+dest;
+    H = H.Normalized();
+
+    result.w_ = from.DotProduct(H);
+    result.x_ = from.y_*H.z_ - from.z_*H.y_;
+    result.y_ = from.z_*H.x_ - from.x_*H.z_;
+    result.z_ = from.x_*H.y_ - from.y_*H.x_;
+
+    return result;
 }

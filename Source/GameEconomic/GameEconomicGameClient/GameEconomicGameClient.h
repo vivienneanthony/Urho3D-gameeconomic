@@ -532,6 +532,7 @@ private:
     void HandleUIStarbaseBriefButtonPressed(StringHash eventType, VariantMap& eventData);
     void HandleCommunicationsLogView(StringHash eventType, VariantMap& eventData);
 
+    void HandleInteractMenuListView(StringHash eventType, VariantMap& eventData);
 
 protected:
 

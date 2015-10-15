@@ -46,6 +46,7 @@ PowerComponent::PowerComponent(Context* context) :
     ,PowerClassification(PT_None)
     ,InputPower(0.0f)
     ,OutputPower(0.0f)
+    ,PowerOn(false)
 {
     /// Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
@@ -100,12 +101,38 @@ double PowerComponent::GetPower(void)
     return OutputPower;
 }
 
+
+double PowerComponent::GetInputPower(void)
+{
+
+    return InputPower;
+}
+
 /// Fix update
 void PowerComponent::FixedUpdate(float timeStep)
 {
     /// If Power resource is
-    OutputPower=InputPower;
+    if(PowerOn)
+    {
+        OutputPower=0.0f;
+    }
+    else
+    {
+        OutputPower=InputPower;
+    }
 
     return;
 
+}
+
+bool PowerComponent::GetPowerOn(void)
+{
+    return PowerOn;
+}
+
+void PowerComponent::SetPowerOn(bool SetPower)
+{
+    PowerOn = SetPower;
+
+    return;
 }

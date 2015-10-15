@@ -89,6 +89,9 @@ private:
     /// Node Resources
     Vector< ResourceNodeInformation> NodeResources;
 
+    double ChangePowerSourceLightChange;
+    double ChangePowerSourceLightTime;
+
 };
 
 #endif // GAMEOBJECT_H_INCLUDED

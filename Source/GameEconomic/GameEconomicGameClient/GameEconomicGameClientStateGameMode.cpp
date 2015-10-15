@@ -53,6 +53,7 @@
 #include "../../../Urho3D/UI/Cursor.h"
 #include "../../../Urho3D/IO/FileSystem.h"
 #include "../../../Urho3D/UI/ListView.h"
+#include "../../../Urho3D/UI/Menu.h"
 #include "../../../Urho3D/Engine/Console.h"
 #include "../../../Urho3D/Physics/RigidBody.h"
 #include "../../../Urho3D/Physics/CollisionShape.h"
@@ -584,7 +585,7 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     LoadUIXML(UIGAME_UIINTERACT,0,0);
 
     /// get thw window
-    Window * TestingDisplayBriefWindow = (Window *) UIRoot_->GetChild("TestingDisplayBriefWindow", true);
+    Window * TestingDisplayBriefWindow = (Window *) UIRoot_->GetChild("ResourceNodeDisplayBriefWindow", true);
 
     /// Make sure the window does not overlap
     if(hitMousePosition.x_>width-TestingDisplayBriefWindow->GetWidth())
@@ -600,6 +601,17 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     /// Set of the window
     TestingDisplayBriefWindow->SetPosition(hitMousePosition.x_,hitMousePosition.y_);
 
+    Text * InteractInfo = (Text *) TestingDisplayBriefWindow->GetChild("InteractNodeInfo", true);
+
+    if(InteractInfo)
+    {
+        InteractInfo->SetVisible(false);
+        InteractInfo->SetText(hitNode->GetName());
+        cout << hitNode->GetName().CString() << endl;
+
+    }
+
+    /// Get ResourceCOmponent
     /// Get ResourceCOmponent
     ResourceNodeComponent * NodeResources = hitNode->GetComponent<ResourceNodeComponent>();
 
@@ -607,7 +619,7 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     if(NodeResources)
     {
         /// Get the text window
-        Text * TestingText = (Text *) TestingDisplayBriefWindow->GetChild("TestingText", true);
+        Text * TestingText = (Text *) TestingDisplayBriefWindow->GetChild("ResourceText", true);
 
         /// Get Resource Type
         if(TestingText)
@@ -639,6 +651,7 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
         ListView * ResourceListView = (ListView *) TestingDisplayBriefWindow->GetChild("ResourcesListView", true);
         ListView * StorageListView = (ListView *) TestingDisplayBriefWindow->GetChild("StorageListView", true);
 
+
         /// Get resources and add
         if(ResourceListView&&StorageListView)
         {
@@ -655,6 +668,10 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
                 newItem->SetEditable(false);
                 newItem->SetEnabled(true);
 
+                /// Add each selection color
+                newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+                newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
                 newItem->SetText(ResourceFromNode.Resource.ResourceName);
 
                 ResourceListView->AddItem(newItem);
@@ -662,11 +679,43 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
                 newItem->SetStyleAuto();
             }
         }
-
-
     }
 
+    /// Create a menu
+    ListView * MenuListView = (ListView *) TestingDisplayBriefWindow->GetChild("MenuListView", true);
 
+    /// Remove items
+    MenuListView->RemoveAllItems();
+
+    if(MenuListView)
+    {
+        /// Create new Text
+        Text * newItem = new Text(context_);
+
+        newItem->SetEditable(true);
+        newItem->SetEnabled(true);
+
+        /// Add each selection color
+        newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+        newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
+        newItem->SetText("Toggle Power ...");
+        newItem->SetName("TogglePower");
+
+        MenuListView->AddItem(newItem);
+
+        newItem->SetStyleAuto();
+    }
+
+    /// set selection
+    MenuListView->SetSelection(0);
+    MenuListView->SetHighlightMode(HM_ALWAYS);
+    MenuListView->SetMultiselect(false);
+    MenuListView->SetClearSelectionOnDefocus(false);
+    MenuListView->EnsureItemVisibility(true);
+
+    /// Subscribe
+    SubscribeToEvent(MenuListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleInteractMenuListView));
 
     return;
 }
@@ -865,7 +914,7 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
     break;
     case UIGAME_UIINTERACT:
     {
-        UIElement * StarbaseDisplayBriefUIElement= GameUIElement->GetChild("TestingUIElement",true);
+        UIElement * StarbaseDisplayBriefUIElement= GameUIElement->GetChild("ResourceNodeDisplayBriefUIElement",true);
 
         /// if the window exist exit
         if(StarbaseDisplayBriefUIElement)
@@ -876,7 +925,7 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         }
 
         /// Append the file
-        filenameHUD.Append("Resources/UI/Testing.xml");
+        filenameHUD.Append("Resources/UI/ResourceNodeDisplayBrief.xml");
     }
     break;
     case UIGAME_HUDCLAUDIUS:
@@ -1067,7 +1116,7 @@ void GameEconomicGameClientStateGameMode::HandleTopMenuPressed(StringHash eventT
         double UsedPower = StarbaseComponent->GetUsedPower();
 
         String TotalPowerString = String(TotalPower);
-        String UsedPowerString = String(TotalPower-UsedPower);
+        String UsedPowerString = String(UsedPower);
 
         if(StarbaseTotalPower&&StarbaseUsedPower)
         {
@@ -1203,6 +1252,63 @@ void GameEconomicGameClientStateGameMode::HandleCommunicationsLogView(StringHash
     return;
 }
 
+
+
+void GameEconomicGameClientStateGameMode::HandleInteractMenuListView(StringHash eventType, VariantMap& eventData)
+{
+    /// Resource subsystems
+    UI * ui_ = GetSubsystem<UI>();
+
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
+
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
+
+    /// Get needed info
+    ListView * MenuListView = (ListView *) (eventData[ItemDoubleClicked::P_ELEMENT].GetPtr());
+
+    Text * InteractInfo = (Text *) GameUIElement->GetChild("InteractNodeInfo", true);
+    Text * selectedItem = (Text *) MenuListView->GetSelectedItem();
+
+    unsigned int selection= strtoul(selectedItem->GetName().CString(),NULL,0);
+
+    if(selectedItem->GetName()==String("TogglePower"))
+    {
+        /// Get Node to change
+        Node * ChangeNode = Existence->scene_->GetChild(InteractInfo->GetText(),true);
+
+        if(ChangeNode)
+        {
+            /// Get power component
+            PowerComponent * ThisPower = ChangeNode->GetComponent<PowerComponent>();
+
+            /// if node exist
+            if(ThisPower)
+            {
+                /// Get power on status
+                bool PowerOn = ThisPower->GetPowerOn();
+
+                if(PowerOn==false)
+                {
+                    ThisPower->SetPowerOn(true);
+                }
+                else
+                {
+                    ThisPower->SetPowerOn(false);
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 /// Handler for window created
 void GameEconomicGameClientStateGameMode::HandleUIWindowClosed(StringHash eventType, VariantMap& eventData)
 {
@@ -1284,7 +1390,7 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
         double UsedPower = StarbaseComponent->GetUsedPower();
 
         String TotalPowerString = String(TotalPower);
-        String UsedPowerString = String(TotalPower-UsedPower);
+        String UsedPowerString = String(UsedPower);
 
         if(StarbaseTotalPower&&StarbaseUsedPower)
         {
@@ -1347,6 +1453,22 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                     /// Copy to string
                     CreateString.Append(" Power:");
                     CreateString.Append(String(CurrentPower));
+
+                    /// Copy to string
+                    CreateString.Append(" On:");
+
+                    bool isOn = StarbaseNodePowerComponent->GetPowerOn();
+
+
+                    if(isOn==false)
+                    {
+                        CreateString.Append("Off");
+                    }
+                    else
+                    {
+                        CreateString.Append("On");
+                    }
+
                 }
                 break;
                 case RCType_Light:
@@ -1371,6 +1493,20 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                             /// Copy to string
                             CreateString.Append(" Brightness:");
                             CreateString.Append(String(LightBrightness));
+
+                            bool isOn = StarbaseNodePowerComponent->GetPowerOn();
+
+                            /// Copy to string
+                            CreateString.Append(" On:");
+
+                            if(isOn==false)
+                            {
+                                CreateString.Append("Off");
+                            }
+                            else
+                            {
+                                CreateString.Append("On");
+                            }
                         }
                     }
                 }
@@ -1408,6 +1544,20 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                     /// Copy to string
                     CreateString.Append(" Power:");
                     CreateString.Append(String(CurrentPower));
+
+                    bool isOn = StarbaseNodePowerComponent->GetPowerOn();
+
+                    /// Copy to string
+                    CreateString.Append(" On:");
+
+                    if(isOn==false)
+                    {
+                        CreateString.Append("Off");
+                    }
+                    else
+                    {
+                        CreateString.Append("On");
+                    }
                 }
                 break;
                 case RCType_RefrigerationUnit:
@@ -1416,6 +1566,21 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
                     /// Copy to string
                     CreateString.Append(" Power:");
                     CreateString.Append(String(CurrentPower));
+
+
+                    bool isOn = StarbaseNodePowerComponent->GetPowerOn();
+
+                    /// Copy to string
+                    CreateString.Append(" On:");
+
+                    if(isOn==false)
+                    {
+                        CreateString.Append("Off");
+                    }
+                    else
+                    {
+                        CreateString.Append("On");
+                    }
                 }
                 break;
                 case RCType_PowerSource:

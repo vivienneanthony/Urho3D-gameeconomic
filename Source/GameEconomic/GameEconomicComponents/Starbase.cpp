@@ -157,12 +157,15 @@ void Starbase::FixedUpdate(float timeStep)
 
         /// Create a remaining power
         double RemainingPower=TotalPower;
+        double output=0.0f;
 
         /// Get Total Power
         for(unsigned int idx=0; idx<StarbaseNodes->Size(); idx++)
         {
             Node * BaseNode = StarbaseNodes->At(idx).StarbaseNode;
             ResourceNodeComponent * BaseNodeResourceNodeComponent = BaseNode -> GetComponent<ResourceNodeComponent>();
+            PowerComponent * Power = BaseNode->GetComponent<PowerComponent>();
+
 
             /// if component exist
             if(BaseNodeResourceNodeComponent)
@@ -173,12 +176,14 @@ void Starbase::FixedUpdate(float timeStep)
                     if(RemainingPower-400.0f>0.0f)
                     {
                         /// Set power if its enougth
-                        BaseNodeResourceNodeComponent->SetPower(400.0f);
-                        RemainingPower-=400.0f;
+                        Power->SetPower(400.0f);
+
+                        output=Power->GetPower();
+
+                        RemainingPower-=400.0f-output; //0
                     }
                     else
                     {
-                        BaseNodeResourceNodeComponent->SetPower(0.0f);
                     }
                 }
 
@@ -188,8 +193,11 @@ void Starbase::FixedUpdate(float timeStep)
                     if(RemainingPower-3200.0f>0.0f)
                     {
                         /// Set power if its enougth
-                        BaseNodeResourceNodeComponent->SetPower(3200.0f);
-                        RemainingPower-=3200.0f;
+                        Power ->SetPower(3200.0f);
+
+                        output=Power->GetPower();
+
+                        RemainingPower-=3200.0f-output;
 
                     }
                     else
@@ -204,8 +212,11 @@ void Starbase::FixedUpdate(float timeStep)
                     if(RemainingPower-10.0f>0.0f)
                     {
                         /// Set power if its enougth
-                        BaseNodeResourceNodeComponent->SetPower(10.0f);
-                        RemainingPower-=10.0f;
+                        Power->SetPower(10.0f);
+
+                        output=Power->GetPower();
+
+                        RemainingPower-=10.0f-output;
 
                     }
                     else
@@ -220,8 +231,11 @@ void Starbase::FixedUpdate(float timeStep)
                     if(RemainingPower-10.0f>0.0f)
                     {
                         /// Set power if its enougth
-                        BaseNodeResourceNodeComponent->SetPower(10.0f);
-                        RemainingPower-=10.0f;
+                        Power->SetPower(10.0f);
+
+                        output=Power->GetPower();
+
+                        RemainingPower-=10.0f-output;
 
                     }
                     else
@@ -232,7 +246,7 @@ void Starbase::FixedUpdate(float timeStep)
             }
         }
 
-        UsedPower=RemainingPower;
+        UsedPower=TotalPower-RemainingPower;
     }
 
     /// air levels

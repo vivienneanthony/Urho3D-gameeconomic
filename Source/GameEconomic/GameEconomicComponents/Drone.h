@@ -58,6 +58,8 @@ public:
     virtual void SetNode(Node * SetNode);
     virtual void FixedUpdate(float timeStep);
 
+    Quaternion getRotationQuat(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis);
+
     /// Movement controls. Assigned by the main program each frame.
     Controls controls;
     Controls prevControls;

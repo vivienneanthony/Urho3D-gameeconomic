@@ -66,10 +66,17 @@ public:
     void SetPower(double SetPowerTo);
     double GetPower(void);
 
+    void SetPowerOn(bool SetPower);
+    bool GetPowerOn(void);
+
+    double GetInputPower();
+
 private:
     /// Input and outpower
     double InputPower;
     double OutputPower;
+
+    bool PowerOn;
 
     /// define the power classification
     PowerType PowerClassification;

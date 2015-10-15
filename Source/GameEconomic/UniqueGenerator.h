@@ -16,7 +16,7 @@ public:
     static string * GenerateUniqueID(unsigned int length)
     {
         /* initialize random seed: */
-        srand (time(NULL));
+        //srand (time(NULL));
 
         /// create id string
         string * NewGenerateUniqueID;

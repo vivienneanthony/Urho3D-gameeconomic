@@ -572,7 +572,6 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     float height = (float)graphics->GetHeight();
 
     ///  Reaname all UIRoot to UIroot
-
     UIElement * UIRoot_ = ui_ -> GetRoot();
 
     /// intercept state event
@@ -581,82 +580,136 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     IntVector2 hitMousePosition = eventData[InteractEvent::P_MOUSEPOSITION].GetIntVector2();
     Node * sender=  dynamic_cast<Node *>(eventData[InteractEvent::P_OBJ].GetPtr());
 
-    /// Load interact window
-    LoadUIXML(UIGAME_UIINTERACT,0,0);
+    /// Get ResourceCOmponent
+    ResourceNodeComponent * NodeResources = hitNode->GetComponent<ResourceNodeComponent>();
+    ResourceComponentType ResourceComponentTypeInfo=NodeResources->GetResourceComponentType();
 
-    /// get thw window
-    Window * TestingDisplayBriefWindow = (Window *) UIRoot_->GetChild("ResourceNodeDisplayBriefWindow", true);
+    /// Code to choose specific window based on type
+    String PrimaryUIElement;
+    String PrimaryWindow;
 
-    /// Make sure the window does not overlap
-    if(hitMousePosition.x_>width-TestingDisplayBriefWindow->GetWidth())
+    switch (ResourceComponentTypeInfo)
     {
-        hitMousePosition.x_= width-TestingDisplayBriefWindow->GetWidth();
+        /// Change text to show replication printer
+    case RCType_ReplicationPrinter:
+        PrimaryUIElement.Append(String("ReplicationPrinterInteractUIElement"));
+        PrimaryWindow.Append(String("ReplicationPrinterInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTREPLICATIONPRINTER,0,0);
+        break;
+        ///  Change title to say refrigeration unit
+    case RCType_RefrigerationUnit:
+        PrimaryUIElement.Append(String("RefrigerationUnitInteractUIElement"));
+        PrimaryWindow.Append(String("RefrigerationUnitInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTREFRIGERATIONUNIT,0,0);
+        break;
+    case RCType_PowerSource:
+        PrimaryUIElement.Append(String("PowerSourceInteractUIElement"));
+        PrimaryWindow.Append(String("PowerSourceInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTPOWERSOURCE,0,0);
+        break;
+    case RCType_Drone:
+        PrimaryUIElement.Append(String("DroneInteractUIElement"));
+        PrimaryWindow.Append(String("DroneInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTDRONE,0,0);
+        break;
+    case RCType_Light:
+        PrimaryUIElement.Append(String("LightInteractUIElement"));
+        PrimaryWindow.Append(String("LightInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTLIGHT,0,0);
+        break;
+    case RCType_Forcefield:
+        PrimaryUIElement.Append(String("ForcefieldInteractUIElement"));
+        PrimaryWindow.Append(String("ForcefieldInteractWindow"));
+        LoadUIXML(UIGAME_UIINTERACTFORCEFIELD,0,0);
+        break;
+    default:
+    {
+        return;
     }
 
-    if(hitMousePosition.y_>height-TestingDisplayBriefWindow->GetHeight())
+    break;
+    }
+
+    /// Create a Unique UIElement
+    Window * InteractWindowUIElement = (Window *) UIRoot_->GetChild(PrimaryUIElement, true);
+
+    String ThisWindow = InteractWindowUIElement->GetName();
+    ThisWindow.Append(":");
+    ThisWindow.Append(hitNode->GetName());
+
+    InteractWindowUIElement->SetName(ThisWindow);
+
+    /// get thw window
+    Window * InteractWindow = (Window *) InteractWindowUIElement->GetChild(PrimaryWindow, true);
+
+    /// Make sure the window does not overlap
+    if(hitMousePosition.x_>width-InteractWindow->GetWidth())
     {
-        hitMousePosition.y_= height-TestingDisplayBriefWindow->GetHeight();
+        hitMousePosition.x_= width-InteractWindow->GetWidth();
+    }
+
+    if(hitMousePosition.y_>height-InteractWindow->GetHeight())
+    {
+        hitMousePosition.y_= height-InteractWindow->GetHeight();
     }
 
     /// Set of the window
-    TestingDisplayBriefWindow->SetPosition(hitMousePosition.x_,hitMousePosition.y_);
+    InteractWindow->SetPosition(hitMousePosition.x_,hitMousePosition.y_);
 
-    Text * InteractInfo = (Text *) TestingDisplayBriefWindow->GetChild("InteractNodeInfo", true);
+    Text * InteractInfo = (Text *) InteractWindow->GetChild("InteractNodeInfo", true);
 
+    /// Get set uniquename
     if(InteractInfo)
     {
         InteractInfo->SetVisible(false);
         InteractInfo->SetText(hitNode->GetName());
-        cout << hitNode->GetName().CString() << endl;
-
     }
 
-    /// Get ResourceCOmponent
-    /// Get ResourceCOmponent
-    ResourceNodeComponent * NodeResources = hitNode->GetComponent<ResourceNodeComponent>();
+    /// Get the text window
+    Text * InteractWindowTitle = (Text *) InteractWindow->GetChild("ResourceText", true);
 
-    /// IF resource node fined
+    /// Get Resource Type
+    if(InteractWindowTitle)
+    {
+
+        switch (ResourceComponentTypeInfo)
+        {
+            /// Change text to show replication printer
+        case RCType_ReplicationPrinter:
+            InteractWindowTitle->SetText(String("Replication Printer Interact"));
+            break;
+            ///  Change title to say refrigeration unit
+        case RCType_RefrigerationUnit:
+            InteractWindowTitle->SetText(String("Refrigeration Unit Interact"));
+            break;
+        case RCType_PowerSource:
+            InteractWindowTitle->SetText(String("Power Source Unit Interact"));
+            break;
+        case RCType_Drone:
+            InteractWindowTitle->SetText(String("Drone Interact"));
+            break;
+        case RCType_Light:
+            InteractWindowTitle->SetText(String("Light Interact"));
+            break;
+        case RCType_Forcefield:
+            InteractWindowTitle->SetText(String("Forcefield Interact"));
+            break;
+        default:
+            break;
+        }
+    }
+
+    /// if nod has a resource component
     if(NodeResources)
     {
-        /// Get the text window
-        Text * TestingText = (Text *) TestingDisplayBriefWindow->GetChild("ResourceText", true);
-
-        /// Get Resource Type
-        if(TestingText)
-        {
-            ResourceComponentType ResourceComponentTYpeInfo=NodeResources->GetResourceComponentType();
-
-            switch (ResourceComponentTYpeInfo)
-            {
-                /// Change text to show replication printer
-            case RCType_ReplicationPrinter:
-                TestingText->SetText(String("Replication Printer Interact"));
-                break;
-                ///  Change title to say refrigeration unit
-            case RCType_RefrigerationUnit:
-                TestingText->SetText(String("Refrigeration Unit Interact"));
-                break;
-            case RCType_PowerSource:
-                TestingText->SetText(String("Power Source Unit Interact"));
-                break;
-            case RCType_Drone:
-                TestingText->SetText(String("Drone Interact"));
-                break;
-            default:
-                break;
-            }
-        }
-
         /// Check if listview and exist
-        ListView * ResourceListView = (ListView *) TestingDisplayBriefWindow->GetChild("ResourcesListView", true);
-        ListView * StorageListView = (ListView *) TestingDisplayBriefWindow->GetChild("StorageListView", true);
-
+        ListView * ResourceListView = (ListView *) InteractWindow->GetChild("ResourcesListView", true);
 
         /// Get resources and add
-        if(ResourceListView&&StorageListView)
+        if(ResourceListView)
         {
             ResourceListView->RemoveAllItems();
-            StorageListView->RemoveAllItems();
+
 
             for(unsigned int i=0; i<NodeResources->TotalNodeResources(); i++)
             {
@@ -682,40 +735,105 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     }
 
     /// Create a menu
-    ListView * MenuListView = (ListView *) TestingDisplayBriefWindow->GetChild("MenuListView", true);
+    ListView * MenuListView = (ListView *) InteractWindow->GetChild("MenuListView", true);
 
-    /// Remove items
-    MenuListView->RemoveAllItems();
-
+    /// Create menu
     if(MenuListView)
     {
-        /// Create new Text
-        Text * newItem = new Text(context_);
 
-        newItem->SetEditable(true);
-        newItem->SetEnabled(true);
+        /// Remove items
+        MenuListView->RemoveAllItems();
 
-        /// Add each selection color
-        newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
-        newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+        unsigned int NumberOfMenuItems=0;
 
-        newItem->SetText("Toggle Power ...");
-        newItem->SetName("TogglePower");
+        switch (ResourceComponentTypeInfo)
+        {
+            /// Change text to show replication printer
+        case RCType_ReplicationPrinter:
+            NumberOfMenuItems = InteractOptions_ReplicationPrinter;
+            break;
+            ///  Change title to say refrigeration unit
+        case RCType_RefrigerationUnit:
+            NumberOfMenuItems = InteractOptions_RefrigerationUnit;
+            break;
+        case RCType_PowerSource:
+            break;
+        case RCType_Drone:
+            NumberOfMenuItems = InteractOptions_Drone;
+            break;
+        case RCType_Light:
+            NumberOfMenuItems = InteractOptions_Light;
+        default:
+            break;
+        }
 
-        MenuListView->AddItem(newItem);
+        for(unsigned int i=0; i<NumberOfMenuItems; i++)
+        {
 
-        newItem->SetStyleAuto();
+            /// Create new Text
+            Text * newItem = new Text(context_);
+
+            newItem->SetEditable(true);
+            newItem->SetEnabled(true);
+
+            /// Add each selection color
+            newItem->SetSelectionColor (Color(0.0f,0.0f,0.5f));
+            newItem->SetHoverColor (Color(0.0f,0.0f,1.0f));
+
+            switch (ResourceComponentTypeInfo)
+            {
+                /// Change text to show replication printer
+            case RCType_ReplicationPrinter:
+            {
+
+                newItem->SetText(ReplicationPrinterInteractText[i]);
+                newItem->SetName(ReplicationPrinterInteractOptions[i]);
+
+            }
+            break;
+            ///  Change title to say refrigeration unit
+            case RCType_RefrigerationUnit:
+            {
+
+                newItem->SetText(RefrigerationUnitInteractText[i]);
+                newItem->SetName(RefrigerationUnitInteractOptions[i]);
+
+            }
+            break;
+            case RCType_PowerSource:
+                break;
+            case RCType_Drone:
+            {
+
+                newItem->SetText(DroneInteractText[i]);
+                newItem->SetName(DroneInteractOptions[i]);
+
+            }
+            break;
+            case RCType_Light:
+            {
+                newItem->SetText(LightInteractText[i]);
+                newItem->SetName(LightInteractOptions[i]);
+            }
+            default:
+                break;
+            }
+
+            MenuListView->AddItem(newItem);
+
+            newItem->SetStyleAuto();
+        }
+
+        /// set selection
+        MenuListView->SetSelection(0);
+        MenuListView->SetHighlightMode(HM_ALWAYS);
+        MenuListView->SetMultiselect(false);
+        MenuListView->SetClearSelectionOnDefocus(false);
+        MenuListView->EnsureItemVisibility(true);
+
+        /// Subscribe
+        SubscribeToEvent(MenuListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleInteractMenuListView));
     }
-
-    /// set selection
-    MenuListView->SetSelection(0);
-    MenuListView->SetHighlightMode(HM_ALWAYS);
-    MenuListView->SetMultiselect(false);
-    MenuListView->SetClearSelectionOnDefocus(false);
-    MenuListView->EnsureItemVisibility(true);
-
-    /// Subscribe
-    SubscribeToEvent(MenuListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleInteractMenuListView));
 
     return;
 }
@@ -928,6 +1046,22 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         filenameHUD.Append("Resources/UI/ResourceNodeDisplayBrief.xml");
     }
     break;
+    case UIGAME_UIREFRIGERATIONSTORAGE:
+    {
+        UIElement * RefrigerationStorageUIElement= GameUIElement->GetChild("RefrigerationStorageUIElement",true);
+
+        /// if the window exist exit
+        if(RefrigerationStorageUIElement)
+        {
+            RefrigerationStorageUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/RefrigerationStorage.xml");
+    }
+    break;
     case UIGAME_HUDCLAUDIUS:
     {
         /// If window exist
@@ -956,6 +1090,119 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
 
         /// Append the file
         filenameHUD.Append("Resources/UI/Activity.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTDRONE:
+    {
+        UIElement * DroneInteractUIElement= GameUIElement->GetChild("DroneInteractUIElement",true);
+
+        /// if the window exist exit
+        if(DroneInteractUIElement)
+        {
+            DroneInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIDrone.xml");
+    }
+    break;
+
+    case UIGAME_UIINTERACTFORCEFIELD:
+    {
+        UIElement * ForcefieldInteractUIElement= GameUIElement->GetChild("ForcefieldInteractUIElement",true);
+
+        /// if the window exist exit
+        if(ForcefieldInteractUIElement)
+        {
+            ForcefieldInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIForcefield.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTLIGHT:
+    {
+        UIElement * LightInteractUIElement= GameUIElement->GetChild("LightInteractUIElement",true);
+
+        /// if the window exist exit
+        if(LightInteractUIElement)
+        {
+            LightInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUILight.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTPOWERSOURCE:
+    {
+        UIElement * PowerSourceInteractUIElement= GameUIElement->GetChild("PowerSourceInteractUIElement",true);
+
+        /// if the window exist exit
+        if(PowerSourceInteractUIElement)
+        {
+            PowerSourceInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIPowerSource.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTREFRIGERATIONUNIT:
+    {
+        UIElement * RefrigerationUnitInteractUIElement= GameUIElement->GetChild("RefrigerationUnitInteractUIElement",true);
+
+        /// if the window exist exit
+        if(RefrigerationUnitInteractUIElement)
+        {
+            RefrigerationUnitInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIRefrigerationUnit.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTREPLICATIONPRINTER:
+    {
+        UIElement * ReplicationPrinterInteractUIElement= GameUIElement->GetChild("ReplicationPrinterInteractUIElement",true);
+
+        /// if the window exist exit
+        if(ReplicationPrinterInteractUIElement)
+        {
+            ReplicationPrinterInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIReplicationPrinter.xml");
+    }
+    break;
+    case UIGAME_UIINTERACTSTORAGECONTAINER:
+    {
+        UIElement * StorageContainerInteractUIElement= GameUIElement->GetChild("StorageContainerInteractUIElement",true);
+
+        /// if the window exist exit
+        if(StorageContainerInteractUIElement)
+        {
+            StorageContainerInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/InteractUIStorageContainer.xml");
     }
     break;
     default:
@@ -1273,7 +1520,7 @@ void GameEconomicGameClientStateGameMode::HandleInteractMenuListView(StringHash 
     /// Get needed info
     ListView * MenuListView = (ListView *) (eventData[ItemDoubleClicked::P_ELEMENT].GetPtr());
 
-    Text * InteractInfo = (Text *) GameUIElement->GetChild("InteractNodeInfo", true);
+    Text * InteractInfo = (Text *)  MenuListView ->GetChild("InteractNodeInfo", true);
     Text * selectedItem = (Text *) MenuListView->GetSelectedItem();
 
     unsigned int selection= strtoul(selectedItem->GetName().CString(),NULL,0);

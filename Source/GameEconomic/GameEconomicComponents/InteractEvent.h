@@ -12,4 +12,11 @@ EVENT(INTERACTEVENT, InteractEvent)
 }
 ///}
 
+EVENT(INTERACTUIEVENT,InteractUIEvent)
+{
+    PARAM(P_NODE, InteractNode);         // hitnode
+    PARAM(P_CMD,Cmd);
+    PARAM(P_OBJ, Sender);                // class
+    PARAM(P_MOUSEPOSITION, MousePosition);
+}
 #endif

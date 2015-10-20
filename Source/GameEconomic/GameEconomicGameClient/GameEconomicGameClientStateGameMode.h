@@ -25,6 +25,7 @@ enum GameWindowTypes
     UIGAME_UIINTERACT,
     UIGAME_UICOMMUNICATIONS,
     UIGAME_UIACTIVITIES,
+    UIGAME_UIACTIVITYCREATE,
     UIGAME_UIREFRIGERATIONSTORAGE,
     UIGAME_HUDCLAUDIUS,
     UIGAME_UIINTERACTDRONE,
@@ -33,7 +34,8 @@ enum GameWindowTypes
     UIGAME_UIINTERACTPOWERSOURCE,
     UIGAME_UIINTERACTREFRIGERATIONUNIT,
     UIGAME_UIINTERACTREPLICATIONPRINTER,
-    UIGAME_UIINTERACTSTORAGECONTAINER
+    UIGAME_UIINTERACTSTORAGECONTAINER,
+
 };
 
 /// enums
@@ -52,7 +54,7 @@ static const char * ReplicationPrinterInteractText[] =
 
 static const char *ReplicationPrinterInteractOptions[] =
 {
-    "TogglePower","ReplicationJob","PringerJob"
+    "TogglePower","ReplicationJob","PrinterJob"
 };
 
 

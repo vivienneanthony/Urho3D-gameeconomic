@@ -523,6 +523,7 @@ private:
     void LoadGameModeUI(void);
     void HandlerPostUpdates(StringHash eventType, VariantMap& eventData);
     void InteractListener(StringHash eventType, VariantMap& eventData);
+    void InteractUIListener(StringHash eventType, VariantMap& eventData);
     void GameModeSendEventHandler(StringHash eventType, VariantMap& eventData);
     void GameModeAddUIElements(void);
 

@@ -135,6 +135,9 @@ GameEconomicGameClientStateGameMode::GameEconomicGameClientStateGameMode(Context
     /// Subscribe to event (Listen to Load Change)
     SubscribeToEvent(INTERACTEVENT, HANDLER(GameEconomicGameClientStateGameMode, InteractListener));
 
+    /// Subscribe to event (Listen to Load Change)
+    SubscribeToEvent(INTERACTUIEVENT, HANDLER(GameEconomicGameClientStateGameMode, InteractUIListener));
+
     return;
 }
 
@@ -574,6 +577,17 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     ///  Reaname all UIRoot to UIroot
     UIElement * UIRoot_ = ui_ -> GetRoot();
 
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
+
+    /// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
+
     /// intercept state event
     Node * hitNode=  dynamic_cast<Node *>(eventData[InteractEvent::P_NODE].GetPtr());
     Vector3 hitPosition = eventData[InteractEvent::P_HITPOSITION].GetVector3();
@@ -631,16 +645,26 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
     }
 
     /// Create a Unique UIElement
-    Window * InteractWindowUIElement = (Window *) UIRoot_->GetChild(PrimaryUIElement, true);
+    UIElement * InteractWindowUIElement = (UIElement *) GameUIElement->GetChild(PrimaryUIElement, true);
+    Window * InteractWindow = (Window *) InteractWindowUIElement->GetChild(PrimaryWindow, true);
 
+    /// Change name of windows
     String ThisWindow = InteractWindowUIElement->GetName();
     ThisWindow.Append(":");
     ThisWindow.Append(hitNode->GetName());
 
     InteractWindowUIElement->SetName(ThisWindow);
 
-    /// get thw window
-    Window * InteractWindow = (Window *) InteractWindowUIElement->GetChild(PrimaryWindow, true);
+    ThisWindow.Clear();
+
+    /// Change Specific window
+    ThisWindow.Append(InteractWindow->GetName());
+    ThisWindow.Append(":");
+    ThisWindow.Append(hitNode->GetName());
+
+    InteractWindow->SetName(ThisWindow);
+
+    ThisWindow.Clear();
 
     /// Make sure the window does not overlap
     if(hitMousePosition.x_>width-InteractWindow->GetWidth())
@@ -834,6 +858,87 @@ void GameEconomicGameClientStateGameMode::InteractListener(StringHash eventType,
         /// Subscribe
         SubscribeToEvent(MenuListView, E_ITEMDOUBLECLICKED,HANDLER(GameEconomicGameClientStateGameMode,HandleInteractMenuListView));
     }
+
+    return;
+}
+
+
+/// Handle updates
+void GameEconomicGameClientStateGameMode::InteractUIListener(StringHash eventType, VariantMap& eventData)
+{
+    /// Get subsystems
+    UI* ui_ = GetSubsystem<UI>();
+    Graphics* graphics = GetSubsystem<Graphics>();
+
+    /// Get rendering window size as floats
+    float width = (float)graphics->GetWidth();
+    float height = (float)graphics->GetHeight();
+
+    /// intercept state event
+    Node * InteractNode=  dynamic_cast<Node *>(eventData[InteractUIEvent::P_NODE].GetPtr());
+    Node * sender=  dynamic_cast<Node *>(eventData[InteractUIEvent::P_OBJ].GetPtr());
+    IntVector2 MousePosition= eventData[InteractUIEvent::P_MOUSEPOSITION].GetIntVector2();
+
+    /// Code to choose specific window based on type
+    String PrimaryUIElement;
+    String PrimaryWindow;
+
+    PrimaryUIElement.Append(String("ActivityWindowUIElement"));
+    PrimaryWindow.Append(String("ActivityWindow"));
+
+    ///  Reaname all UIRoot to UIroot
+    UIElement * UIRoot_ = ui_ -> GetRoot();
+
+    UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
+
+    /// Change the Activity Window UI Element
+    String TestExistUIElement;
+
+    TestExistUIElement.Append(PrimaryUIElement);
+    TestExistUIElement.Append(":");
+    TestExistUIElement.Append(InteractNode->GetName());
+
+    if(GameUIElement->GetChild(TestExistUIElement, true))
+    {
+        return;
+    }
+
+/// Set InteractDrone
+    LoadUIXML(UIGAME_UIACTIVITYCREATE,0,0);
+
+/// Detect if the game UI is found
+    if(!GameUIElement||GameUIElement==false)
+    {
+        /// Problem occured - Exit displaying error
+        cout << "UI: No GameUI detected" << endl;
+
+        return;
+    }
+
+/// Create a Unique UIElement
+    UIElement * ActivityWindowUIElement = (UIElement *) GameUIElement->GetChild(PrimaryUIElement, true);
+    Window * ActivityWindow = (Window *) ActivityWindowUIElement ->GetChild(PrimaryWindow,true);
+
+/// Change the Activity Window UI Element
+    String ThisWindow = ActivityWindowUIElement->GetName();
+    ThisWindow.Append(":");
+    ThisWindow.Append(InteractNode->GetName());
+
+    ActivityWindowUIElement->SetName(ThisWindow);
+
+    ThisWindow.Clear();
+
+/// Change specific window
+    ThisWindow = ActivityWindow->GetName();
+    ThisWindow.Append(":");
+    ThisWindow.Append(InteractNode->GetName());
+
+    ActivityWindow->SetName(ThisWindow);
+
+    ThisWindow.Clear();
+
+/// Change window position to mouse click
+    ActivityWindow->SetPosition(MousePosition.x_,MousePosition.y_);
 
     return;
 }
@@ -1205,6 +1310,22 @@ bool GameEconomicGameClientStateGameMode::LoadUIXML(int windowtype, const int po
         filenameHUD.Append("Resources/UI/InteractUIStorageContainer.xml");
     }
     break;
+    case UIGAME_UIACTIVITYCREATE:
+    {
+        UIElement * ActivityCreateInteractUIElement= GameUIElement->GetChild("ActivityWindowUIElement",true);
+
+        /// if the window exist exit
+        if(ActivityCreateInteractUIElement)
+        {
+            ActivityCreateInteractUIElement->SetFocus(false);
+
+            return false;
+        }
+
+        /// Append the file
+        filenameHUD.Append("Resources/UI/ActivityCreateWindow.xml");
+    }
+    break;
     default:
     {
         /// Problem occured - Exit displaying error
@@ -1508,6 +1629,8 @@ void GameEconomicGameClientStateGameMode::HandleInteractMenuListView(StringHash 
 
     UIElement * GameUIElement = ui_->GetRoot()->GetChild("GameUI",true);
 
+    Input* input = GetSubsystem<Input>();
+
     /// Detect if the game UI is found
     if(!GameUIElement||GameUIElement==false)
     {
@@ -1519,6 +1642,9 @@ void GameEconomicGameClientStateGameMode::HandleInteractMenuListView(StringHash 
 
     /// Get needed info
     ListView * MenuListView = (ListView *) (eventData[ItemDoubleClicked::P_ELEMENT].GetPtr());
+    unsigned int pos_x = eventData[UIMouseDoubleClick::P_X].GetUInt();
+
+    IntVector2 MousePosition=input->GetMousePosition();
 
     Text * InteractInfo = (Text *)  MenuListView ->GetChild("InteractNodeInfo", true);
     Text * selectedItem = (Text *) MenuListView->GetSelectedItem();
@@ -1553,6 +1679,28 @@ void GameEconomicGameClientStateGameMode::HandleInteractMenuListView(StringHash 
         }
     }
 
+    /// if it contains a job
+    if(selectedItem->GetName().Contains(String("Job")))
+    {
+
+        /// setup event data
+        VariantMap eventNewData;
+
+        /// Get Node to change
+        Node * InteractNode = Existence->scene_->GetChild(InteractInfo->GetText(),true);
+
+        if(InteractNode)
+        {
+            /// Send Load Event
+            eventNewData[InteractUIEvent::P_NODE] = InteractNode;
+            eventNewData[InteractUIEvent::P_CMD] = 1;
+            eventNewData[InteractUIEvent::P_OBJ] = this;
+            eventNewData[InteractUIEvent::P_MOUSEPOSITION] = MousePosition;
+
+            /// Send event
+            SendEvent(INTERACTUIEVENT, eventNewData);
+        }
+    }
     return;
 }
 
@@ -1872,6 +2020,7 @@ void GameEconomicGameClientStateGameMode::HandleUIStarbaseBriefButtonPressed(Str
 
     return;
 }
+
 
 
 

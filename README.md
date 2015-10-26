@@ -1,3 +1,49 @@
+GameEconomicUrho - Hangars
+==================
+
+Hangars is a extension of the Existence project an effort to create a on-line multi-player sandbox integrated with procedural generation game with ground and space environments. Starting with a single player procedural generation integrated game client. The base-bone client is currently in development but can do all of the above. 
+
+Hangars is a 2D and 3D game using elements of Existence and Urho3D game engine. 
+
+#Creative
+==================
+
+The current theme for Hangars is Starbase creation aka Hangars.
+
+#Developers
+==================
+Vivienne Anthony – Content creator and C/C++ programmer 
+
+#Tools
+================== 
+1. Blender – Open source 3d modeling and animation software 
+2. Makehuman – Open source human character modeling software 
+3. Urho3D – Open source 3d graphics and rendering engine (http://urho3d.github.io/)
+4. GDB - Open source debugger 
+
+#Links
+==================
+http://garagedoorproductions.averyanthony.com/
+http://youtube.com/cgprojectsfx
+
+
+#Contact
+==================
+Email: cgprojectsfx@gmail.com
+
+#License/Copyright
+================== 
+Vivienne Anthony @ 2015 Creative Commons Attribution Non-Commercial License V2.0 
+
+#Building
+=========
+1. Download zip file from GitHub
+2. Download resource file from developer site.
+3. Decompress Github folder to a folder.
+4. Go to specific folder in step 1 "./cmake_generic.sh {target path}  -DURHO3D_64BIT=1 -DURHO3D_GAMEECONOMICSERVER=1 -DURHO3D_GAMEECONOMICSERVERCLIENT=1 -DURHO3D_GAMEECONOMICGAMECLIENT=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo" for example
+5. Decompress 2 in bin folder
+
+
 ![Urho3D logo](https://raw.githubusercontent.com/urho3d/Urho3D/master/bin/Data/Textures/LogoLarge.png)
 
 #Urho3D

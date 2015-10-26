@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <configuration>
-	<Database databasehostname="127.0.0.1" databaseusername="gameeconomicuser" databasepassword="c10tkcd1" databaseschema="gameeconomicserver" />	
+	<Database databasehostname="127.0.0.1" databaseusername="gameeconomicuser" databasepassword="" databaseschema="gameeconomicserver" />	
 </configuration>
 

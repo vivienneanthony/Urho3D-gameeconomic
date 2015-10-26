@@ -16,8 +16,8 @@ Vivienne Anthony – Content creator and C/C++ programmer
 4. GDB - Open source debugger 
 
 #Links
-http://garagedoorproductions.averyanthony.com/
-http://youtube.com/cgprojectsfx
+1. http://garagedoorproductions.averyanthony.com/
+2. http://youtube.com/cgprojectsfx
 
 
 #Contact

@@ -187,12 +187,14 @@ void Drone::FixedUpdate(float timeStep)
 
     }
 
+    Vector3 Target(Vector3(3.0f,3.0f,3.0f).Normalized());
 
-    Vector3 Target(Vector3(3.0f,3.0f,3.0f));
+    Vector3 Start = ThisBody->GetPosition().Normalized();
 
-    Quaternion q = getRotationQuat(ThisBody->GetPosition(), Target, Vector3::ONE);
+    Quaternion rot;
+    rot.FromRotationTo(Start,Target);
 
-    ThisBody->SetRotation(q);
+    ThisBody->SetRotation(rot);
 
     return;
 }

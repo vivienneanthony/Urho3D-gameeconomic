@@ -903,10 +903,10 @@ void GameEconomicGameClientStateGameMode::InteractUIListener(StringHash eventTyp
         return;
     }
 
-/// Set InteractDrone
+    /// Set InteractDrone
     LoadUIXML(UIGAME_UIACTIVITYCREATE,0,0);
 
-/// Detect if the game UI is found
+    /// Detect if the game UI is found
     if(!GameUIElement||GameUIElement==false)
     {
         /// Problem occured - Exit displaying error
@@ -915,11 +915,11 @@ void GameEconomicGameClientStateGameMode::InteractUIListener(StringHash eventTyp
         return;
     }
 
-/// Create a Unique UIElement
+    /// Create a Unique UIElement
     UIElement * ActivityWindowUIElement = (UIElement *) GameUIElement->GetChild(PrimaryUIElement, true);
     Window * ActivityWindow = (Window *) ActivityWindowUIElement ->GetChild(PrimaryWindow,true);
 
-/// Change the Activity Window UI Element
+    /// Change the Activity Window UI Element
     String ThisWindow = ActivityWindowUIElement->GetName();
     ThisWindow.Append(":");
     ThisWindow.Append(InteractNode->GetName());
@@ -928,7 +928,7 @@ void GameEconomicGameClientStateGameMode::InteractUIListener(StringHash eventTyp
 
     ThisWindow.Clear();
 
-/// Change specific window
+    /// Change specific window
     ThisWindow = ActivityWindow->GetName();
     ThisWindow.Append(":");
     ThisWindow.Append(InteractNode->GetName());
@@ -937,7 +937,7 @@ void GameEconomicGameClientStateGameMode::InteractUIListener(StringHash eventTyp
 
     ThisWindow.Clear();
 
-/// Change window position to mouse click
+    /// Change window position to mouse click
     ActivityWindow->SetPosition(MousePosition.x_,MousePosition.y_);
 
     return;
@@ -995,7 +995,7 @@ void GameEconomicGameClientStateGameMode::GameModeAddUIElements(void)
 
     UIElement * uiRoot_ = ui_ -> GetRoot();
 
-    UIElement*MainTopBarMenuUIElement =uiRoot_->GetChild("MainTopBarMenuUIElement", true);
+    UIElement * MainTopBarMenuUIElement =uiRoot_->GetChild("MainTopBarMenuUIElement", true);
 
     float Width = graphics_->GetWidth();
 

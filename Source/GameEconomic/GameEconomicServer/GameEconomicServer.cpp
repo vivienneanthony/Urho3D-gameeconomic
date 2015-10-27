@@ -54,9 +54,13 @@
 #include "../GameEconomicComponents/Market.h"
 #include "../GameEconomicComponents/Trader.h"
 
+/// Added directive to add singal hpp or not based if not define win32 or win64
+#if !defined (WIN32) || !defined (WIN64)
 
 #include "signalHandler.hpp"
 #include <pthread.h>
+
+#endif
 
 #include <Urho3D/DebugNew.h>
 
@@ -89,11 +93,18 @@ void GameEconomicServer::Start()
     /// Execute base class startup
     GameEconomicApp::Start();
 
+    /// Added directive to add singal hpp or not based if not define win32 or win64
+    #if !defined (WIN32) || !defined (WIN64)
+
     /// Create a signalHandler
     SignalHandler signalHandler;
 
     /// Register signal handler to handle kill signal
     signalHandler.setupSignalHandlers();
+
+
+    #endif
+
 
     /// Open the operating system console window (for stdin / stdout) if not open yet
     OpenConsoleWindow();

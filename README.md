@@ -19,6 +19,11 @@ Vivienne Anthony – Content creator and C/C++ programmer
 1. http://garagedoorproductions.averyanthony.com/
 2. http://youtube.com/cgprojectsfx
 
+#Requirements
+1. Current build requires MySQL C++ Connector and a MySQL Server (Workbench helps in administration)
+
+#Notes
+1. Server uses Posix PThreads.
 
 #Contact
 Email: cgprojectsfx@gmail.com
@@ -26,7 +31,7 @@ Email: cgprojectsfx@gmail.com
 #License/Copyright
 Vivienne Anthony @ 2015 Creative Commons Attribution Non-Commercial License V2.0 
 
-#Building
+#Building/Installation
 1. Download zip file from GitHub
 2. Download resource file from developer site.
 3. Decompress Github folder to a folder.

@@ -56,8 +56,6 @@
 #include "../Administrator.h"
 #include "../Networking.h"
 
-#include "signalHandler.hpp"
-#include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
 

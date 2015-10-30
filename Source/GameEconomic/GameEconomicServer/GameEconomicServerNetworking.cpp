@@ -55,10 +55,6 @@
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../Networking.h"
 
-#include "signalHandler.hpp"
-#include <pthread.h>
-#include <iterator>
-
 #include <Urho3D/DebugNew.h>
 
 

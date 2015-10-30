@@ -55,8 +55,7 @@
 #include "../GameEconomicComponents/Accounts.h"
 #include "../Administrator.h"
 #include "../Networking.h"
-#include "signalHandler.hpp"
-#include <pthread.h>
+
 
 #include "../GameEconomicComponents/Resource.h"
 #include "../GameEconomicComponents/CargoBay.h"

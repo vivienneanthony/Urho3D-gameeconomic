@@ -10,8 +10,8 @@
 #include "../../../Urho3D/Container/Str.h"
 #include "../../../Urho3D/Scene/LogicComponent.h"
 
-#include <mysql_connection.h>
-#include <mysql_driver.h>
+#include "mysql_connection.h"
+#include "mysql_driver.h"
 
 
 // Include the Connector/C++ headers

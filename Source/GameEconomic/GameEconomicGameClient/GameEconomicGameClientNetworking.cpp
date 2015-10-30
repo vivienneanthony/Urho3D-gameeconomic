@@ -105,6 +105,13 @@
 
 #include "../../Urho3D/Engine/DebugHud.h"
 
+#ifdef WIN32
+#undef SendMessage
+#endif
+
+using namespace std;
+using namespace Urho3D;
+
 /// Handler network message
 void GameEconomicGameClient::HandleNetworkMessage(StringHash eventType, Urho3D::VariantMap& eventData)
 {
@@ -329,10 +336,11 @@ void GameEconomicGameClient::SendNetworkMessage(NetworkMessageTypes MessageType,
         VectorBuffer msg;
         msg.WriteString(Message);
 
-        cout << "Sending NetMessageAuthenticateSend (" << Message.CString() << ")." <<endl;
-
-        serverConnection->SendMessage(NetMessageAuthenticateSend,true,true,msg,0);
+        ///cout << "Sending NetMessageAuthenticateSend (" << Message.CString() << ")." <<endl;
+        serverConnection->SendMessage(( int)NetMessageAuthenticateSend, true, true, msg, (int)0);
     }
+
+    return;
 }
 
 bool GameEconomicGameClient::LoadNetworkConfig(NetworkConfiguration &loadingnetwork)

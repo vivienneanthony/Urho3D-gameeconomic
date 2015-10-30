@@ -1,7 +1,9 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-
+#ifdef WIN32
+#undef SendMessage
+#endif
 
 enum NetworkMessageTypes
 {
@@ -26,7 +28,7 @@ enum NetworkMessageTypes
 
 enum NetworkClientTypes
 {
-    Unknown=0,
+    UnknownClient=0,
     Unauthenticated,
     Authenticated=100,
     AdminInterface=200,

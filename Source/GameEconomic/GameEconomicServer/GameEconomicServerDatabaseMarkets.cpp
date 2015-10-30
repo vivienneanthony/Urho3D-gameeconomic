@@ -56,9 +56,6 @@
 #include "../Administrator.h"
 #include "../Networking.h"
 
-#include "signalHandler.hpp"
-#include <pthread.h>
-
 #include "../GameEconomicComponents/Trader.h"
 #include "../GameEconomicComponents/Market.h"
 

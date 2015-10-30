@@ -55,7 +55,7 @@
 #include "../GameEconomicComponents/Trader.h"
 
 /// Added directive to add singal hpp or not based if not define win32 or win64
-#if !defined (WIN32) || !defined (WIN64)
+#if !defined (WIN32)
 
 #include "signalHandler.hpp"
 #include <pthread.h>
@@ -94,7 +94,7 @@ void GameEconomicServer::Start()
     GameEconomicApp::Start();
 
     /// Added directive to add singal hpp or not based if not define win32 or win64
-    #if !defined (WIN32) || !defined (WIN64)
+    #if !defined (WIN32)
 
     /// Create a signalHandler
     SignalHandler signalHandler;

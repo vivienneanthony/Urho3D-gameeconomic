@@ -52,8 +52,6 @@
 #include "../GameEconomicComponents/ServerConsoleInterface.h"
 #include "../GameEconomicComponents/connectorDB.h"
 
-#include "signalHandler.hpp"
-#include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
 

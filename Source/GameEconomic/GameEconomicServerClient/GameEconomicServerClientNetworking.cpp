@@ -51,8 +51,6 @@
 #include "../Networking.h"
 
 
-#include <pthread.h>
-
 #include <Urho3D/DebugNew.h>
 
 

@@ -49,7 +49,7 @@
 #include "GameEconomicServerClient.h"
 #include "GameEconomicServerClientConsole.h"
 
-#include <pthread.h>
+
 
 #include <Urho3D/DebugNew.h>
 

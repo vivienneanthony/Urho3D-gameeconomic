@@ -54,8 +54,6 @@
 #include "../GameEconomicComponents/connectorDB.h"
 #include "../GameEconomicComponents/Market.h"
 
-#include "signalHandler.hpp"
-#include <pthread.h>
 
 #include <Urho3D/DebugNew.h>
 

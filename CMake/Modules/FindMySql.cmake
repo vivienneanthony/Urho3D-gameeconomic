@@ -1,4 +1,4 @@
-# - Try to find Mysql-Connector-C++
+ #- Try to find Mysql-Connector-C++
 # Once done, this will define
 #
 #  MYSQLCONNECTORCPP_FOUND - system has Mysql-Connector-C++ installed
@@ -11,29 +11,33 @@
 set(MYSQLCONNECTORCPP_ROOT_DIR
         "${MYSQLCONNECTORCPP_ROOT_DIR}"
         CACHE
-        PATH
-        "Where to start looking for this component.")
+        PATHS
+        "path goes here")
 
 if(WIN32)
+        MESSAGE ("OUT")
         find_path(MYSQLCONNECTORCPP_INCLUDE_DIR
-                NAMES
                 mysql_connection.h
                 PATHS
-                "C:\\Program Files"
+                /usr/local
                 HINTS
                 ${MYSQLCONNECTORCPP_ROOT_DIR}
                 PATH_SUFFIXES
                 include)
-               
+
         find_library(MYSQLCONNECTORCPP_LIBRARY
                 NAMES
                 mysqlcppconn
                 mysqlcppconn-static
+                PATHS
+                /usr
                 HINTS
                 ${MYSQLCONNECTORCPP_ROOT_DIR}
                 PATH_SUFFIXES
+                lib64
                 lib)
-               
+
+
 else()
         find_path(MYSQLCONNECTORCPP_INCLUDE_DIR
                 mysql_connection.h
@@ -41,7 +45,7 @@ else()
                 ${MYSQLCONNECTORCPP_ROOT_DIR}
                 PATH_SUFFIXES
                 include)
-               
+
         find_library(MYSQLCONNECTORCPP_LIBRARY
                 NAMES
                 mysqlcppconn
@@ -51,11 +55,13 @@ else()
                 PATH_SUFFIXES
                 lib64
                 lib)
+
 endif()
 
 mark_as_advanced(MYSQLCONNECTORCPP_INCLUDE_DIR MYSQLCONNECTORCPP_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
+
 find_package_handle_standard_args(MysqlConnectorCpp
         DEFAULT_MSG
         MYSQLCONNECTORCPP_INCLUDE_DIR
@@ -65,6 +71,4 @@ if(MYSQLCONNECTORCPP_FOUND)
         set(MYSQLCONNECTORCPP_INCLUDE_DIRS "${MYSQLCONNECTORCPP_INCLUDE_DIR}") # Add any dependencies here
         set(MYSQLCONNECTORCPP_LIBRARIES "${MYSQLCONNECTORCPP_LIBRARY}") # Add any dependencies here
         mark_as_advanced(MYSQLCONNECTORCPP_ROOT_DIR)
-endif()  
-
-
+endif()

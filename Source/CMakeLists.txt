@@ -97,7 +97,9 @@ endif ()
 add_subdirectory (Urho3D)
 
 # Urho3D tools
-add_subdirectory (Tools)
+if (Tools)
+	add_subdirectory (Tools)
+endif()
 
 # Urho3D samples
 # Samples are built on iOS platform too when enabled. Currently there is no available mechanism to package each sample apps into individual *.apk
@@ -105,7 +107,6 @@ add_subdirectory (Tools)
 if (URHO3D_GAMEECONOMICSERVER OR URHO3D_GAMEECONOMICSERVERCLIENT OR URHO3D_GAMEECONOMICGAMECLIENT)
     add_subdirectory (GameEconomic)
 endif ()
-
 
 # Urho3D extras
 if (URHO3D_EXTRAS)

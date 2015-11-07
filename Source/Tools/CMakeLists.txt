@@ -25,7 +25,6 @@ project (Urho3D-Tools)
 
 # Find Urho3D library
 find_package (Urho3D REQUIRED)
-include_directories (${URHO3D_INCLUDE_DIRS})
 
 # Urho3DPlayer target is rather special, although it is here, it is not a tool because it builds into platform-specific binary
 if (NOT EMSCRIPTEN)
